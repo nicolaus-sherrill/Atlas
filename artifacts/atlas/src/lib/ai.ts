@@ -1,4 +1,5 @@
 import type { WorkSpot } from "./types";
+import { getSpotDisplayTags, calcScore } from "./types";
 
 export async function generateSummary(spot: WorkSpot): Promise<string> {
   try {
@@ -10,11 +11,8 @@ export async function generateSummary(spot: WorkSpot): Promise<string> {
         category: spot.category,
         city: spot.city,
         description: spot.description,
-        ratings: spot.ratings,
-        food: spot.food,
-        drink: spot.drink,
-        ada: spot.ada,
-        transit: spot.transit,
+        tags: getSpotDisplayTags(spot),
+        score: calcScore(spot.tags),
       }),
     });
 

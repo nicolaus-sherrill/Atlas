@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { WorkSpot, Category } from "@/lib/types";
-import { CATEGORIES, RATING_LABELS, computeWorkabilityScore, getSpotTags } from "@/lib/types";
+import { CATEGORIES, calcScore, getSpotDisplayTags, scoreToLabel } from "@/lib/types";
 import { getGoogleMapsUrl, getAppleMapsUrl } from "@/lib/export";
 
 function escapeHtml(str: string): string {
@@ -45,29 +45,17 @@ function createMarkerIcon(category: Category): L.DivIcon {
 
 function createPopupContent(spot: WorkSpot): string {
   const cat = CATEGORIES.find((c) => c.value === spot.category);
-  const coreRatings: (keyof WorkSpot["ratings"])[] = ["wifi", "power", "noise", "coffee", "lighting", "seating", "outlets"];
-  const ratingBars = coreRatings
-    .map((key) => {
-      const val = spot.ratings[key];
-      const filled = "●".repeat(val);
-      const empty = "○".repeat(5 - val);
-      return `<div style="display:flex;justify-content:space-between;align-items:center;margin:2px 0;">
-        <span style="font-size:11px;color:#1A1A18;opacity:0.7;min-width:60px;">${RATING_LABELS[key]}</span>
-        <span style="font-size:10px;letter-spacing:2px;color:#C8B89A;">${filled}${empty}</span>
-      </div>`;
-    })
-    .join("");
-
   const safeName = escapeHtml(spot.name);
   const safeAddress = escapeHtml(spot.address);
   const safeCategory = escapeHtml(cat?.label || spot.category);
-  const score = computeWorkabilityScore(spot);
-  const tags = getSpotTags(spot);
+  const score = calcScore(spot.tags);
+  const label = scoreToLabel(score);
+  const tags = getSpotDisplayTags(spot);
 
   const googleUrl = getGoogleMapsUrl(spot.lat, spot.lng, spot.name);
   const appleUrl = getAppleMapsUrl(spot.lat, spot.lng, spot.name);
 
-  const tagPills = tags.slice(0, 5).map((t) =>
+  const tagPills = tags.slice(0, 6).map((t) =>
     `<span style="display:inline-block;padding:2px 8px;border-radius:10px;background:#F5F3EF;font-size:10px;color:#1A1A18;border:1px solid #E5E1DA;">${escapeHtml(t)}</span>`
   ).join(" ");
 
@@ -84,13 +72,13 @@ function createPopupContent(spot: WorkSpot): string {
         <div style="font-weight:600;font-size:15px;color:#1A1A18;line-height:1.2;">${safeName}</div>
         <div style="font-size:11px;color:#1A1A18;opacity:0.5;text-transform:uppercase;letter-spacing:0.5px;">${safeCategory} &middot; ${escapeHtml(spot.city)}</div>
       </div>
-      <div style="background:#8A9E8C;color:#fff;font-weight:700;font-size:13px;padding:3px 8px;border-radius:6px;">${score.toFixed(1)}</div>
+      <div style="text-align:center;">
+        <div style="background:#8A9E8C;color:#fff;font-weight:700;font-size:13px;padding:3px 8px;border-radius:6px;">${score.toFixed(1)}</div>
+        <div style="font-size:9px;color:#1A1A18;opacity:0.5;margin-top:2px;">${label}</div>
+      </div>
     </div>
     <div style="font-size:12px;color:#1A1A18;opacity:0.6;margin-bottom:6px;">${safeAddress}</div>
     ${summaryHtml}
-    <div style="background:#F5F3EF;border-radius:8px;padding:6px 8px;margin-bottom:6px;">
-      ${ratingBars}
-    </div>
     <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px;">
       ${tagPills}
     </div>

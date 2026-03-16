@@ -1,6 +1,6 @@
 import { useState, useMemo, Fragment } from "react";
 import type { WorkSpot, Category } from "@/lib/types";
-import { CATEGORIES, computeWorkabilityScore, getSpotTags } from "@/lib/types";
+import { CATEGORIES, calcScore, getSpotDisplayTags, getTagLabel, TAG_CATEGORIES, scoreToLabel } from "@/lib/types";
 import BrowseSubmitModal from "./BrowseSubmitModal";
 import MultiSelectDropdown from "./MultiSelectDropdown";
 
@@ -11,11 +11,7 @@ interface BrowseViewProps {
   onBrowseSubmit: (spot: Omit<WorkSpot, "id" | "submittedAt">) => void;
 }
 
-const ALL_FILTER_TAGS = [
-  "Food", "Drinks", "ADA", "Fast WiFi", "Many Outlets",
-  "Good Lighting", "Great Seating", "Walking", "Biking",
-  "Driving", "Train", "Bus",
-];
+const ALL_FILTER_TAGS = TAG_CATEGORIES.flatMap((g) => g.tags.map((t) => t.label));
 
 export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSubmit }: BrowseViewProps) {
   const [search, setSearch] = useState("");
@@ -41,8 +37,8 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
         spot.description.toLowerCase().includes(q);
       const matchesCity = activeCities.size === 0 || activeCities.has(spot.city);
       const matchesCategory = !activeCategory || spot.category === activeCategory;
-      const spotTags = getSpotTags(spot);
-      const matchesTags = activeTags.size === 0 || Array.from(activeTags).every((t) => spotTags.includes(t));
+      const spotTagLabels = getSpotDisplayTags(spot);
+      const matchesTags = activeTags.size === 0 || Array.from(activeTags).every((t) => spotTagLabels.includes(t));
       return matchesSearch && matchesCity && matchesCategory && matchesTags;
     });
   }, [spots, search, activeCities, activeCategory, activeTags]);
@@ -155,8 +151,9 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
           <tbody>
             {filtered.map((spot, i) => {
               const cat = CATEGORIES.find((c) => c.value === spot.category);
-              const score = computeWorkabilityScore(spot);
-              const tags = getSpotTags(spot).slice(0, 3);
+              const score = calcScore(spot.tags);
+              const displayTags = getSpotDisplayTags(spot).slice(0, 3);
+              const allTags = getSpotDisplayTags(spot);
               const isExpanded = expandedId === spot.id;
               return (
                 <Fragment key={spot.id}>
@@ -172,11 +169,11 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
                     </td>
                     <td className="col-tags">
                       <div className="browse-tag-pills">
-                        {tags.map((t) => (
+                        {displayTags.map((t) => (
                           <span key={t} className="browse-tag-pill">{t}</span>
                         ))}
-                        {getSpotTags(spot).length > 3 && (
-                          <span className="browse-tag-pill more">+{getSpotTags(spot).length - 3}</span>
+                        {allTags.length > 3 && (
+                          <span className="browse-tag-pill more">+{allTags.length - 3}</span>
                         )}
                       </div>
                     </td>
@@ -212,22 +209,12 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
                             )}
                           </div>
                           <div className="browse-detail-meta">
-                            <div className="browse-detail-ratings">
-                              {(Object.keys(spot.ratings) as (keyof typeof spot.ratings)[]).map((key) => (
-                                <div key={key} className="browse-detail-rating">
-                                  <span className="browse-detail-rating-label">
-                                    {key.charAt(0).toUpperCase() + key.slice(1)}
-                                  </span>
-                                  <span className="browse-detail-rating-dots">
-                                    {[1,2,3,4,5].map((v) => (
-                                      <span key={v} className={`rdot ${v <= spot.ratings[key] ? "filled" : ""}`} />
-                                    ))}
-                                  </span>
-                                </div>
-                              ))}
+                            <div className="browse-detail-score-summary">
+                              <span className="browse-score">{score.toFixed(1)}</span>
+                              <span className="browse-score-label">{scoreToLabel(score)}</span>
                             </div>
                             <div className="browse-detail-tags">
-                              {getSpotTags(spot).map((t) => (
+                              {allTags.map((t) => (
                                 <span key={t} className="browse-tag-pill">{t}</span>
                               ))}
                             </div>

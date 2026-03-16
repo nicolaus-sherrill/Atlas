@@ -1,0 +1,143 @@
+Add a weighted tagging and auto-scoring system to the existing Workscape app. Do not change any visual design, layout, or map logic. Only implement the tag taxonomy, submission form tag UI, and score calculation function.
+
+---
+
+SCORE CATEGORIES AND WEIGHTS:
+
+WiFi & Connectivity: 25%
+Outlets & Power: 20%
+Environment: 20%
+Hours & Logistics: 15%
+Food & Beverage: 10%
+Accessibility: 10%
+
+---
+
+TAG DEFINITIONS (tag_id: display label, point value within category, max 10pts per category):
+
+WiFi & Connectivity (max 10pts):
+  wifi_fast: "Fast WiFi (50+ Mbps)" — 4pts
+  wifi_reliable: "Reliable connection" — 3pts
+  wifi_password_free: "No password needed" — 2pts
+  cell_signal_strong: "Strong cell signal" — 1pt
+
+Outlets & Power (max 10pts):
+  outlets_every_seat: "Outlet at every seat" — 5pts
+  outlets_ample: "Ample outlets" — 3pts
+  outlets_limited: "Limited outlets" — 1pt
+  standing_desk: "Standing desk available" — 1pt
+
+Environment (max 10pts):
+  noise_quiet: "Quiet / library-level" — 4pts
+  noise_moderate: "Moderate background noise" — 2pts
+  natural_light: "Good natural light" — 2pts
+  temp_controlled: "Climate controlled" — 1pt
+  seating_comfortable: "Comfortable seating" — 1pt
+  table_space: "Generous table space" — 2pts
+
+Hours & Logistics (max 10pts):
+  open_early: "Opens before 8am" — 2pts
+  open_late: "Open past 8pm" — 2pts
+  no_time_limit: "No time limit enforced" — 3pts
+  walk_in: "Walk-in friendly" — 2pts
+  reservation_available: "Reservations available" — 1pt
+
+Food & Beverage (max 10pts):
+  coffee_quality: "Good coffee" — 3pts
+  food_available: "Food menu available" — 3pts
+  water_refill: "Free water refill" — 2pts
+  alcohol_available: "Beer/wine available" — 2pts
+
+Accessibility (max 10pts):
+  ada_entrance: "ADA accessible entrance" — 3pts
+  ada_restroom: "ADA restroom" — 2pts
+  transit_nearby: "Transit stop within 5 min walk" — 2pts
+  bike_rack: "Bike rack available" — 2pts
+  parking_free: "Free parking nearby" — 1pt
+
+---
+
+SCORE FORMULA — implement as calcScore(tags) function:
+
+function calcScore(tags) {
+  const categories = {
+    wifi:        { weight: 0.25, max: 10, pts: 0 },
+    outlets:     { weight: 0.20, max: 10, pts: 0 },
+    environment: { weight: 0.20, max: 10, pts: 0 },
+    hours:       { weight: 0.15, max: 10, pts: 0 },
+    food:        { weight: 0.10, max: 10, pts: 0 },
+    access:      { weight: 0.10, max: 10, pts: 0 }
+  };
+
+  const tagMap = {
+    wifi_fast:            ['wifi', 4],
+    wifi_reliable:        ['wifi', 3],
+    wifi_password_free:   ['wifi', 2],
+    cell_signal_strong:   ['wifi', 1],
+    outlets_every_seat:   ['outlets', 5],
+    outlets_ample:        ['outlets', 3],
+    outlets_limited:      ['outlets', 1],
+    standing_desk:        ['outlets', 1],
+    noise_quiet:          ['environment', 4],
+    noise_moderate:       ['environment', 2],
+    natural_light:        ['environment', 2],
+    temp_controlled:      ['environment', 1],
+    seating_comfortable:  ['environment', 1],
+    table_space:          ['environment', 2],
+    open_early:           ['hours', 2],
+    open_late:            ['hours', 2],
+    no_time_limit:        ['hours', 3],
+    walk_in:              ['hours', 2],
+    reservation_available:['hours', 1],
+    coffee_quality:       ['food', 3],
+    food_available:       ['food', 3],
+    water_refill:         ['food', 2],
+    alcohol_available:    ['food', 2],
+    ada_entrance:         ['access', 3],
+    ada_restroom:         ['access', 2],
+    transit_nearby:       ['access', 2],
+    bike_rack:            ['access', 2],
+    parking_free:         ['access', 1]
+  };
+
+  tags.forEach(tag => {
+    if (tagMap[tag]) {
+      const [cat, pts] = tagMap[tag];
+      categories[cat].pts = Math.min(categories[cat].max, categories[cat].pts + pts);
+    }
+  });
+
+  const raw = Object.values(categories).reduce((sum, c) => {
+    return sum + (c.pts / c.max) * c.weight;
+  }, 0);
+
+  return Math.round(raw * 50) / 10; // returns 0.0–5.0
+}
+
+---
+
+SCORE DISPLAY — implement these two helper functions:
+
+function scoreToDots(score) {
+  const filled = Math.round(score);
+  return '●'.repeat(filled) + '○'.repeat(5 - filled);
+}
+
+function scoreToLabel(score) {
+  if (score >= 4.5) return 'Excellent';
+  if (score >= 3.5) return 'Good';
+  if (score >= 2.5) return 'Decent';
+  return 'Limited';
+}
+
+---
+
+SUBMISSION FORM TAG UI:
+
+Render tags as grouped checkboxes in the submission form, organized under their category headers in this order: WiFi & Connectivity, Outlets & Power, Environment, Hours & Logistics, Food & Beverage, Accessibility.
+
+Each category header should be visually distinct (13px, medium weight, muted color, with a thin top border separator). Each tag renders as a checkbox + label in 13px. No custom styling needed beyond the existing app styles.
+
+On form submit, collect all checked tag_ids into an array, pass to calcScore(), store the resulting score alongside the tags array in localStorage.
+
+Do not change anything else. No layout changes, no new map behavior, no visual redesign.

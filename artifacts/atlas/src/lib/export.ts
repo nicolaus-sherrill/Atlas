@@ -1,5 +1,5 @@
 import type { WorkSpot } from "./types";
-import { CATEGORIES, computeWorkabilityScore } from "./types";
+import { CATEGORIES, calcScore, getSpotDisplayTags } from "./types";
 
 export function spotsToGeoJSON(spots: WorkSpot[]): string {
   const features = spots.map((spot) => ({
@@ -14,18 +14,8 @@ export function spotsToGeoJSON(spots: WorkSpot[]): string {
       city: spot.city,
       address: spot.address,
       description: spot.description,
-      workabilityScore: computeWorkabilityScore(spot),
-      wifi: spot.ratings.wifi,
-      power: spot.ratings.power,
-      noise: spot.ratings.noise,
-      coffee: spot.ratings.coffee,
-      lighting: spot.ratings.lighting,
-      seating: spot.ratings.seating,
-      outlets: spot.ratings.outlets,
-      food: spot.food,
-      drink: spot.drink,
-      ada: spot.ada,
-      transit: spot.transit,
+      score: calcScore(spot.tags),
+      tags: spot.tags,
     },
   }));
 
@@ -40,11 +30,12 @@ export function spotsToKML(spots: WorkSpot[]): string {
   const placemarks = spots
     .map((spot) => {
       const cat = CATEGORIES.find((c) => c.value === spot.category);
-      const score = computeWorkabilityScore(spot);
+      const score = calcScore(spot.tags);
+      const tagLabels = getSpotDisplayTags(spot).join(", ");
       return `    <Placemark>
       <name>${escapeXml(spot.name)}</name>
       <description>${escapeXml(
-        `${cat?.icon || ""} ${cat?.label || spot.category} | ${spot.city}\n${spot.address}\n\nWorkability: ${score.toFixed(1)}/5\nWiFi: ${spot.ratings.wifi}/5 | Power: ${spot.ratings.power}/5 | Noise: ${spot.ratings.noise}/5 | Lighting: ${spot.ratings.lighting}/5 | Seating: ${spot.ratings.seating}/5 | Outlets: ${spot.ratings.outlets}/5\n\n${spot.aiSummary || spot.description}`
+        `${cat?.icon || ""} ${cat?.label || spot.category} | ${spot.city}\n${spot.address}\n\nScore: ${score.toFixed(1)}/5.0\nTags: ${tagLabels}\n\n${spot.aiSummary || spot.description}`
       )}</description>
       <Point>
         <coordinates>${spot.lng},${spot.lat},0</coordinates>

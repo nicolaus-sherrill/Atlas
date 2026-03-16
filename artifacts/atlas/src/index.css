@@ -405,28 +405,17 @@ html, body, #root {
   flex-wrap: wrap;
 }
 
-.browse-detail-ratings {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px 20px;
-}
-
-.browse-detail-rating {
+.browse-detail-score-summary {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
+  flex-shrink: 0;
 }
 
-.browse-detail-rating-label {
+.browse-score-label {
   font-size: 12px;
   color: var(--muted);
-  min-width: 60px;
-}
-
-.browse-detail-rating-dots {
-  display: flex;
-  gap: 3px;
+  font-weight: 500;
 }
 
 .rdot {
@@ -1258,6 +1247,68 @@ html, body, #root {
 .btn-submit:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.tag-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.tag-group {
+  padding: 0;
+}
+
+.tag-group-header {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  padding: 10px 0 6px;
+  border-top: 1px solid var(--border);
+}
+
+.tag-group:first-child .tag-group-header {
+  border-top: none;
+  padding-top: 0;
+}
+
+.tag-group-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tag-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  padding: 3px 0;
+}
+
+.tag-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--sage);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.spot-card-score-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.spot-card-score-label {
+  font-size: 9px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 /* ========== BROWSE SUBMIT MODAL ========== */

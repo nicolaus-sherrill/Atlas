@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import type { WorkSpot, Category } from "@/lib/types";
-import { CATEGORIES, RATING_LABELS, computeWorkabilityScore, getSpotTags } from "@/lib/types";
+import { CATEGORIES, calcScore, getSpotDisplayTags, scoreToLabel } from "@/lib/types";
 import { spotsToGeoJSON, spotsToKML, downloadFile } from "@/lib/export";
 import { searchAddress, type GeocodingResult } from "@/lib/geocode";
 
@@ -18,65 +18,52 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [showExport, setShowExport] = useState(false);
   const [geocodeResults, setGeocodeResults] = useState<GeocodingResult[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [geocodeLoading, setGeocodeLoading] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const doSearch = useCallback(async (query: string) => {
-    if (query.trim().length < 3) {
-      setGeocodeResults([]);
-      setShowDropdown(false);
-      setIsSearching(false);
+  const handleSearchChange = useCallback((value: string) => {
+    setSearch(value);
+    setGeocodeResults([]);
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (abortRef.current) abortRef.current.abort();
+
+    if (!value.trim() || value.trim().length < 3) {
+      setGeocodeLoading(false);
       return;
     }
-    if (abortRef.current) abortRef.current.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-    setIsSearching(true);
-    try {
-      const results = await searchAddress(query, controller.signal);
-      setGeocodeResults(results);
-      setShowDropdown(results.length > 0);
-    } catch (e: unknown) {
-      if (e instanceof DOMException && e.name === "AbortError") return;
-      setGeocodeResults([]);
-      setShowDropdown(false);
-    } finally {
-      if (!controller.signal.aborted) setIsSearching(false);
-    }
+
+    setGeocodeLoading(true);
+    debounceRef.current = setTimeout(async () => {
+      const controller = new AbortController();
+      abortRef.current = controller;
+      try {
+        const results = await searchAddress(value.trim(), controller.signal);
+        if (!controller.signal.aborted) {
+          setGeocodeResults(results);
+          setGeocodeLoading(false);
+        }
+      } catch {
+        if (!controller.signal.aborted) {
+          setGeocodeLoading(false);
+        }
+      }
+    }, 350);
   }, []);
 
+  const handleSelectResult = useCallback((result: GeocodingResult) => {
+    setSearch("");
+    setGeocodeResults([]);
+    onGeocode(result.lat, result.lng, result.displayName, result.city);
+  }, [onGeocode]);
+
   useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (search.trim().length < 3) {
-      setGeocodeResults([]);
-      setShowDropdown(false);
-      return;
-    }
-    debounceRef.current = setTimeout(() => doSearch(search), 350);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (abortRef.current) abortRef.current.abort();
     };
-  }, [search, doSearch]);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setShowDropdown(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const handleSelectResult = (result: GeocodingResult) => {
-    setSearch("");
-    setShowDropdown(false);
-    setGeocodeResults([]);
-    onGeocode(result.lat, result.lng, result.address, result.city);
-  };
 
   const filtered = spots.filter((spot) => {
     const matchesCategory = !activeCategory || spot.category === activeCategory;
@@ -96,29 +83,23 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
         <p className="sidebar-tagline">Find your next great work spot</p>
       </div>
 
-      <div className="sidebar-search" ref={dropdownRef}>
+      <div className="sidebar-search">
         <input
           type="search"
           placeholder="Search an address..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          onFocus={() => {
-            if (geocodeResults.length > 0) setShowDropdown(true);
-          }}
+          onChange={(e) => handleSearchChange(e.target.value)}
         />
-        {isSearching && (
-          <div className="geocode-loading">Searching...</div>
-        )}
-        {showDropdown && geocodeResults.length > 0 && (
+        {geocodeLoading && <div className="geocode-loading">Searching...</div>}
+        {geocodeResults.length > 0 && (
           <div className="geocode-dropdown">
-            {geocodeResults.map((result, i) => (
+            {geocodeResults.map((r, i) => (
               <button
-                key={`${result.lat}-${result.lng}-${i}`}
+                key={i}
                 className="geocode-result"
-                onClick={() => handleSelectResult(result)}
+                onClick={() => handleSelectResult(r)}
               >
-                <span className="geocode-result-icon">📍</span>
-                <span className="geocode-result-text">{result.displayName}</span>
+                {r.displayName}
               </button>
             ))}
           </div>
@@ -183,8 +164,8 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
       <div className="sidebar-list">
         {filtered.map((spot) => {
           const cat = CATEGORIES.find((c) => c.value === spot.category);
-          const score = computeWorkabilityScore(spot);
-          const tags = getSpotTags(spot).slice(0, 4);
+          const score = calcScore(spot.tags);
+          const tags = getSpotDisplayTags(spot).slice(0, 4);
           return (
             <button
               key={spot.id}
@@ -197,7 +178,10 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
                   <span className="spot-card-name">{spot.name}</span>
                   <span className="spot-card-category">{cat?.label} &middot; {spot.city}</span>
                 </div>
-                <span className="spot-card-rating">{score.toFixed(1)}</span>
+                <div className="spot-card-score-block">
+                  <span className="spot-card-rating">{score.toFixed(1)}</span>
+                  <span className="spot-card-score-label">{scoreToLabel(score)}</span>
+                </div>
               </div>
               <div className="spot-card-address">{spot.address}</div>
               {spot.aiSummary && (
@@ -207,18 +191,9 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
                 {tags.map((t) => (
                   <span key={t} className="spot-card-tag">{t}</span>
                 ))}
-              </div>
-              <div className="spot-card-ratings">
-                {(["wifi", "power", "noise", "coffee", "lighting", "seating", "outlets"] as (keyof WorkSpot["ratings"])[]).map((key) => (
-                  <div key={key} className="spot-card-rating-item">
-                    <span className="rating-label">{RATING_LABELS[key]}</span>
-                    <div className="rating-dots">
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <span key={i} className={`rating-dot ${i <= spot.ratings[key] ? "filled" : ""}`} />
-                      ))}
-                    </div>
-                  </div>
-                ))}
+                {getSpotDisplayTags(spot).length > 4 && (
+                  <span className="spot-card-tag">+{getSpotDisplayTags(spot).length - 4}</span>
+                )}
               </div>
             </button>
           );

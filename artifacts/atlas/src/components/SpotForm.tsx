@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import type { WorkSpot, Category, TransitAccess } from "@/lib/types";
-import { CATEGORIES, RATING_LABELS, TRANSIT_LABELS } from "@/lib/types";
+import type { WorkSpot, Category, TagId } from "@/lib/types";
+import { CATEGORIES, TAG_CATEGORIES } from "@/lib/types";
 import { reverseGeocode, forwardGeocode } from "@/lib/geocoding";
 
 interface SpotFormProps {
@@ -17,15 +17,7 @@ export default function SpotForm({ pendingLocation, geoData, onSubmit, onCancel 
   const [cityLoading, setCityLoading] = useState(false);
   const [address, setAddress] = useState("");
   const [description, setDescription] = useState("");
-  const [ratings, setRatings] = useState<WorkSpot["ratings"]>({
-    wifi: 3, power: 3, noise: 3, coffee: 3, lighting: 3, seating: 3, outlets: 3,
-  });
-  const [food, setFood] = useState(false);
-  const [drink, setDrink] = useState(false);
-  const [ada, setAda] = useState(false);
-  const [transit, setTransit] = useState<TransitAccess>({
-    walking: false, biking: false, driving: false, train: false, bus: false,
-  });
+  const [selectedTags, setSelectedTags] = useState<Set<TagId>>(new Set());
 
   const addressDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const geocodeSeqRef = useRef<number>(0);
@@ -69,10 +61,6 @@ export default function SpotForm({ pendingLocation, geoData, onSubmit, onCancel 
     };
   }, []);
 
-  const updateRating = (key: keyof typeof ratings, value: number) => {
-    setRatings((prev) => ({ ...prev, [key]: value }));
-  };
-
   useEffect(() => {
     if (geoData) {
       if (geoData.address) setAddress(geoData.address);
@@ -80,8 +68,13 @@ export default function SpotForm({ pendingLocation, geoData, onSubmit, onCancel 
     }
   }, [geoData]);
 
-  const toggleTransit = (key: keyof TransitAccess) => {
-    setTransit((prev) => ({ ...prev, [key]: !prev[key] }));
+  const toggleTag = (tagId: TagId) => {
+    setSelectedTags((prev) => {
+      const next = new Set(prev);
+      if (next.has(tagId)) next.delete(tagId);
+      else next.add(tagId);
+      return next;
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -95,11 +88,7 @@ export default function SpotForm({ pendingLocation, geoData, onSubmit, onCancel 
       address: address.trim() || `${pendingLocation.lat.toFixed(4)}, ${pendingLocation.lng.toFixed(4)}`,
       lat: pendingLocation.lat,
       lng: pendingLocation.lng,
-      ratings,
-      food,
-      drink,
-      ada,
-      transit,
+      tags: Array.from(selectedTags),
       description: description.trim(),
     });
   };
@@ -177,67 +166,24 @@ export default function SpotForm({ pendingLocation, geoData, onSubmit, onCancel 
         </div>
 
         <div className="form-group">
-          <label>Ratings</label>
-          <div className="ratings-grid">
-            {(Object.keys(ratings) as (keyof typeof ratings)[]).map((key) => (
-              <div key={key} className="rating-row">
-                <span className="rating-row-label">{RATING_LABELS[key]}</span>
-                <div className="rating-row-dots">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      className={`rating-button ${i <= ratings[key] ? "filled" : ""}`}
-                      onClick={() => updateRating(key, i)}
-                    >
-                      ●
-                    </button>
+          <label>What does this spot offer?</label>
+          <div className="tag-groups">
+            {TAG_CATEGORIES.map((group) => (
+              <div key={group.key} className="tag-group">
+                <div className="tag-group-header">{group.label}</div>
+                <div className="tag-group-items">
+                  {group.tags.map((tag) => (
+                    <label key={tag.id} className="tag-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={selectedTags.has(tag.id)}
+                        onChange={() => toggleTag(tag.id)}
+                      />
+                      <span>{tag.label}</span>
+                    </label>
                   ))}
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="form-group">
-          <label>Amenities</label>
-          <div className="amenities-row">
-            <button
-              type="button"
-              className={`amenity-toggle ${food ? "active" : ""}`}
-              onClick={() => setFood(!food)}
-            >
-              🍽️ Food
-            </button>
-            <button
-              type="button"
-              className={`amenity-toggle ${drink ? "active" : ""}`}
-              onClick={() => setDrink(!drink)}
-            >
-              🥤 Drinks
-            </button>
-            <button
-              type="button"
-              className={`amenity-toggle ${ada ? "active" : ""}`}
-              onClick={() => setAda(!ada)}
-            >
-              ♿ ADA
-            </button>
-          </div>
-        </div>
-
-        <div className="form-group">
-          <label>Transit Access</label>
-          <div className="transit-row">
-            {(Object.keys(transit) as (keyof TransitAccess)[]).map((key) => (
-              <button
-                key={key}
-                type="button"
-                className={`transit-toggle ${transit[key] ? "active" : ""}`}
-                onClick={() => toggleTransit(key)}
-              >
-                {TRANSIT_LABELS[key].icon} {TRANSIT_LABELS[key].label}
-              </button>
             ))}
           </div>
         </div>

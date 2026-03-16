@@ -30,7 +30,7 @@ router.post("/summarize", async (req, res) => {
       return;
     }
 
-    const { name, category, city, description, ratings, food, drink, ada, transit } = req.body;
+    const { name, category, city, description, tags, score } = req.body;
 
     if (!name || typeof name !== "string" || name.length > 200) {
       res.status(400).json({ error: "name is required and must be under 200 characters" });
@@ -45,17 +45,7 @@ router.post("/summarize", async (req, res) => {
       return;
     }
 
-    const transitModes = transit
-      ? Object.entries(transit)
-          .filter(([, v]) => v)
-          .map(([k]) => k)
-          .join(", ")
-      : "none";
-
-    const amenities: string[] = [];
-    if (food) amenities.push("food");
-    if (drink) amenities.push("drinks");
-    if (ada) amenities.push("ADA accessible");
+    const tagList = Array.isArray(tags) ? tags.join(", ") : "none";
 
     const prompt = `Generate a concise 1-2 sentence summary for a remote work spot. Be informative and helpful, focusing on what makes this place good or bad for working remotely.
 
@@ -63,9 +53,8 @@ Spot: ${name}
 Category: ${category || "unknown"}
 City: ${city || "unknown"}
 Description from users: ${description}
-Ratings (1-5): WiFi ${ratings?.wifi || "?"}, Power ${ratings?.power || "?"}, Noise ${ratings?.noise || "?"}, Coffee ${ratings?.coffee || "?"}, Lighting ${ratings?.lighting || "?"}, Seating ${ratings?.seating || "?"}, Outlets ${ratings?.outlets || "?"}
-Amenities: ${amenities.length > 0 ? amenities.join(", ") : "none noted"}
-Transit access: ${transitModes}
+Features: ${tagList}
+Workability score: ${typeof score === "number" ? `${score.toFixed(1)}/5.0` : "unknown"}
 
 Write a natural, helpful summary in 1-2 sentences. Do not use bullet points.`;
 
