@@ -111,7 +111,7 @@ export default function SpotForm({ pendingLocation, onSubmit, onCancel }: SpotFo
             <input
               id="city"
               type="text"
-              placeholder="e.g. Brooklyn"
+              placeholder="e.g. Austin"
               value={city}
               onChange={(e) => setCity(e.target.value)}
             />

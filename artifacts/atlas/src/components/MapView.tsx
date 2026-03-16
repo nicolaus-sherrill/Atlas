@@ -126,7 +126,7 @@ export default function MapView({ spots, selectedSpotId, onMapClick, onSpotSelec
 
     const map = L.map(containerRef.current, {
       zoomControl: false,
-    }).setView([40.72, -73.98], 12);
+    }).setView([30.27, -97.74], 12);
 
     L.control.zoom({ position: "bottomright" }).addTo(map);
 
