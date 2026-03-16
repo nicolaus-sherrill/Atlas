@@ -1,9 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { WorkSpot, Category } from "@/lib/types";
 import { CATEGORIES, calcScore, getSpotDisplayTags, scoreToLabel, SCORE_CATEGORIES } from "@/lib/types";
 import { getGoogleMapsUrl, getAppleMapsUrl } from "@/lib/export";
+import { fetchAllCrowdStatuses, submitCrowdReport, getBusynessInfo, timeAgo, BUSYNESS_LEVELS, type CrowdStatus } from "@/lib/crowd";
 
 function escapeHtml(str: string): string {
   const div = document.createElement("div");
@@ -43,7 +44,37 @@ function createMarkerIcon(category: Category): L.DivIcon {
   });
 }
 
-function createPopupContent(spot: WorkSpot): string {
+function createCrowdHtml(status: CrowdStatus | null, spotId: string): string {
+  if (status) {
+    const info = getBusynessInfo(status.level);
+    return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;padding:4px 8px;background:#F5F3EF;border-radius:6px;">
+      <span style="width:8px;height:8px;border-radius:50%;background:${info.color};display:inline-block;"></span>
+      <span style="font-weight:500;font-size:12px;color:#1A1A18;">${escapeHtml(info.label)}</span>
+      <span style="font-size:10px;color:rgba(26,26,24,0.5);">${timeAgo(status.lastReportedAt)}</span>
+    </div>
+    <button data-crowd-report="${escapeHtml(spotId)}" style="
+      display:block;width:100%;padding:5px 0;border:1px solid #E5E1DA;border-radius:6px;background:#fff;
+      color:#1A1A18;font-size:11px;font-family:inherit;font-weight:500;cursor:pointer;margin-bottom:8px;
+    ">&#128101; Report crowd level</button>`;
+  }
+  return `<button data-crowd-report="${escapeHtml(spotId)}" style="
+    display:block;width:100%;padding:5px 0;border:1px solid #E5E1DA;border-radius:6px;background:#fff;
+    color:#1A1A18;font-size:11px;font-family:inherit;font-weight:500;cursor:pointer;margin-bottom:8px;
+  ">&#128101; Report crowd level</button>`;
+}
+
+function createCrowdPickerHtml(spotId: string): string {
+  const options = BUSYNESS_LEVELS.map((b) =>
+    `<button data-crowd-submit="${escapeHtml(spotId)}" data-crowd-level="${b.level}" style="
+      display:flex;align-items:center;gap:6px;width:100%;padding:5px 8px;border:1px solid #E5E1DA;
+      border-left:3px solid ${b.color};border-radius:6px;background:#fff;color:#1A1A18;
+      font-size:11px;font-family:inherit;cursor:pointer;text-align:left;
+    "><span style="width:6px;height:6px;border-radius:50%;background:${b.color};"></span>${escapeHtml(b.label)}</button>`
+  ).join("");
+  return `<div style="display:flex;flex-direction:column;gap:3px;margin-bottom:8px;">${options}</div>`;
+}
+
+function createPopupContent(spot: WorkSpot, crowdStatus: CrowdStatus | null): string {
   const cat = CATEGORIES.find((c) => c.value === spot.category);
   const safeName = escapeHtml(spot.name);
   const safeAddress = escapeHtml(spot.address);
@@ -65,6 +96,8 @@ function createPopupContent(spot: WorkSpot): string {
       ? `<p style="font-size:12px;color:#1A1A18;opacity:0.7;margin:0 0 8px;line-height:1.5;">${escapeHtml(spot.description)}</p>`
       : "";
 
+  const crowdHtml = createCrowdHtml(crowdStatus, spot.id);
+
   return `<div style="font-family:'Inter',sans-serif;max-width:280px;padding:4px;">
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
       <span style="font-size:18px;">${cat?.icon || "📍"}</span>
@@ -79,6 +112,7 @@ function createPopupContent(spot: WorkSpot): string {
     </div>
     <div style="font-size:12px;color:#1A1A18;opacity:0.6;margin-bottom:6px;">${safeAddress}</div>
     ${summaryHtml}
+    ${crowdHtml}
     <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px;">
       ${tagPills}
     </div>
@@ -108,6 +142,17 @@ export default function MapView({ spots, selectedSpotId, onMapClick, onSpotSelec
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
   const pendingMarkerRef = useRef<L.Marker | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [crowdStatuses, setCrowdStatuses] = useState<Record<string, CrowdStatus>>({});
+  const crowdStatusesRef = useRef(crowdStatuses);
+  crowdStatusesRef.current = crowdStatuses;
+
+  const loadCrowdStatuses = useCallback(() => {
+    fetchAllCrowdStatuses().then(setCrowdStatuses);
+  }, []);
+
+  useEffect(() => {
+    loadCrowdStatuses();
+  }, [loadCrowdStatuses]);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -125,7 +170,46 @@ export default function MapView({ spots, selectedSpotId, onMapClick, onSpotSelec
 
     mapRef.current = map;
 
+    const handlePopupClick = async (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const reportBtn = target.closest("[data-crowd-report]") as HTMLElement;
+      const submitBtn = target.closest("[data-crowd-submit]") as HTMLElement;
+
+      if (reportBtn) {
+        e.stopPropagation();
+        const spotId = reportBtn.dataset.crowdReport!;
+        const parent = reportBtn.parentElement;
+        if (parent) {
+          reportBtn.style.display = "none";
+          const pickerDiv = document.createElement("div");
+          pickerDiv.innerHTML = createCrowdPickerHtml(spotId);
+          reportBtn.insertAdjacentElement("afterend", pickerDiv);
+        }
+      }
+
+      if (submitBtn) {
+        e.stopPropagation();
+        const spotId = submitBtn.dataset.crowdSubmit!;
+        const level = parseInt(submitBtn.dataset.crowdLevel!, 10);
+        submitBtn.textContent = "Submitting...";
+        const ok = await submitCrowdReport(spotId, level);
+        if (ok) {
+          const parent = submitBtn.closest(".leaflet-popup-content");
+          if (parent) {
+            const picker = submitBtn.parentElement?.parentElement;
+            if (picker) {
+              picker.innerHTML = `<div style="font-size:12px;color:#8A9E8C;font-weight:500;padding:4px 0;margin-bottom:6px;">&#10003; Report submitted</div>`;
+            }
+          }
+          loadCrowdStatuses();
+        }
+      }
+    };
+
+    map.getContainer().addEventListener("click", handlePopupClick);
+
     return () => {
+      map.getContainer().removeEventListener("click", handlePopupClick);
       map.remove();
       mapRef.current = null;
     };
@@ -162,12 +246,13 @@ export default function MapView({ spots, selectedSpotId, onMapClick, onSpotSelec
 
     spots.forEach((spot) => {
       let marker = markersRef.current.get(spot.id);
+      const crowdStatus = crowdStatuses[spot.id] || null;
       if (!marker) {
         marker = L.marker([spot.lat, spot.lng], {
           icon: createMarkerIcon(spot.category),
         }).addTo(map);
 
-        marker.bindPopup(createPopupContent(spot), {
+        marker.bindPopup(createPopupContent(spot, crowdStatus), {
           maxWidth: 300,
           className: "atlas-popup",
         });
@@ -180,10 +265,10 @@ export default function MapView({ spots, selectedSpotId, onMapClick, onSpotSelec
       } else {
         marker.setLatLng([spot.lat, spot.lng]);
         marker.setIcon(createMarkerIcon(spot.category));
-        marker.setPopupContent(createPopupContent(spot));
+        marker.setPopupContent(createPopupContent(spot, crowdStatus));
       }
     });
-  }, [spots, onSpotSelect]);
+  }, [spots, onSpotSelect, crowdStatuses]);
 
   useEffect(() => {
     if (!selectedSpotId || !mapRef.current) return;

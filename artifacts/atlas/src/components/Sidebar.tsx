@@ -3,6 +3,7 @@ import type { WorkSpot, Category } from "@/lib/types";
 import { CATEGORIES, calcScore, getSpotDisplayTags, scoreToLabel, SCORE_CATEGORIES } from "@/lib/types";
 import { spotsToGeoJSON, spotsToKML, downloadFile } from "@/lib/export";
 import { searchAddress, type GeocodingResult } from "@/lib/geocode";
+import { fetchAllCrowdStatuses, getBusynessInfo, timeAgo, type CrowdStatus } from "@/lib/crowd";
 
 interface SidebarProps {
   spots: WorkSpot[];
@@ -17,6 +18,11 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [showExport, setShowExport] = useState(false);
+  const [crowdStatuses, setCrowdStatuses] = useState<Record<string, CrowdStatus>>({});
+
+  useEffect(() => {
+    fetchAllCrowdStatuses().then(setCrowdStatuses);
+  }, []);
   const [geocodeResults, setGeocodeResults] = useState<GeocodingResult[]>([]);
   const [geocodeLoading, setGeocodeLoading] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -184,6 +190,17 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
                 </div>
               </div>
               <div className="spot-card-address">{spot.address}</div>
+              {crowdStatuses[spot.id] && (() => {
+                const cs = crowdStatuses[spot.id];
+                const info = getBusynessInfo(cs.level);
+                return (
+                  <div className="spot-card-crowd">
+                    <span className="crowd-dot" style={{ background: info.color }} />
+                    <span>{info.label}</span>
+                    <span className="crowd-time">{timeAgo(cs.lastReportedAt)}</span>
+                  </div>
+                );
+              })()}
               {spot.aiSummary && (
                 <div className="spot-card-summary">{spot.aiSummary}</div>
               )}

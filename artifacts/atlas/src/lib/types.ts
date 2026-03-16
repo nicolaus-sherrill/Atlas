@@ -88,11 +88,26 @@ export interface WorkSpot {
 
 const TAG_WEIGHT_BONUS = 0.03;
 
-export function calcScore(scores: CategoryScores, tags: TagId[]): number {
+export function calcScore(tagsOrScores: TagId[] | CategoryScores, tags?: TagId[]): number {
+  let actualScores: CategoryScores;
+  let actualTags: TagId[];
+
+  if (Array.isArray(tagsOrScores)) {
+    actualTags = tagsOrScores;
+    actualScores = { wifi: 0, outlets: 0, food: 0, atmosphere: 0, hours: 0, access: 0 };
+    actualTags.forEach((t) => {
+      const cat = TAG_CATEGORY_MAP[t];
+      if (cat) actualScores[cat] = Math.min(5, actualScores[cat] + 1);
+    });
+  } else {
+    actualScores = tagsOrScores;
+    actualTags = tags || [];
+  }
+
   const tagCounts: Record<ScoreCategory, number> = {
     wifi: 0, outlets: 0, food: 0, atmosphere: 0, hours: 0, access: 0,
   };
-  tags.forEach((t) => {
+  actualTags.forEach((t) => {
     const cat = TAG_CATEGORY_MAP[t];
     if (cat) tagCounts[cat]++;
   });
@@ -108,7 +123,7 @@ export function calcScore(scores: CategoryScores, tags: TagId[]): number {
   let result = 0;
   SCORE_CATEGORIES.forEach((sc) => {
     const normalizedWeight = rawWeights[sc.key] / totalWeight;
-    result += normalizedWeight * scores[sc.key];
+    result += normalizedWeight * actualScores[sc.key];
   });
 
   return Math.round(result * 10) / 10;

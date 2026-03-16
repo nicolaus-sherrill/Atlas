@@ -81,6 +81,21 @@ Community-powered map web app for finding great remote work spots. Built with Re
 - Transit: walking, biking, driving, train, bus
 - aiSummary: AI-generated summary string
 
+### Crowd-Level Reporting
+Community-driven busyness reporting system. Users submit anonymous crowd reports (1-4 scale), which are stored in PostgreSQL via the `crowd_reports` table. Reports within the last 3 hours count as "live" data; all reports contribute to historical hourly averages.
+
+- **Components**: `CrowdIndicator.tsx` (status display), `CrowdReportButton.tsx` (submit UI), `TypicalBusyness.tsx` (hourly bar chart)
+- **API helper**: `src/lib/crowd.ts` — fetch/submit crowd data
+- **Browse view**: "Crowd" column in table + report button/indicator/chart in expanded detail rows
+- **Map view**: Crowd indicator + report button in Leaflet popup (via HTML string + event delegation)
+- **Sidebar**: Crowd indicator on spot cards
+- **Database**: `crowd_reports` table (spotId, level 1-4, reportedAt, dayOfWeek, hourOfDay)
+- **API endpoints**:
+  - `POST /api/crowd-report` — Submit a busyness report (spotId + level)
+  - `GET /api/crowd-status/:spotId` — Get live status + hourly averages for a spot
+  - `GET /api/crowd-status` — Batch: current busyness for all spots
+- **Seed data**: 28 days of synthetic reports for 13 seed spots
+
 ### API Server AI Endpoint
 - `POST /api/summarize` — Rate-limited (10 req/min per IP), validated input, generates spot summary via OpenAI
 - Uses `AI_INTEGRATIONS_OPENAI_BASE_URL` and `AI_INTEGRATIONS_OPENAI_API_KEY` env vars
@@ -118,7 +133,8 @@ Database layer using Drizzle ORM with PostgreSQL. Exports a Drizzle client insta
 
 - `src/index.ts` — creates a `Pool` + Drizzle instance, exports schema
 - `src/schema/index.ts` — barrel re-export of all models
-- `src/schema/<modelname>.ts` — table definitions with `drizzle-zod` insert schemas (no models definitions exist right now)
+- `src/schema/<modelname>.ts` — table definitions with `drizzle-zod` insert schemas
+- `src/schema/crowdReports.ts` — `crowd_reports` table for busyness reporting
 - `drizzle.config.ts` — Drizzle Kit config (requires `DATABASE_URL`, automatically provided by Replit)
 - Exports: `.` (pool, db, schema), `./schema` (schema only)
 
