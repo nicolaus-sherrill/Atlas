@@ -126,8 +126,10 @@ html, body, #root {
   max-width: 1200px;
   margin: 0 auto;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .browse-chip-row {
@@ -137,14 +139,75 @@ html, body, #root {
   flex-wrap: wrap;
 }
 
-.browse-chip-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  min-width: 36px;
+.dropdown-multi {
+  position: relative;
   flex-shrink: 0;
+}
+
+.dropdown-trigger {
+  padding: 5px 12px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--text);
+  font-size: 12px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.dropdown-trigger:hover {
+  border-color: var(--stone);
+}
+
+.dropdown-trigger.active {
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
+}
+
+.dropdown-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 100;
+  min-width: 180px;
+  max-height: 260px;
+  overflow-y: auto;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  padding: 4px 0;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.dropdown-item:hover {
+  background: var(--bg);
+}
+
+.dropdown-item input[type="checkbox"] {
+  accent-color: var(--sage);
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+.dropdown-item span {
+  flex: 1;
+  white-space: nowrap;
 }
 
 .browse-chip {
@@ -169,12 +232,6 @@ html, body, #root {
   background: var(--text);
   color: var(--bg);
   border-color: var(--text);
-}
-
-.browse-chip.tag-chip.active {
-  background: var(--sage);
-  color: var(--white);
-  border-color: var(--sage);
 }
 
 .browse-table-wrapper {

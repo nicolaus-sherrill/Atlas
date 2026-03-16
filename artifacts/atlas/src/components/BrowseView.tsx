@@ -2,6 +2,7 @@ import { useState, useMemo, Fragment } from "react";
 import type { WorkSpot, Category } from "@/lib/types";
 import { CATEGORIES, computeWorkabilityScore, getSpotTags } from "@/lib/types";
 import BrowseSubmitModal from "./BrowseSubmitModal";
+import MultiSelectDropdown from "./MultiSelectDropdown";
 
 interface BrowseViewProps {
   spots: WorkSpot[];
@@ -18,7 +19,7 @@ const ALL_FILTER_TAGS = [
 
 export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSubmit }: BrowseViewProps) {
   const [search, setSearch] = useState("");
-  const [activeCity, setActiveCity] = useState<string | null>(null);
+  const [activeCities, setActiveCities] = useState<Set<string>>(new Set());
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [activeTags, setActiveTags] = useState<Set<string>>(new Set());
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -38,13 +39,22 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
         spot.address.toLowerCase().includes(q) ||
         spot.city.toLowerCase().includes(q) ||
         spot.description.toLowerCase().includes(q);
-      const matchesCity = !activeCity || spot.city === activeCity;
+      const matchesCity = activeCities.size === 0 || activeCities.has(spot.city);
       const matchesCategory = !activeCategory || spot.category === activeCategory;
       const spotTags = getSpotTags(spot);
       const matchesTags = activeTags.size === 0 || Array.from(activeTags).every((t) => spotTags.includes(t));
       return matchesSearch && matchesCity && matchesCategory && matchesTags;
     });
-  }, [spots, search, activeCity, activeCategory, activeTags]);
+  }, [spots, search, activeCities, activeCategory, activeTags]);
+
+  const toggleCity = (city: string) => {
+    setActiveCities((prev) => {
+      const next = new Set(prev);
+      if (next.has(city)) next.delete(city);
+      else next.add(city);
+      return next;
+    });
+  };
 
   const toggleTag = (tag: string) => {
     setActiveTags((prev) => {
@@ -89,27 +99,14 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
       </div>
 
       <div className="browse-chips-section">
-        <div className="browse-chip-row">
-          <span className="browse-chip-label">City</span>
-          <button
-            className={`browse-chip ${activeCity === null ? "active" : ""}`}
-            onClick={() => setActiveCity(null)}
-          >
-            All
-          </button>
-          {cities.map((city) => (
-            <button
-              key={city}
-              className={`browse-chip ${activeCity === city ? "active" : ""}`}
-              onClick={() => setActiveCity(activeCity === city ? null : city)}
-            >
-              {city}
-            </button>
-          ))}
-        </div>
+        <MultiSelectDropdown
+          label="City"
+          options={cities}
+          selected={activeCities}
+          onToggle={toggleCity}
+        />
 
         <div className="browse-chip-row">
-          <span className="browse-chip-label">Type</span>
           <button
             className={`browse-chip ${activeCategory === null ? "active" : ""}`}
             onClick={() => setActiveCategory(null)}
@@ -127,18 +124,19 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
           ))}
         </div>
 
-        <div className="browse-chip-row">
-          <span className="browse-chip-label">Tags</span>
-          {ALL_FILTER_TAGS.map((tag) => (
-            <button
-              key={tag}
-              className={`browse-chip tag-chip ${activeTags.has(tag) ? "active" : ""}`}
-              onClick={() => toggleTag(tag)}
-            >
-              {tag}
-            </button>
-          ))}
-        </div>
+        <MultiSelectDropdown
+          label="Tags"
+          options={ALL_FILTER_TAGS}
+          selected={activeTags}
+          onToggle={toggleTag}
+          formatTrigger={(sel) =>
+            sel.size === 0
+              ? "Tags ▾"
+              : sel.size <= 2
+                ? `${Array.from(sel).join(", ")} ▾`
+                : `${sel.size} tags ▾`
+          }
+        />
       </div>
 
       <div className="browse-table-wrapper">
