@@ -583,6 +583,7 @@ html, body, #root {
 
 .sidebar-search {
   padding: 0 24px 12px;
+  position: relative;
 }
 
 .sidebar-search input {
@@ -604,6 +605,67 @@ html, body, #root {
 
 .sidebar-search input::placeholder {
   color: var(--muted);
+}
+
+.geocode-loading {
+  padding: 8px 14px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.geocode-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(26, 26, 24, 0.1);
+}
+
+.geocode-result {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: var(--white);
+  cursor: pointer;
+  text-align: left;
+  font-size: 12px;
+  color: var(--text);
+  font-family: inherit;
+  line-height: 1.4;
+  transition: background 0.15s;
+}
+
+.geocode-result:last-child {
+  border-bottom: none;
+}
+
+.geocode-result:hover {
+  background: var(--cream);
+}
+
+.geocode-result-icon {
+  flex-shrink: 0;
+  font-size: 14px;
+  margin-top: 1px;
+}
+
+.geocode-result-text {
+  flex: 1;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .sidebar-categories {

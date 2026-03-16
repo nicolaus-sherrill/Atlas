@@ -13,6 +13,7 @@ function App() {
   const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [pendingLocation, setPendingLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [pendingGeoData, setPendingGeoData] = useState<{ address: string; city: string } | null>(null);
 
   const toggleMap = useCallback(() => {
     setMapOpen((prev) => !prev);
@@ -21,6 +22,7 @@ function App() {
   const handleMapClick = useCallback((lat: number, lng: number) => {
     if (isFormOpen) {
       setPendingLocation({ lat, lng });
+      setPendingGeoData(null);
     }
   }, [isFormOpen]);
 
@@ -43,6 +45,7 @@ function App() {
     if (isFormOpen) {
       setIsFormOpen(false);
       setPendingLocation(null);
+      setPendingGeoData(null);
     } else {
       setIsFormOpen(true);
       setSelectedSpotId(null);
@@ -54,6 +57,7 @@ function App() {
     setSpots(getAllSpots());
     setIsFormOpen(false);
     setPendingLocation(null);
+    setPendingGeoData(null);
     setSelectedSpotId(newSpot.id);
 
     if (newSpot.description) {
@@ -65,9 +69,19 @@ function App() {
     }
   };
 
+  const handleGeocode = useCallback((lat: number, lng: number, address: string, city: string) => {
+    setPendingLocation({ lat, lng });
+    setPendingGeoData({ address, city });
+    if (!isFormOpen) {
+      setIsFormOpen(true);
+      setSelectedSpotId(null);
+    }
+  }, [isFormOpen]);
+
   const handleFormCancel = () => {
     setIsFormOpen(false);
     setPendingLocation(null);
+    setPendingGeoData(null);
   };
 
   useEffect(() => {
@@ -99,6 +113,7 @@ function App() {
             selectedSpotId={selectedSpotId}
             onAddClick={handleAddClick}
             isFormOpen={isFormOpen}
+            onGeocode={handleGeocode}
           />
         ) : (
           <BrowseView
@@ -122,6 +137,7 @@ function App() {
         {isFormOpen && (
           <SpotForm
             pendingLocation={pendingLocation}
+            geoData={pendingGeoData}
             onSubmit={handleSubmit}
             onCancel={handleFormCancel}
           />

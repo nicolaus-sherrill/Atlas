@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import type { WorkSpot, Category } from "@/lib/types";
 import { CATEGORIES, RATING_LABELS, computeWorkabilityScore, getSpotTags } from "@/lib/types";
 import { spotsToGeoJSON, spotsToKML, downloadFile } from "@/lib/export";
+import { searchAddress, type GeocodingResult } from "@/lib/geocode";
 
 interface SidebarProps {
   spots: WorkSpot[];
@@ -9,22 +10,77 @@ interface SidebarProps {
   selectedSpotId: string | null;
   onAddClick: () => void;
   isFormOpen: boolean;
+  onGeocode: (lat: number, lng: number, address: string, city: string) => void;
 }
 
-export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClick, isFormOpen }: SidebarProps) {
+export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClick, isFormOpen, onGeocode }: SidebarProps) {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [showExport, setShowExport] = useState(false);
+  const [geocodeResults, setGeocodeResults] = useState<GeocodingResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const doSearch = useCallback(async (query: string) => {
+    if (query.trim().length < 3) {
+      setGeocodeResults([]);
+      setShowDropdown(false);
+      setIsSearching(false);
+      return;
+    }
+    if (abortRef.current) abortRef.current.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    setIsSearching(true);
+    try {
+      const results = await searchAddress(query, controller.signal);
+      setGeocodeResults(results);
+      setShowDropdown(results.length > 0);
+    } catch (e: unknown) {
+      if (e instanceof DOMException && e.name === "AbortError") return;
+      setGeocodeResults([]);
+      setShowDropdown(false);
+    } finally {
+      if (!controller.signal.aborted) setIsSearching(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (search.trim().length < 3) {
+      setGeocodeResults([]);
+      setShowDropdown(false);
+      return;
+    }
+    debounceRef.current = setTimeout(() => doSearch(search), 350);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [search, doSearch]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelectResult = (result: GeocodingResult) => {
+    setSearch("");
+    setShowDropdown(false);
+    setGeocodeResults([]);
+    onGeocode(result.lat, result.lng, result.address, result.city);
+  };
 
   const filtered = spots.filter((spot) => {
-    const matchesSearch =
-      !search ||
-      spot.name.toLowerCase().includes(search.toLowerCase()) ||
-      spot.address.toLowerCase().includes(search.toLowerCase()) ||
-      spot.city.toLowerCase().includes(search.toLowerCase()) ||
-      spot.description.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = !activeCategory || spot.category === activeCategory;
-    return matchesSearch && matchesCategory;
+    return matchesCategory;
   });
 
   return (
@@ -40,13 +96,33 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
         <p className="sidebar-tagline">Find your next great work spot</p>
       </div>
 
-      <div className="sidebar-search">
+      <div className="sidebar-search" ref={dropdownRef}>
         <input
           type="search"
-          placeholder="Search spots..."
+          placeholder="Search an address..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          onFocus={() => {
+            if (geocodeResults.length > 0) setShowDropdown(true);
+          }}
         />
+        {isSearching && (
+          <div className="geocode-loading">Searching...</div>
+        )}
+        {showDropdown && geocodeResults.length > 0 && (
+          <div className="geocode-dropdown">
+            {geocodeResults.map((result, i) => (
+              <button
+                key={`${result.lat}-${result.lng}-${i}`}
+                className="geocode-result"
+                onClick={() => handleSelectResult(result)}
+              >
+                <span className="geocode-result-icon">📍</span>
+                <span className="geocode-result-text">{result.displayName}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="sidebar-categories">

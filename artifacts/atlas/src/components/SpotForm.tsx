@@ -5,11 +5,12 @@ import { reverseGeocode, forwardGeocode } from "@/lib/geocoding";
 
 interface SpotFormProps {
   pendingLocation: { lat: number; lng: number } | null;
+  geoData: { address: string; city: string } | null;
   onSubmit: (spot: Omit<WorkSpot, "id" | "submittedAt">) => void;
   onCancel: () => void;
 }
 
-export default function SpotForm({ pendingLocation, onSubmit, onCancel }: SpotFormProps) {
+export default function SpotForm({ pendingLocation, geoData, onSubmit, onCancel }: SpotFormProps) {
   const [name, setName] = useState("");
   const [category, setCategory] = useState<Category>("cafe");
   const [city, setCity] = useState("");
@@ -31,6 +32,7 @@ export default function SpotForm({ pendingLocation, onSubmit, onCancel }: SpotFo
 
   useEffect(() => {
     if (!pendingLocation) return;
+    if (geoData) return;
     const seq = ++geocodeSeqRef.current;
     setCityLoading(true);
     reverseGeocode(pendingLocation.lat, pendingLocation.lng).then((result) => {
@@ -70,6 +72,13 @@ export default function SpotForm({ pendingLocation, onSubmit, onCancel }: SpotFo
   const updateRating = (key: keyof typeof ratings, value: number) => {
     setRatings((prev) => ({ ...prev, [key]: value }));
   };
+
+  useEffect(() => {
+    if (geoData) {
+      if (geoData.address) setAddress(geoData.address);
+      if (geoData.city) setCity(geoData.city);
+    }
+  }, [geoData]);
 
   const toggleTransit = (key: keyof TransitAccess) => {
     setTransit((prev) => ({ ...prev, [key]: !prev[key] }));
