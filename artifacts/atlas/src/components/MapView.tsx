@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { WorkSpot, Category } from "@/lib/types";
-import { CATEGORIES, calcScore, getSpotDisplayTags, scoreToLabel } from "@/lib/types";
+import { CATEGORIES, calcScore, getSpotDisplayTags, scoreToLabel, SCORE_CATEGORIES } from "@/lib/types";
 import { getGoogleMapsUrl, getAppleMapsUrl } from "@/lib/export";
 
 function escapeHtml(str: string): string {

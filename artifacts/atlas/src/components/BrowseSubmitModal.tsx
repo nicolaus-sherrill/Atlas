@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { WorkSpot, Category, TagId, CategoryScores, ScoreCategory } from "@/lib/types";
-import { CATEGORIES, TAG_CATEGORIES, EMPTY_SCORES } from "@/lib/types";
+import { CATEGORIES, TAGS, SCORE_CATEGORIES, EMPTY_SCORES } from "@/lib/types";
 
 interface BrowseSubmitModalProps {
   onSubmit: (spot: Omit<WorkSpot, "id" | "submittedAt">) => void;
@@ -27,8 +27,6 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
       return next;
     });
   };
-
-  const allTags = TAG_CATEGORIES.flatMap((g) => g.tags);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,16 +100,16 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
           <div className="form-group">
             <label>Rate this spot</label>
             <div className="score-categories">
-              {TAG_CATEGORIES.map((group) => (
-                <div key={group.key} className="score-category-row">
-                  <span className="score-category-name">{group.label}</span>
+              {SCORE_CATEGORIES.map((sc) => (
+                <div key={sc.key} className="score-category-row">
+                  <span className="score-category-name">{sc.label}</span>
                   <div className="score-dots">
                     {[0, 1, 2, 3, 4, 5].map((v) => (
                       <button
                         key={v}
                         type="button"
-                        className={`score-dot ${scores[group.key] >= v && v > 0 ? "filled" : ""} ${v === 0 && scores[group.key] === 0 ? "zero-active" : ""}`}
-                        onClick={() => setScore(group.key, v)}
+                        className={`score-dot ${scores[sc.key] >= v && v > 0 ? "filled" : ""} ${v === 0 && scores[sc.key] === 0 ? "zero-active" : ""}`}
+                        onClick={() => setScore(sc.key, v)}
                         title={v === 0 ? "Not rated" : `${v}/5`}
                       >
                         {v === 0 ? "–" : v}
@@ -125,17 +123,16 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
 
           <div className="form-group">
             <label>Tags</label>
-            <p className="form-hint-text">Select any that apply — tags refine your scores.</p>
-            <div className="tag-grid">
-              {allTags.map((tag) => (
-                <label key={tag.id} className="tag-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={selectedTags.has(tag.id)}
-                    onChange={() => toggleTag(tag.id)}
-                  />
-                  <span>{tag.label}</span>
-                </label>
+            <div className="tag-chip-grid">
+              {TAGS.map((tag) => (
+                <button
+                  key={tag.id}
+                  type="button"
+                  className={`tag-chip ${selectedTags.has(tag.id) ? "active" : ""}`}
+                  onClick={() => toggleTag(tag.id)}
+                >
+                  {tag.label}
+                </button>
               ))}
             </div>
           </div>

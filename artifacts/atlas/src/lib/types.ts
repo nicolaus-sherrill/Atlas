@@ -7,7 +7,7 @@ export const CATEGORIES: { value: Category; label: string; icon: string }[] = [
   { value: "park", label: "Park", icon: "🌳" },
 ];
 
-export type ScoreCategory = "wifi" | "outlets" | "food" | "environment" | "hours" | "access";
+export type ScoreCategory = "wifi" | "outlets" | "food" | "atmosphere" | "hours" | "access";
 
 export type CategoryScores = Record<ScoreCategory, number>;
 
@@ -15,18 +15,16 @@ export const EMPTY_SCORES: CategoryScores = {
   wifi: 0,
   outlets: 0,
   food: 0,
-  environment: 0,
+  atmosphere: 0,
   hours: 0,
   access: 0,
 };
 
 export type TagId =
-  | "wifi_fast" | "wifi_reliable" | "wifi_password_free" | "cell_signal_strong"
-  | "outlets_every_seat" | "outlets_ample" | "outlets_limited" | "standing_desk"
-  | "noise_quiet" | "noise_moderate" | "natural_light" | "temp_controlled" | "seating_comfortable" | "table_space"
-  | "open_early" | "open_late" | "no_time_limit" | "walk_in" | "reservation_available"
-  | "coffee_quality" | "food_available" | "water_refill" | "alcohol_available"
-  | "ada_entrance" | "ada_restroom" | "transit_nearby" | "bike_rack" | "parking_free";
+  | "natural_lighting" | "open_late" | "quiet" | "food" | "alcohol"
+  | "ada_accessible" | "bike_racks" | "transit_nearby" | "outdoor_seating"
+  | "free_parking" | "laptop_friendly" | "wifi_portal" | "no_wifi_password"
+  | "generous_seating";
 
 export interface TagDefinition {
   id: TagId;
@@ -34,81 +32,43 @@ export interface TagDefinition {
   category: ScoreCategory;
 }
 
-export interface TagCategoryGroup {
+export const TAGS: TagDefinition[] = [
+  { id: "natural_lighting", label: "Natural Lighting", category: "atmosphere" },
+  { id: "open_late", label: "Open Late", category: "hours" },
+  { id: "quiet", label: "Quiet", category: "atmosphere" },
+  { id: "food", label: "Food", category: "food" },
+  { id: "alcohol", label: "Alcohol", category: "food" },
+  { id: "ada_accessible", label: "ADA Accessible", category: "access" },
+  { id: "bike_racks", label: "Bike Racks Available", category: "access" },
+  { id: "transit_nearby", label: "Transit Stop Nearby", category: "access" },
+  { id: "outdoor_seating", label: "Outdoor Seating", category: "atmosphere" },
+  { id: "free_parking", label: "Free Parking Nearby", category: "access" },
+  { id: "laptop_friendly", label: "Laptop-Friendly", category: "atmosphere" },
+  { id: "wifi_portal", label: "WiFi Network Portal", category: "wifi" },
+  { id: "no_wifi_password", label: "No WiFi Password", category: "wifi" },
+  { id: "generous_seating", label: "Generous Seating", category: "atmosphere" },
+];
+
+export interface ScoreCategoryDef {
   key: ScoreCategory;
   label: string;
   baseWeight: number;
-  tags: TagDefinition[];
 }
 
-export const TAG_CATEGORIES: TagCategoryGroup[] = [
-  {
-    key: "wifi", label: "WiFi", baseWeight: 0.25,
-    tags: [
-      { id: "wifi_fast", label: "Fast WiFi (50+ Mbps)", category: "wifi" },
-      { id: "wifi_reliable", label: "Reliable connection", category: "wifi" },
-      { id: "wifi_password_free", label: "No password needed", category: "wifi" },
-      { id: "cell_signal_strong", label: "Strong cell signal", category: "wifi" },
-    ],
-  },
-  {
-    key: "outlets", label: "Outlets", baseWeight: 0.20,
-    tags: [
-      { id: "outlets_every_seat", label: "Outlet at every seat", category: "outlets" },
-      { id: "outlets_ample", label: "Ample outlets", category: "outlets" },
-      { id: "outlets_limited", label: "Limited outlets", category: "outlets" },
-      { id: "standing_desk", label: "Standing desk available", category: "outlets" },
-    ],
-  },
-  {
-    key: "environment", label: "Environment", baseWeight: 0.20,
-    tags: [
-      { id: "noise_quiet", label: "Quiet / library-level", category: "environment" },
-      { id: "noise_moderate", label: "Moderate background noise", category: "environment" },
-      { id: "natural_light", label: "Good natural light", category: "environment" },
-      { id: "temp_controlled", label: "Climate controlled", category: "environment" },
-      { id: "seating_comfortable", label: "Comfortable seating", category: "environment" },
-      { id: "table_space", label: "Generous table space", category: "environment" },
-    ],
-  },
-  {
-    key: "hours", label: "Hours", baseWeight: 0.15,
-    tags: [
-      { id: "open_early", label: "Opens before 8am", category: "hours" },
-      { id: "open_late", label: "Open past 8pm", category: "hours" },
-      { id: "no_time_limit", label: "No time limit enforced", category: "hours" },
-      { id: "walk_in", label: "Walk-in friendly", category: "hours" },
-      { id: "reservation_available", label: "Reservations available", category: "hours" },
-    ],
-  },
-  {
-    key: "food", label: "Food & Beverage", baseWeight: 0.10,
-    tags: [
-      { id: "coffee_quality", label: "Good coffee", category: "food" },
-      { id: "food_available", label: "Food menu available", category: "food" },
-      { id: "water_refill", label: "Free water refill", category: "food" },
-      { id: "alcohol_available", label: "Beer/wine available", category: "food" },
-    ],
-  },
-  {
-    key: "access", label: "Accessibility", baseWeight: 0.10,
-    tags: [
-      { id: "ada_entrance", label: "ADA accessible entrance", category: "access" },
-      { id: "ada_restroom", label: "ADA restroom", category: "access" },
-      { id: "transit_nearby", label: "Transit stop within 5 min walk", category: "access" },
-      { id: "bike_rack", label: "Bike rack available", category: "access" },
-      { id: "parking_free", label: "Free parking nearby", category: "access" },
-    ],
-  },
+export const SCORE_CATEGORIES: ScoreCategoryDef[] = [
+  { key: "wifi", label: "WiFi", baseWeight: 0.25 },
+  { key: "outlets", label: "Outlets", baseWeight: 0.20 },
+  { key: "atmosphere", label: "Atmosphere", baseWeight: 0.20 },
+  { key: "hours", label: "Hours", baseWeight: 0.15 },
+  { key: "food", label: "Food & Beverage", baseWeight: 0.10 },
+  { key: "access", label: "Accessibility", baseWeight: 0.10 },
 ];
 
 const TAG_LABEL_MAP: Record<string, string> = {};
 const TAG_CATEGORY_MAP: Record<string, ScoreCategory> = {};
-TAG_CATEGORIES.forEach((group) => {
-  group.tags.forEach((tag) => {
-    TAG_LABEL_MAP[tag.id] = tag.label;
-    TAG_CATEGORY_MAP[tag.id] = tag.category;
-  });
+TAGS.forEach((tag) => {
+  TAG_LABEL_MAP[tag.id] = tag.label;
+  TAG_CATEGORY_MAP[tag.id] = tag.category;
 });
 
 export interface WorkSpot {
@@ -126,11 +86,11 @@ export interface WorkSpot {
   submittedAt: string;
 }
 
-const TAG_WEIGHT_BONUS = 0.02;
+const TAG_WEIGHT_BONUS = 0.03;
 
 export function calcScore(scores: CategoryScores, tags: TagId[]): number {
   const tagCounts: Record<ScoreCategory, number> = {
-    wifi: 0, outlets: 0, food: 0, environment: 0, hours: 0, access: 0,
+    wifi: 0, outlets: 0, food: 0, atmosphere: 0, hours: 0, access: 0,
   };
   tags.forEach((t) => {
     const cat = TAG_CATEGORY_MAP[t];
@@ -139,24 +99,19 @@ export function calcScore(scores: CategoryScores, tags: TagId[]): number {
 
   const rawWeights: Record<ScoreCategory, number> = {} as any;
   let totalWeight = 0;
-  TAG_CATEGORIES.forEach((group) => {
-    const w = group.baseWeight + tagCounts[group.key] * TAG_WEIGHT_BONUS;
-    rawWeights[group.key] = w;
+  SCORE_CATEGORIES.forEach((sc) => {
+    const w = sc.baseWeight + tagCounts[sc.key] * TAG_WEIGHT_BONUS;
+    rawWeights[sc.key] = w;
     totalWeight += w;
   });
 
   let result = 0;
-  TAG_CATEGORIES.forEach((group) => {
-    const normalizedWeight = rawWeights[group.key] / totalWeight;
-    result += normalizedWeight * scores[group.key];
+  SCORE_CATEGORIES.forEach((sc) => {
+    const normalizedWeight = rawWeights[sc.key] / totalWeight;
+    result += normalizedWeight * scores[sc.key];
   });
 
   return Math.round(result * 10) / 10;
-}
-
-export function scoreToDots(score: number): string {
-  const filled = Math.round(score);
-  return "●".repeat(filled) + "○".repeat(5 - filled);
 }
 
 export function scoreToLabel(score: number): string {
@@ -178,7 +133,7 @@ export const SCORE_CATEGORY_LABELS: Record<ScoreCategory, string> = {
   wifi: "WiFi",
   outlets: "Outlets",
   food: "Food & Beverage",
-  environment: "Environment",
+  atmosphere: "Atmosphere",
   hours: "Hours",
   access: "Accessibility",
 };

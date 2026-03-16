@@ -1,9 +1,9 @@
 import type { WorkSpot } from "./types";
-import { getSpotDisplayTags, calcScore, SCORE_CATEGORY_LABELS } from "./types";
+import { getSpotDisplayTags, calcScore, SCORE_CATEGORY_LABELS, type ScoreCategory } from "./types";
 
 export async function generateSummary(spot: WorkSpot): Promise<string> {
   try {
-    const scoreBreakdown = (Object.keys(spot.scores) as Array<keyof typeof spot.scores>)
+    const scoreBreakdown = (Object.keys(spot.scores) as ScoreCategory[])
       .map((key) => `${SCORE_CATEGORY_LABELS[key]}: ${spot.scores[key]}/5`)
       .join(", ");
 

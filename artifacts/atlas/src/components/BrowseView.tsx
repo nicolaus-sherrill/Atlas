@@ -1,6 +1,6 @@
 import { useState, useMemo, Fragment } from "react";
 import type { WorkSpot, Category } from "@/lib/types";
-import { CATEGORIES, calcScore, getSpotDisplayTags, getTagLabel, TAG_CATEGORIES, scoreToLabel, SCORE_CATEGORY_LABELS } from "@/lib/types";
+import { CATEGORIES, calcScore, getSpotDisplayTags, TAGS, SCORE_CATEGORIES, scoreToLabel, SCORE_CATEGORY_LABELS } from "@/lib/types";
 import BrowseSubmitModal from "./BrowseSubmitModal";
 import MultiSelectDropdown from "./MultiSelectDropdown";
 
@@ -11,7 +11,7 @@ interface BrowseViewProps {
   onBrowseSubmit: (spot: Omit<WorkSpot, "id" | "submittedAt">) => void;
 }
 
-const ALL_FILTER_TAGS = TAG_CATEGORIES.flatMap((g) => g.tags.map((t) => t.label));
+const ALL_FILTER_TAGS = TAGS.map((t) => t.label);
 
 export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSubmit }: BrowseViewProps) {
   const [search, setSearch] = useState("");

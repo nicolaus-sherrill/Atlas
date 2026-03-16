@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import type { WorkSpot, Category } from "@/lib/types";
-import { CATEGORIES, calcScore, getSpotDisplayTags, scoreToLabel } from "@/lib/types";
+import { CATEGORIES, calcScore, getSpotDisplayTags, scoreToLabel, SCORE_CATEGORIES } from "@/lib/types";
 import { spotsToGeoJSON, spotsToKML, downloadFile } from "@/lib/export";
 import { searchAddress, type GeocodingResult } from "@/lib/geocode";
 
