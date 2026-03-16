@@ -13,12 +13,14 @@ interface SidebarProps {
   onAddClick: () => void;
   isFormOpen: boolean;
   onGeocode: (lat: number, lng: number, address: string, city: string) => void;
+  onDeleteSpot: (id: string) => void;
 }
 
-export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClick, isFormOpen, onGeocode }: SidebarProps) {
+export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClick, isFormOpen, onGeocode, onDeleteSpot }: SidebarProps) {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [showExport, setShowExport] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [crowdStatuses, setCrowdStatuses] = useState<Record<string, CrowdStatus>>({});
 
   useEffect(() => {
@@ -174,10 +176,13 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
           const score = calcScore(spot.scores, spot.tags);
           const tags = getSpotDisplayTags(spot).slice(0, 4);
           return (
-            <button
+            <div
               key={spot.id}
+              role="button"
+              tabIndex={0}
               className={`spot-card ${selectedSpotId === spot.id ? "selected" : ""}`}
               onClick={() => onSpotSelect(spot.id)}
+              onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) { e.preventDefault(); onSpotSelect(spot.id); } }}
             >
               <div className="spot-card-header">
                 <span className="spot-card-icon">{cat?.icon}</span>
@@ -225,7 +230,48 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
                   <span className="spot-card-tag">+{getSpotDisplayTags(spot).length - 4}</span>
                 )}
               </div>
-            </button>
+              {confirmDeleteId === spot.id ? (
+                <div className="spot-card-delete-confirm" onClick={(e) => e.stopPropagation()}>
+                  <span>Delete this spot?</span>
+                  <button
+                    className="spot-card-delete-yes"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteSpot(spot.id);
+                      setConfirmDeleteId(null);
+                    }}
+                  >
+                    Yes, delete
+                  </button>
+                  <button
+                    className="spot-card-delete-no"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setConfirmDeleteId(null);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  className="spot-card-delete-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setConfirmDeleteId(spot.id);
+                  }}
+                  title="Delete spot"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                    <path d="M10 11v6" />
+                    <path d="M14 11v6" />
+                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                  </svg>
+                </button>
+              )}
+            </div>
           );
         })}
         {filtered.length === 0 && (

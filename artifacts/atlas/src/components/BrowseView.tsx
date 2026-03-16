@@ -11,17 +11,19 @@ interface BrowseViewProps {
   onAddClick: () => void;
   onBrowseSubmit: (spot: Omit<WorkSpot, "id" | "submittedAt">) => void;
   onChatOpen: () => void;
+  onDeleteSpot: (id: string) => void;
 }
 
 const ALL_FILTER_TAGS = TAGS.map((t) => t.label);
 
-export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSubmit, onChatOpen }: BrowseViewProps) {
+export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSubmit, onChatOpen, onDeleteSpot }: BrowseViewProps) {
   const [search, setSearch] = useState("");
   const [activeCities, setActiveCities] = useState<Set<string>>(new Set());
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [activeTags, setActiveTags] = useState<Set<string>>(new Set());
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const cities = useMemo(() => {
     const set = new Set(spots.map((s) => s.city));
@@ -237,12 +239,57 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
                               ))}
                             </div>
                           </div>
-                          <button
-                            className="browse-detail-map-btn"
-                            onClick={() => onSpotSelect(spot.id)}
-                          >
-                            View on Map &rarr;
-                          </button>
+                          <div className="browse-detail-actions">
+                            <button
+                              className="browse-detail-map-btn"
+                              onClick={() => onSpotSelect(spot.id)}
+                            >
+                              View on Map &rarr;
+                            </button>
+                            {confirmDeleteId === spot.id ? (
+                              <div className="browse-delete-confirm">
+                                <span>Delete this spot?</span>
+                                <button
+                                  className="browse-delete-yes"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDeleteSpot(spot.id);
+                                    setConfirmDeleteId(null);
+                                    setExpandedId(null);
+                                  }}
+                                >
+                                  Yes, delete
+                                </button>
+                                <button
+                                  className="browse-delete-no"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setConfirmDeleteId(null);
+                                  }}
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                className="browse-delete-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setConfirmDeleteId(spot.id);
+                                }}
+                                title="Delete spot"
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="3 6 5 6 21 6" />
+                                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                  <path d="M10 11v6" />
+                                  <path d="M14 11v6" />
+                                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                                </svg>
+                                Delete
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </td>
                     </tr>

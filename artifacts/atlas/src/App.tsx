@@ -4,7 +4,7 @@ import Sidebar from "@/components/Sidebar";
 import SpotForm from "@/components/SpotForm";
 import BrowseView from "@/components/BrowseView";
 import ChatPanel from "@/components/ChatPanel";
-import { getAllSpots, addSpot, updateSpot } from "@/lib/store";
+import { getAllSpots, addSpot, updateSpot, deleteSpot } from "@/lib/store";
 import { generateSummary } from "@/lib/ai";
 import type { WorkSpot } from "@/lib/types";
 
@@ -80,6 +80,14 @@ function App() {
     }
   }, [isFormOpen]);
 
+  const handleDeleteSpot = useCallback((id: string) => {
+    deleteSpot(id);
+    setSpots(getAllSpots());
+    if (selectedSpotId === id) {
+      setSelectedSpotId(null);
+    }
+  }, [selectedSpotId]);
+
   const handleFormCancel = () => {
     setIsFormOpen(false);
     setPendingLocation(null);
@@ -116,6 +124,7 @@ function App() {
             onAddClick={handleAddClick}
             isFormOpen={isFormOpen}
             onGeocode={handleGeocode}
+            onDeleteSpot={handleDeleteSpot}
           />
         ) : (
           <BrowseView
@@ -124,6 +133,7 @@ function App() {
             onAddClick={handleAddClick}
             onBrowseSubmit={handleSubmit}
             onChatOpen={() => setIsChatOpen(true)}
+            onDeleteSpot={handleDeleteSpot}
           />
         )}
       </div>

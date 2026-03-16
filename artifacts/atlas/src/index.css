@@ -472,6 +472,74 @@ html, body, #root {
   opacity: 0.85;
 }
 
+.browse-detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.browse-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.browse-delete-btn:hover {
+  color: #c0392b;
+  border-color: #c0392b;
+  background: rgba(192, 57, 43, 0.06);
+}
+
+.browse-delete-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.browse-delete-yes {
+  padding: 4px 10px;
+  border: none;
+  border-radius: var(--radius);
+  background: #c0392b;
+  color: #fff;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.browse-delete-yes:hover {
+  opacity: 0.85;
+}
+
+.browse-delete-no {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.browse-delete-no:hover {
+  background: var(--bg);
+}
+
 .browse-empty {
   text-align: center;
   padding: 60px 20px;
@@ -818,6 +886,7 @@ html, body, #root {
 }
 
 .spot-card {
+  position: relative;
   width: 100%;
   text-align: left;
   padding: 14px;
@@ -916,6 +985,86 @@ html, body, #root {
   border: 1px solid var(--border);
   font-size: 10px;
   color: var(--text);
+}
+
+.spot-card-delete-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  opacity: 0.35;
+  transition: all 0.2s;
+  padding: 0;
+}
+
+.spot-card:hover .spot-card-delete-btn,
+.spot-card-delete-btn:focus-visible {
+  opacity: 1;
+}
+
+@media (pointer: coarse) {
+  .spot-card-delete-btn {
+    opacity: 0.6;
+  }
+}
+
+.spot-card-delete-btn:hover {
+  color: #c0392b;
+  background: rgba(192, 57, 43, 0.08);
+}
+
+.spot-card-delete-confirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 6px 8px;
+  background: rgba(192, 57, 43, 0.04);
+  border: 1px solid rgba(192, 57, 43, 0.15);
+  border-radius: var(--radius);
+  font-size: 11px;
+  color: var(--text);
+}
+
+.spot-card-delete-yes {
+  padding: 3px 8px;
+  border: none;
+  border-radius: 4px;
+  background: #c0392b;
+  color: #fff;
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.spot-card-delete-yes:hover {
+  opacity: 0.85;
+}
+
+.spot-card-delete-no {
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text);
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.spot-card-delete-no:hover {
+  background: var(--bg);
 }
 
 .spot-card-ratings {
