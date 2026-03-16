@@ -103,19 +103,19 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
               {SCORE_CATEGORIES.map((sc) => (
                 <div key={sc.key} className="score-category-row">
                   <span className="score-category-name">{sc.label}</span>
-                  <div className="score-dots">
-                    {[0, 1, 2, 3, 4, 5].map((v) => (
+                  <span className="score-dots-input">
+                    {[1, 2, 3, 4, 5].map((v) => (
                       <button
                         key={v}
                         type="button"
-                        className={`score-dot ${scores[sc.key] >= v && v > 0 ? "filled" : ""} ${v === 0 && scores[sc.key] === 0 ? "zero-active" : ""}`}
+                        className={`score-dot-char ${scores[sc.key] >= v ? "filled" : ""}`}
                         onClick={() => setScore(sc.key, v)}
-                        title={v === 0 ? "Not rated" : `${v}/5`}
+                        title={`${v}/5`}
                       >
-                        {v === 0 ? "–" : v}
+                        ●
                       </button>
                     ))}
-                  </div>
+                  </span>
                 </div>
               ))}
             </div>

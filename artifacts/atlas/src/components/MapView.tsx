@@ -107,7 +107,8 @@ function createPopupContent(spot: WorkSpot, crowdStatus: CrowdStatus | null): st
       </div>
       <div style="text-align:center;">
         <div style="background:#8A9E8C;color:#fff;font-weight:700;font-size:13px;padding:3px 8px;border-radius:6px;">${score.toFixed(1)}</div>
-        <div style="font-size:9px;color:#1A1A18;opacity:0.5;margin-top:2px;">${label}</div>
+        <div style="font-size:11px;letter-spacing:1px;margin-top:2px;"><span style="color:#8A9E8C;">${"●".repeat(Math.round(score))}</span><span style="color:#D5D0C8;">${"○".repeat(5 - Math.round(score))}</span></div>
+        <div style="font-size:9px;color:#1A1A18;opacity:0.5;margin-top:1px;">${label}</div>
       </div>
     </div>
     <div style="font-size:12px;color:#1A1A18;opacity:0.6;margin-bottom:6px;">${safeAddress}</div>

@@ -346,6 +346,24 @@ html, body, #root {
   border-radius: 6px;
 }
 
+.browse-dots {
+  font-size: 11px;
+  letter-spacing: 1px;
+  margin-left: 6px;
+}
+
+.score-dots {
+  letter-spacing: 1.5px;
+}
+
+.dots-filled {
+  color: var(--sage);
+}
+
+.dots-empty {
+  color: #D5D0C8;
+}
+
 .col-map {
   width: 160px;
 }
@@ -1284,38 +1302,29 @@ html, body, #root {
   gap: 4px;
 }
 
-.score-dot {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s ease;
-  padding: 0;
+.score-dots-input {
+  display: inline-flex;
+  gap: 2px;
+  letter-spacing: 1.5px;
 }
 
-.score-dot:hover {
-  border-color: var(--sage);
+.score-dot-char {
+  border: none;
+  background: none;
+  padding: 2px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  color: #D5D0C8;
+  transition: color 0.15s ease;
+}
+
+.score-dot-char:hover {
   color: var(--sage);
 }
 
-.score-dot.filled {
-  background: var(--sage);
-  color: #fff;
-  border-color: var(--sage);
-}
-
-.score-dot.zero-active {
-  background: var(--border);
-  color: var(--text);
-  border-color: var(--muted);
+.score-dot-char.filled {
+  color: var(--sage);
 }
 
 .tag-chip-grid {
@@ -1381,6 +1390,11 @@ html, body, #root {
   align-items: center;
   gap: 2px;
   flex-shrink: 0;
+}
+
+.spot-card-dots {
+  font-size: 10px;
+  letter-spacing: 1px;
 }
 
 .spot-card-score-label {

@@ -2,6 +2,7 @@ import { useState, useMemo, Fragment } from "react";
 import type { WorkSpot, Category } from "@/lib/types";
 import { CATEGORIES, calcScore, getSpotDisplayTags, TAGS, SCORE_CATEGORIES, scoreToLabel, SCORE_CATEGORY_LABELS } from "@/lib/types";
 import BrowseSubmitModal from "./BrowseSubmitModal";
+import ScoreDots from "./ScoreDots";
 import MultiSelectDropdown from "./MultiSelectDropdown";
 
 interface BrowseViewProps {
@@ -226,7 +227,7 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
                               {(Object.keys(spot.scores) as Array<keyof typeof spot.scores>).map((key) => (
                                 <div key={key} className="browse-detail-category-score">
                                   <span className="browse-detail-category-name">{SCORE_CATEGORY_LABELS[key]}</span>
-                                  <span className="browse-detail-category-value">{spot.scores[key]}/5</span>
+                                  <ScoreDots score={spot.scores[key]} className="browse-detail-category-value score-dots" />
                                 </div>
                               ))}
                             </div>

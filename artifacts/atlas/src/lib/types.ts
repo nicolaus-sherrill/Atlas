@@ -12,12 +12,12 @@ export type ScoreCategory = "wifi" | "outlets" | "food" | "atmosphere" | "hours"
 export type CategoryScores = Record<ScoreCategory, number>;
 
 export const EMPTY_SCORES: CategoryScores = {
-  wifi: 0,
-  outlets: 0,
-  food: 0,
-  atmosphere: 0,
-  hours: 0,
-  access: 0,
+  wifi: 1,
+  outlets: 1,
+  food: 1,
+  atmosphere: 1,
+  hours: 1,
+  access: 1,
 };
 
 export type TagId =
