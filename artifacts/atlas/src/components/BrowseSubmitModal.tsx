@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { WorkSpot, Category, TagId, CategoryScores, ScoreCategory, OperatingHours, DayOfWeek } from "@/lib/types";
-import { CATEGORIES, TAGS, SCORE_CATEGORIES, EMPTY_SCORES, DEFAULT_OPERATING_HOURS, DAYS_OF_WEEK, DAY_LABELS_FULL } from "@/lib/types";
+import type { WorkSpot, Category, TagId, CategoryScores, ScoreCategory } from "@/lib/types";
+import { CATEGORIES, TAGS, SCORE_CATEGORIES, EMPTY_SCORES, DEFAULT_OPERATING_HOURS } from "@/lib/types";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import type { GeocodingResult } from "@/lib/geocode";
 
@@ -19,7 +19,6 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
   const [description, setDescription] = useState("");
   const [scores, setScores] = useState<CategoryScores>({ ...EMPTY_SCORES });
   const [selectedTags, setSelectedTags] = useState<Set<TagId>>(new Set());
-  const [operatingHours, setOperatingHours] = useState<OperatingHours>(JSON.parse(JSON.stringify(DEFAULT_OPERATING_HOURS)));
 
   const setScore = (key: ScoreCategory, value: number) => {
     setScores((prev) => ({ ...prev, [key]: value }));
@@ -34,12 +33,6 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
     });
   };
 
-  const updateDayHours = (day: DayOfWeek, field: "open" | "close" | "closed", value: string | boolean) => {
-    setOperatingHours((prev) => ({
-      ...prev,
-      [day]: { ...prev[day], [field]: value },
-    }));
-  };
 
   const handleAddressSelect = (result: GeocodingResult) => {
     setAddress(result.displayName);
@@ -62,7 +55,7 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
       scores,
       tags: Array.from(selectedTags),
       description: description.trim(),
-      operatingHours,
+      operatingHours: DEFAULT_OPERATING_HOURS,
     });
   };
 
@@ -161,40 +154,6 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
                 >
                   {tag.label}
                 </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label>Operating Hours</label>
-            <div className="operating-hours-grid">
-              {DAYS_OF_WEEK.map((day) => (
-                <div key={day} className="operating-hours-row">
-                  <span className="operating-hours-day">{DAY_LABELS_FULL[day]}</span>
-                  <label className="operating-hours-closed-toggle">
-                    <input
-                      type="checkbox"
-                      checked={operatingHours[day].closed}
-                      onChange={(e) => updateDayHours(day, "closed", e.target.checked)}
-                    />
-                    Closed
-                  </label>
-                  {!operatingHours[day].closed && (
-                    <div className="operating-hours-times">
-                      <input
-                        type="time"
-                        value={operatingHours[day].open}
-                        onChange={(e) => updateDayHours(day, "open", e.target.value)}
-                      />
-                      <span>–</span>
-                      <input
-                        type="time"
-                        value={operatingHours[day].close}
-                        onChange={(e) => updateDayHours(day, "close", e.target.value)}
-                      />
-                    </div>
-                  )}
-                </div>
               ))}
             </div>
           </div>
