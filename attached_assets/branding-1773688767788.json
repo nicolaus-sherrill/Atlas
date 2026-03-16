@@ -1,0 +1,104 @@
+{
+  "colorScheme": "light",
+  "fonts": [
+    {
+      "family": "Montreal Medium",
+      "role": "body"
+    },
+    {
+      "family": "Times New Roman",
+      "role": "unknown"
+    }
+  ],
+  "colors": {
+    "primary": "#267E5C",
+    "accent": "#267E5C",
+    "background": "#E5E7EB",
+    "textPrimary": "#267E5C",
+    "link": "#267E5C"
+  },
+  "typography": {
+    "fontFamilies": {
+      "primary": "Montreal Medium",
+      "heading": "Montreal Medium"
+    },
+    "fontStacks": {
+      "heading": [
+        "__montrealMedium_0d29d0",
+        "__montrealMedium_Fallback_0d29d0"
+      ],
+      "body": [
+        "Times New Roman"
+      ],
+      "paragraph": [
+        "__montrealMedium_0d29d0",
+        "__montrealMedium_Fallback_0d29d0"
+      ]
+    },
+    "fontSizes": {
+      "h1": "48px",
+      "h2": "16px",
+      "body": "16px"
+    }
+  },
+  "spacing": {
+    "baseUnit": 4,
+    "borderRadius": "0px"
+  },
+  "components": {
+    "input": {
+      "background": "transparent",
+      "textColor": "#267E5C",
+      "borderColor": null,
+      "borderRadius": "0px",
+      "borderRadiusCorners": {
+        "topLeft": "0px",
+        "topRight": "0px",
+        "bottomRight": "0px",
+        "bottomLeft": "0px"
+      },
+      "shadow": "none"
+    }
+  },
+  "images": {
+    "favicon": "File saved at: attached_assets/favicon.bin",
+    "ogImage": "File saved at: attached_assets/ogImage.png"
+  },
+  "__llm_logo_reasoning": {
+    "selectedIndex": -1,
+    "reasoning": "No valid brand logo - only tiny/invisible/UI icons. The candidate is a tiny icon not suitable as a brand logo.",
+    "confidence": 0.3,
+    "rejected": true,
+    "source": "llm"
+  },
+  "personality": {
+    "tone": "minimalist",
+    "energy": "low",
+    "targetAudience": "unknown"
+  },
+  "designSystem": {
+    "framework": "custom",
+    "componentLibrary": ""
+  },
+  "confidence": {
+    "buttons": 0,
+    "colors": 0.9,
+    "overall": 0.45
+  },
+  "__llm_metadata": {
+    "logoSelection": {
+      "llmCalled": true,
+      "llmSucceeded": true,
+      "finalSource": "llm",
+      "rawLogoSelection": {
+        "selectedLogoIndex": -1,
+        "selectedLogoReasoning": "No valid brand logo - only tiny/invisible/UI icons. The candidate is a tiny icon not suitable as a brand logo.",
+        "confidence": 0.3
+      }
+    },
+    "buttonClassification": {
+      "llmCalled": false,
+      "llmSucceeded": false
+    }
+  }
+}
