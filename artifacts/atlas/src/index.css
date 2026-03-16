@@ -213,6 +213,10 @@ html, body, #root {
   background: transparent;
 }
 
+.browse-table tbody tr.browse-row.expanded td {
+  border-bottom: none;
+}
+
 .browse-table tbody td {
   padding: 14px 16px;
   border-bottom: 1px solid var(--border);
