@@ -11,8 +11,6 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
   const [name, setName] = useState("");
   const [category, setCategory] = useState<Category>("cafe");
   const [address, setAddress] = useState("");
-  const [latStr, setLatStr] = useState("");
-  const [lngStr, setLngStr] = useState("");
   const [description, setDescription] = useState("");
   const [scores, setScores] = useState<CategoryScores>({ ...EMPTY_SCORES });
   const [selectedTags, setSelectedTags] = useState<Set<TagId>>(new Set());
@@ -36,16 +34,13 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
     e.preventDefault();
     if (!name.trim()) return;
 
-    const lat = latStr.trim() ? parseFloat(latStr) : 0;
-    const lng = lngStr.trim() ? parseFloat(lngStr) : 0;
-
     onSubmit({
       name: name.trim(),
       category,
       city: "Unknown",
       address: address.trim() || "No address provided",
-      lat: isNaN(lat) ? 0 : lat,
-      lng: isNaN(lng) ? 0 : lng,
+      lat: 0,
+      lng: 0,
       scores,
       tags: Array.from(selectedTags),
       description: description.trim(),
@@ -102,29 +97,6 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
               value={address}
               onChange={(e) => setAddress(e.target.value)}
             />
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="browse-lat">Latitude (optional)</label>
-              <input
-                id="browse-lat"
-                type="text"
-                placeholder="e.g. 30.2672"
-                value={latStr}
-                onChange={(e) => setLatStr(e.target.value)}
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="browse-lng">Longitude (optional)</label>
-              <input
-                id="browse-lng"
-                type="text"
-                placeholder="e.g. -97.7431"
-                value={lngStr}
-                onChange={(e) => setLngStr(e.target.value)}
-              />
-            </div>
           </div>
 
           <div className="form-group">
