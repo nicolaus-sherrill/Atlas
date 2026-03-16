@@ -140,8 +140,12 @@ export function getTagLabel(tagId: string): string {
   return TAG_LABEL_MAP[tagId] || tagId;
 }
 
+const TAG_ORDER: Record<string, number> = Object.fromEntries(TAGS.map((t, i) => [t.id, i]));
+
 export function getSpotDisplayTags(spot: WorkSpot): string[] {
-  return spot.tags.map((t) => TAG_LABEL_MAP[t] || t);
+  return [...spot.tags]
+    .sort((a, b) => (TAG_ORDER[a] ?? 999) - (TAG_ORDER[b] ?? 999))
+    .map((t) => TAG_LABEL_MAP[t] || t);
 }
 
 export function getTagsGroupedByCategory(): { category: ScoreCategoryDef; tags: TagDefinition[] }[] {

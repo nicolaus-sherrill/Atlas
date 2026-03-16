@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { WorkSpot, Category, TagId, CategoryScores, ScoreCategory } from "@/lib/types";
-import { CATEGORIES, SCORE_CATEGORIES, EMPTY_SCORES, getTagsGroupedByCategory } from "@/lib/types";
+import { CATEGORIES, TAGS, SCORE_CATEGORIES, EMPTY_SCORES } from "@/lib/types";
 import { reverseGeocode, forwardGeocode } from "@/lib/geocoding";
 
 interface SpotFormProps {
@@ -81,8 +81,6 @@ export default function SpotForm({ pendingLocation, geoData, onSubmit, onCancel 
       return next;
     });
   };
-
-  const tagGroups = getTagsGroupedByCategory();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -199,23 +197,16 @@ export default function SpotForm({ pendingLocation, geoData, onSubmit, onCancel 
 
         <div className="form-group">
           <label>Tags</label>
-          <div className="tag-chip-groups">
-            {tagGroups.map((group) => (
-              <div key={group.category.key} className="tag-chip-group">
-                <span className="tag-chip-group-label">{group.category.label}</span>
-                <div className="tag-chip-group-items">
-                  {group.tags.map((tag) => (
-                    <button
-                      key={tag.id}
-                      type="button"
-                      className={`tag-chip ${selectedTags.has(tag.id) ? "active" : ""}`}
-                      onClick={() => toggleTag(tag.id)}
-                    >
-                      {tag.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+          <div className="tag-chip-grid">
+            {TAGS.map((tag) => (
+              <button
+                key={tag.id}
+                type="button"
+                className={`tag-chip ${selectedTags.has(tag.id) ? "active" : ""}`}
+                onClick={() => toggleTag(tag.id)}
+              >
+                {tag.label}
+              </button>
             ))}
           </div>
         </div>

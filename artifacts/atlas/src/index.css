@@ -1318,27 +1318,7 @@ html, body, #root {
   border-color: var(--muted);
 }
 
-.tag-chip-groups {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.tag-chip-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.tag-chip-group-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.tag-chip-group-items {
+.tag-chip-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
