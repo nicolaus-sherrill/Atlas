@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import type { WorkSpot, Category, TransitAccess } from "@/lib/types";
 import { CATEGORIES, RATING_LABELS, TRANSIT_LABELS } from "@/lib/types";
+import { reverseGeocode, forwardGeocode } from "@/lib/geocoding";
 
 interface SpotFormProps {
   pendingLocation: { lat: number; lng: number } | null;
@@ -12,6 +13,7 @@ export default function SpotForm({ pendingLocation, onSubmit, onCancel }: SpotFo
   const [name, setName] = useState("");
   const [category, setCategory] = useState<Category>("cafe");
   const [city, setCity] = useState("");
+  const [cityLoading, setCityLoading] = useState(false);
   const [address, setAddress] = useState("");
   const [description, setDescription] = useState("");
   const [ratings, setRatings] = useState<WorkSpot["ratings"]>({
@@ -23,6 +25,47 @@ export default function SpotForm({ pendingLocation, onSubmit, onCancel }: SpotFo
   const [transit, setTransit] = useState<TransitAccess>({
     walking: false, biking: false, driving: false, train: false, bus: false,
   });
+
+  const addressDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const geocodeSeqRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (!pendingLocation) return;
+    const seq = ++geocodeSeqRef.current;
+    setCityLoading(true);
+    reverseGeocode(pendingLocation.lat, pendingLocation.lng).then((result) => {
+      if (seq === geocodeSeqRef.current) {
+        setCity(result.city);
+        setCityLoading(false);
+      }
+    });
+  }, [pendingLocation?.lat, pendingLocation?.lng]);
+
+  const handleAddressChange = useCallback((value: string) => {
+    setAddress(value);
+    if (addressDebounceRef.current) {
+      clearTimeout(addressDebounceRef.current);
+    }
+    if (!value.trim() || value.trim().length < 5) return;
+    addressDebounceRef.current = setTimeout(() => {
+      const seq = ++geocodeSeqRef.current;
+      setCityLoading(true);
+      forwardGeocode(value.trim()).then((result) => {
+        if (seq === geocodeSeqRef.current) {
+          setCity(result.city);
+          setCityLoading(false);
+        }
+      });
+    }, 1200);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (addressDebounceRef.current) {
+        clearTimeout(addressDebounceRef.current);
+      }
+    };
+  }, []);
 
   const updateRating = (key: keyof typeof ratings, value: number) => {
     setRatings((prev) => ({ ...prev, [key]: value }));
@@ -39,7 +82,7 @@ export default function SpotForm({ pendingLocation, onSubmit, onCancel }: SpotFo
     onSubmit({
       name: name.trim(),
       category,
-      city: city.trim() || "Unknown",
+      city: city || "Unknown",
       address: address.trim() || `${pendingLocation.lat.toFixed(4)}, ${pendingLocation.lng.toFixed(4)}`,
       lat: pendingLocation.lat,
       lng: pendingLocation.lng,
@@ -107,14 +150,10 @@ export default function SpotForm({ pendingLocation, onSubmit, onCancel }: SpotFo
 
         <div className="form-row">
           <div className="form-group">
-            <label htmlFor="city">City</label>
-            <input
-              id="city"
-              type="text"
-              placeholder="e.g. Austin"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-            />
+            <label>City</label>
+            <div className="city-display">
+              {cityLoading ? "Detecting..." : city || "Set location to detect"}
+            </div>
           </div>
           <div className="form-group">
             <label htmlFor="address">Address</label>
@@ -123,7 +162,7 @@ export default function SpotForm({ pendingLocation, onSubmit, onCancel }: SpotFo
               type="text"
               placeholder="123 Main St"
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              onChange={(e) => handleAddressChange(e.target.value)}
             />
           </div>
         </div>

@@ -64,7 +64,8 @@ Community-powered map web app for finding great remote work spots. Built with Re
 - `src/components/BrowseView.tsx` — Table landing page with filters and expandable rows
 - `src/components/MapView.tsx` — Leaflet map with markers and popups
 - `src/components/Sidebar.tsx` — Search, filter, spot list, export, workability scores
-- `src/components/SpotForm.tsx` — Add new spot form with ratings, amenities, transit
+- `src/components/SpotForm.tsx` — Add new spot form with ratings, amenities, transit; city is auto-derived via geocoding
+- `src/lib/geocoding.ts` — Nominatim reverse/forward geocoding utility with rate limiting
 - `src/lib/types.ts` — TypeScript types, constants, computeWorkabilityScore(), getSpotTags()
 - `src/lib/store.ts` — localStorage data layer with seed data (10 NYC spots)
 - `src/lib/ai.ts` — Client-side AI summary generation via /api/summarize

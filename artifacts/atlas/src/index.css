@@ -942,6 +942,18 @@ html, body, #root {
   gap: 10px;
 }
 
+.city-display {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+}
+
 .form-group label {
   display: block;
   font-size: 12px;
