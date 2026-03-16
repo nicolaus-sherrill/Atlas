@@ -7,15 +7,16 @@ import { getAllSpots, addSpot, updateSpot } from "@/lib/store";
 import { generateSummary } from "@/lib/ai";
 import type { WorkSpot } from "@/lib/types";
 
-type AppView = "browse" | "map";
-
 function App() {
   const [spots, setSpots] = useState<WorkSpot[]>(() => getAllSpots());
-  const [view, setView] = useState<AppView>("browse");
+  const [mapOpen, setMapOpen] = useState(false);
   const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [pendingLocation, setPendingLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const toggleMap = useCallback(() => {
+    setMapOpen((prev) => !prev);
+  }, []);
 
   const handleMapClick = useCallback((lat: number, lng: number) => {
     if (isFormOpen) {
@@ -25,26 +26,19 @@ function App() {
 
   const handleSpotSelect = useCallback((id: string | null) => {
     setSelectedSpotId(id);
-    if (id) {
-      setView("map");
+    if (id && !mapOpen) {
+      setMapOpen(true);
     }
-    if (window.innerWidth < 768) {
-      setSidebarOpen(false);
-    }
-  }, []);
+  }, [mapOpen]);
 
   const handleBrowseSpotSelect = useCallback((id: string) => {
     setSelectedSpotId(id);
-    setView("map");
-    setSidebarOpen(true);
+    setMapOpen(true);
   }, []);
 
   const handleAddClick = () => {
-    if (view === "browse") {
-      setView("map");
-      setIsFormOpen(true);
-      setSelectedSpotId(null);
-      return;
+    if (!mapOpen) {
+      setMapOpen(true);
     }
     if (isFormOpen) {
       setIsFormOpen(false);
@@ -95,50 +89,27 @@ function App() {
     return () => { cancelled = true; };
   }, []);
 
-  if (view === "browse") {
-    return (
-      <BrowseView
-        spots={spots}
-        onSpotSelect={handleBrowseSpotSelect}
-        onAddClick={handleAddClick}
-        onMapView={() => {
-          setView("map");
-          setSidebarOpen(true);
-        }}
-      />
-    );
-  }
-
   return (
-    <div className="app-layout">
-      {!sidebarOpen && (
-        <button
-          className="sidebar-toggle"
-          onClick={() => setSidebarOpen(true)}
-          aria-label="Open sidebar"
-        >
-          &#9654;
-        </button>
-      )}
-
-      <div className={`sidebar-container ${sidebarOpen ? "open" : "closed"}`}>
-        <Sidebar
-          spots={spots}
-          onSpotSelect={handleSpotSelect}
-          selectedSpotId={selectedSpotId}
-          onAddClick={handleAddClick}
-          isFormOpen={isFormOpen}
-          onClose={() => setSidebarOpen(false)}
-          onBackToBrowse={() => {
-            setView("browse");
-            setSelectedSpotId(null);
-            setIsFormOpen(false);
-            setPendingLocation(null);
-          }}
-        />
+    <div className={`app-shell ${mapOpen ? "map-open" : "map-closed"}`}>
+      <div className="panel-left">
+        {mapOpen ? (
+          <Sidebar
+            spots={spots}
+            onSpotSelect={handleSpotSelect}
+            selectedSpotId={selectedSpotId}
+            onAddClick={handleAddClick}
+            isFormOpen={isFormOpen}
+          />
+        ) : (
+          <BrowseView
+            spots={spots}
+            onSpotSelect={handleBrowseSpotSelect}
+            onAddClick={handleAddClick}
+          />
+        )}
       </div>
 
-      <div className="map-container">
+      <div className="panel-right">
         <MapView
           spots={spots}
           selectedSpotId={selectedSpotId}
@@ -155,6 +126,20 @@ function App() {
           />
         )}
       </div>
+
+      <button
+        className="map-toggle-fab"
+        onClick={toggleMap}
+        aria-label={mapOpen ? "Hide map" : "Show map"}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          {mapOpen ? (
+            <polyline points="15 18 9 12 15 6" />
+          ) : (
+            <polyline points="9 18 15 12 9 6" />
+          )}
+        </svg>
+      </button>
     </div>
   );
 }

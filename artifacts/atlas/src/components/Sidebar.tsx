@@ -9,11 +9,9 @@ interface SidebarProps {
   selectedSpotId: string | null;
   onAddClick: () => void;
   isFormOpen: boolean;
-  onClose: () => void;
-  onBackToBrowse: () => void;
 }
 
-export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClick, isFormOpen, onClose, onBackToBrowse }: SidebarProps) {
+export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClick, isFormOpen }: SidebarProps) {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [showExport, setShowExport] = useState(false);
@@ -38,12 +36,8 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
             <circle cx="28.725" cy="67.275" r="28.725" fill="#1A1A18"/>
           </svg>
           <h1>Atlas</h1>
-          <button className="sidebar-close" onClick={onClose} aria-label="Close sidebar">&#9664;</button>
         </div>
         <p className="sidebar-tagline">Find your next great work spot</p>
-        <button className="browse-back-btn" onClick={onBackToBrowse}>
-          &#8592; Browse all spots
-        </button>
       </div>
 
       <div className="sidebar-search">

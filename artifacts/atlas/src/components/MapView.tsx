@@ -245,5 +245,15 @@ export default function MapView({ spots, selectedSpotId, onMapClick, onSpotSelec
     }
   }, [pendingLocation]);
 
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || !mapRef.current) return;
+    const observer = new ResizeObserver(() => {
+      mapRef.current?.invalidateSize();
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return <div ref={containerRef} style={{ width: "100%", height: "100%" }} />;
 }

@@ -52,8 +52,7 @@ Community-powered map web app for finding great remote work spots. Built with Re
 - "Get Directions" links to Google Maps and Apple Maps
 - Export spots as GeoJSON or KML for use in other map apps
 - localStorage persistence (key: `atlas_spots_v2`) with 10 pre-seeded NYC sample locations
-- Responsive sidebar with toggle
-- View switching between Browse (default) and Map views
+- **Sliding map panel**: Single FAB arrow toggles map in/out from the right. Browse view fills full width when map is hidden; condenses to sidebar when map is shown. On mobile, sidebar hides completely when map is open.
 
 ### Design
 - Color palette: off-white (#F5F3EF), near-black (#1A1A18), warm stone (#C8B89A), muted sage (#8A9E8C)
@@ -61,7 +60,7 @@ Community-powered map web app for finding great remote work spots. Built with Re
 - Map tiles: CARTO Light (OpenStreetMap-based)
 
 ### Key Files
-- `src/App.tsx` — Main app with view routing (browse/map), spot state management, AI summary generation
+- `src/App.tsx` — Main app shell with sliding panel layout (mapOpen toggle), spot state management, AI summary generation
 - `src/components/BrowseView.tsx` — Table landing page with filters and expandable rows
 - `src/components/MapView.tsx` — Leaflet map with markers and popups
 - `src/components/Sidebar.tsx` — Search, filter, spot list, export, workability scores
