@@ -1651,8 +1651,8 @@ html, body, #root {
 }
 
 .sidebar-plan-day {
-  margin: 0 16px;
-  width: calc(100% - 32px);
+  margin: 12px 24px 0;
+  width: calc(100% - 48px);
   justify-content: center;
 }
 
