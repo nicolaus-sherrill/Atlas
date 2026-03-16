@@ -101,6 +101,10 @@ function App() {
         spots={spots}
         onSpotSelect={handleBrowseSpotSelect}
         onAddClick={handleAddClick}
+        onMapView={() => {
+          setView("map");
+          setSidebarOpen(true);
+        }}
       />
     );
   }

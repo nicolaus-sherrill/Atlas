@@ -69,6 +69,47 @@ html, body, #root {
   line-height: 1.5;
 }
 
+.browse-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  margin-top: 8px;
+}
+
+.browse-view-toggle {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.browse-view-tab {
+  padding: 8px 16px;
+  border: none;
+  background: var(--white);
+  color: var(--muted);
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.browse-view-tab + .browse-view-tab {
+  border-left: 1px solid var(--border);
+}
+
+.browse-view-tab.active {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.browse-view-tab:not(.active):hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
 .btn-submit-place {
   padding: 10px 20px;
   border: 1px solid var(--text);
@@ -81,7 +122,6 @@ html, body, #root {
   cursor: pointer;
   transition: all 0.2s;
   flex-shrink: 0;
-  margin-top: 8px;
 }
 
 .btn-submit-place:hover {

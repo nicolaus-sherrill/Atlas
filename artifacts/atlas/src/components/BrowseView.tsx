@@ -6,6 +6,7 @@ interface BrowseViewProps {
   spots: WorkSpot[];
   onSpotSelect: (id: string) => void;
   onAddClick: () => void;
+  onMapView: () => void;
 }
 
 const ALL_FILTER_TAGS = [
@@ -14,7 +15,7 @@ const ALL_FILTER_TAGS = [
   "Driving", "Train", "Bus",
 ];
 
-export default function BrowseView({ spots, onSpotSelect, onAddClick }: BrowseViewProps) {
+export default function BrowseView({ spots, onSpotSelect, onAddClick, onMapView }: BrowseViewProps) {
   const [search, setSearch] = useState("");
   const [activeCity, setActiveCity] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
@@ -65,9 +66,15 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick }: BrowseVi
           </div>
           <p className="browse-tagline">Community-powered spots for remote work, handpicked by the internet.</p>
         </div>
-        <button className="btn-submit-place" onClick={onAddClick}>
-          Submit a place
-        </button>
+        <div className="browse-header-actions">
+          <div className="browse-view-toggle">
+            <button className="browse-view-tab active">Database</button>
+            <button className="browse-view-tab" onClick={onMapView}>Map</button>
+          </div>
+          <button className="btn-submit-place" onClick={onAddClick}>
+            Submit a place
+          </button>
+        </div>
       </header>
 
       <div className="browse-filters">
