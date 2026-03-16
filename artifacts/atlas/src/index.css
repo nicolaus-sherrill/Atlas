@@ -1650,6 +1650,12 @@ html, body, #root {
   opacity: 0.9;
 }
 
+.sidebar-plan-day {
+  margin: 0 16px;
+  width: calc(100% - 32px);
+  justify-content: center;
+}
+
 /* ========== CHAT PANEL ========== */
 
 .chat-panel-backdrop {
