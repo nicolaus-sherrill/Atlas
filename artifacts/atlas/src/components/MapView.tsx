@@ -5,6 +5,12 @@ import type { WorkSpot, Category } from "@/lib/types";
 import { CATEGORIES, RATING_LABELS } from "@/lib/types";
 import { getGoogleMapsUrl, getAppleMapsUrl } from "@/lib/export";
 
+function escapeHtml(str: string): string {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 const CATEGORY_COLORS: Record<Category, string> = {
   cafe: "#C8B89A",
   library: "#8A9E8C",
@@ -51,6 +57,11 @@ function createPopupContent(spot: WorkSpot): string {
     })
     .join("");
 
+  const safeName = escapeHtml(spot.name);
+  const safeAddress = escapeHtml(spot.address);
+  const safeDescription = escapeHtml(spot.description);
+  const safeCategory = escapeHtml(cat?.label || spot.category);
+
   const googleUrl = getGoogleMapsUrl(spot.lat, spot.lng, spot.name);
   const appleUrl = getAppleMapsUrl(spot.lat, spot.lng, spot.name);
 
@@ -58,15 +69,15 @@ function createPopupContent(spot: WorkSpot): string {
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
       <span style="font-size:18px;">${cat?.icon || "📍"}</span>
       <div>
-        <div style="font-weight:600;font-size:15px;color:#1A1A18;line-height:1.2;">${spot.name}</div>
-        <div style="font-size:11px;color:#1A1A18;opacity:0.5;text-transform:uppercase;letter-spacing:0.5px;">${cat?.label || spot.category}</div>
+        <div style="font-weight:600;font-size:15px;color:#1A1A18;line-height:1.2;">${safeName}</div>
+        <div style="font-size:11px;color:#1A1A18;opacity:0.5;text-transform:uppercase;letter-spacing:0.5px;">${safeCategory}</div>
       </div>
     </div>
-    <div style="font-size:12px;color:#1A1A18;opacity:0.6;margin-bottom:8px;">${spot.address}</div>
+    <div style="font-size:12px;color:#1A1A18;opacity:0.6;margin-bottom:8px;">${safeAddress}</div>
     <div style="background:#F5F3EF;border-radius:8px;padding:8px 10px;margin-bottom:8px;">
       ${ratingBars}
     </div>
-    ${spot.description ? `<p style="font-size:12px;color:#1A1A18;opacity:0.7;margin:0 0 10px;line-height:1.5;">${spot.description}</p>` : ""}
+    ${spot.description ? `<p style="font-size:12px;color:#1A1A18;opacity:0.7;margin:0 0 10px;line-height:1.5;">${safeDescription}</p>` : ""}
     <div style="display:flex;gap:6px;">
       <a href="${googleUrl}" target="_blank" rel="noopener" style="
         flex:1;text-align:center;padding:6px 0;border-radius:6px;font-size:11px;font-weight:500;
