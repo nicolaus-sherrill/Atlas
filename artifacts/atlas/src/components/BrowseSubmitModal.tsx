@@ -70,6 +70,17 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
           </div>
 
           <div className="form-group">
+            <label htmlFor="browse-address">Address</label>
+            <input
+              id="browse-address"
+              type="text"
+              placeholder="123 Main St, Austin, TX"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+            />
+          </div>
+
+          <div className="form-group">
             <label htmlFor="browse-category">Category</label>
             <div className="category-select">
               {CATEGORIES.map((cat) => (
@@ -84,17 +95,6 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
                 </button>
               ))}
             </div>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="browse-address">Address</label>
-            <input
-              id="browse-address"
-              type="text"
-              placeholder="123 Main St, Austin, TX"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-            />
           </div>
 
           <div className="form-group">

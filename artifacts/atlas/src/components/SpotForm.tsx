@@ -135,6 +135,25 @@ export default function SpotForm({ pendingLocation, geoData, onSubmit, onCancel 
           />
         </div>
 
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="address">Address</label>
+            <input
+              id="address"
+              type="text"
+              placeholder="123 Main St"
+              value={address}
+              onChange={(e) => handleAddressChange(e.target.value)}
+            />
+          </div>
+          <div className="form-group">
+            <label>City</label>
+            <div className="city-display">
+              {cityLoading ? "Detecting..." : city || "Set location to detect"}
+            </div>
+          </div>
+        </div>
+
         <div className="form-group">
           <label htmlFor="category">Category</label>
           <div className="category-select">
@@ -149,25 +168,6 @@ export default function SpotForm({ pendingLocation, geoData, onSubmit, onCancel 
                 <span>{cat.label}</span>
               </button>
             ))}
-          </div>
-        </div>
-
-        <div className="form-row">
-          <div className="form-group">
-            <label>City</label>
-            <div className="city-display">
-              {cityLoading ? "Detecting..." : city || "Set location to detect"}
-            </div>
-          </div>
-          <div className="form-group">
-            <label htmlFor="address">Address</label>
-            <input
-              id="address"
-              type="text"
-              placeholder="123 Main St"
-              value={address}
-              onChange={(e) => handleAddressChange(e.target.value)}
-            />
           </div>
         </div>
 
