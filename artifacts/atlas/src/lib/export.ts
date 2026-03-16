@@ -1,5 +1,5 @@
 import type { WorkSpot } from "./types";
-import { CATEGORIES } from "./types";
+import { CATEGORIES, computeWorkabilityScore } from "./types";
 
 export function spotsToGeoJSON(spots: WorkSpot[]): string {
   const features = spots.map((spot) => ({
@@ -11,12 +11,21 @@ export function spotsToGeoJSON(spots: WorkSpot[]): string {
     properties: {
       name: spot.name,
       category: spot.category,
+      city: spot.city,
       address: spot.address,
       description: spot.description,
+      workabilityScore: computeWorkabilityScore(spot),
       wifi: spot.ratings.wifi,
       power: spot.ratings.power,
       noise: spot.ratings.noise,
       coffee: spot.ratings.coffee,
+      lighting: spot.ratings.lighting,
+      seating: spot.ratings.seating,
+      outlets: spot.ratings.outlets,
+      food: spot.food,
+      drink: spot.drink,
+      ada: spot.ada,
+      transit: spot.transit,
     },
   }));
 
@@ -31,10 +40,11 @@ export function spotsToKML(spots: WorkSpot[]): string {
   const placemarks = spots
     .map((spot) => {
       const cat = CATEGORIES.find((c) => c.value === spot.category);
+      const score = computeWorkabilityScore(spot);
       return `    <Placemark>
       <name>${escapeXml(spot.name)}</name>
       <description>${escapeXml(
-        `${cat?.icon || ""} ${cat?.label || spot.category}\n${spot.address}\n\nWiFi: ${spot.ratings.wifi}/5 | Power: ${spot.ratings.power}/5 | Noise: ${spot.ratings.noise}/5 | Coffee: ${spot.ratings.coffee}/5\n\n${spot.description}`
+        `${cat?.icon || ""} ${cat?.label || spot.category} | ${spot.city}\n${spot.address}\n\nWorkability: ${score.toFixed(1)}/5\nWiFi: ${spot.ratings.wifi}/5 | Power: ${spot.ratings.power}/5 | Noise: ${spot.ratings.noise}/5 | Lighting: ${spot.ratings.lighting}/5 | Seating: ${spot.ratings.seating}/5 | Outlets: ${spot.ratings.outlets}/5\n\n${spot.aiSummary || spot.description}`
       )}</description>
       <Point>
         <coordinates>${spot.lng},${spot.lat},0</coordinates>

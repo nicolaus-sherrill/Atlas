@@ -41,13 +41,19 @@ artifacts-monorepo/
 Community-powered map web app for finding great remote work spots. Built with React + Vite, Leaflet.js + OpenStreetMap, and localStorage for persistence.
 
 ### Features
+- **Browse View** (landing page): Distraction-free table layout inspired by placestoread.xyz with search, city/category/tag filter chips, expandable detail rows, and coordinates links
 - Interactive Leaflet map with custom-styled markers
-- Browse, search, and filter locations by category (café, library, coworking, park)
-- Submit new spots with workability ratings (WiFi, Power, Noise, Coffee)
+- Browse, search, and filter locations by category (cafe, library, coworking, park)
+- Submit new spots with workability ratings (WiFi, Power, Noise, Coffee, Lighting, Seating, Outlets)
+- Amenity toggles: Food, Drinks, ADA accessibility
+- Transit access: Walking, Biking, Driving, Train, Bus
+- **Workability Score**: Computed from all 7 rating dimensions (0-5 scale)
+- **AI Summaries**: OpenAI-generated spot summaries via api-server `/api/summarize` endpoint (gpt-4o-mini)
 - "Get Directions" links to Google Maps and Apple Maps
 - Export spots as GeoJSON or KML for use in other map apps
-- localStorage persistence with 10 pre-seeded sample locations
+- localStorage persistence (key: `atlas_spots_v2`) with 10 pre-seeded NYC sample locations
 - Responsive sidebar with toggle
+- View switching between Browse (default) and Map views
 
 ### Design
 - Color palette: off-white (#F5F3EF), near-black (#1A1A18), warm stone (#C8B89A), muted sage (#8A9E8C)
@@ -55,14 +61,27 @@ Community-powered map web app for finding great remote work spots. Built with Re
 - Map tiles: CARTO Light (OpenStreetMap-based)
 
 ### Key Files
-- `src/App.tsx` — Main app layout with sidebar + map
+- `src/App.tsx` — Main app with view routing (browse/map), spot state management, AI summary generation
+- `src/components/BrowseView.tsx` — Table landing page with filters and expandable rows
 - `src/components/MapView.tsx` — Leaflet map with markers and popups
-- `src/components/Sidebar.tsx` — Search, filter, spot list, export
-- `src/components/SpotForm.tsx` — Add new spot form
-- `src/lib/store.ts` — localStorage data layer with seed data
+- `src/components/Sidebar.tsx` — Search, filter, spot list, export, workability scores
+- `src/components/SpotForm.tsx` — Add new spot form with ratings, amenities, transit
+- `src/lib/types.ts` — TypeScript types, constants, computeWorkabilityScore(), getSpotTags()
+- `src/lib/store.ts` — localStorage data layer with seed data (10 NYC spots)
+- `src/lib/ai.ts` — Client-side AI summary generation via /api/summarize
 - `src/lib/export.ts` — GeoJSON/KML export and map app deep links
-- `src/lib/types.ts` — TypeScript types and constants
 - `src/index.css` — All styles (custom CSS, no Tailwind)
+
+### Data Model (WorkSpot)
+- Basic: id, name, category, city, address, lat, lng, description
+- Ratings (1-5): wifi, power, noise, coffee, lighting, seating, outlets
+- Booleans: food, drink, ada
+- Transit: walking, biking, driving, train, bus
+- aiSummary: AI-generated summary string
+
+### API Server AI Endpoint
+- `POST /api/summarize` — Rate-limited (10 req/min per IP), validated input, generates spot summary via OpenAI
+- Uses `AI_INTEGRATIONS_OPENAI_BASE_URL` and `AI_INTEGRATIONS_OPENAI_API_KEY` env vars
 
 ## TypeScript & Composite Projects
 
@@ -85,8 +104,8 @@ Express 5 API server. Routes live in `src/routes/` and use `@workspace/api-zod` 
 
 - Entry: `src/index.ts` — reads `PORT`, starts Express
 - App setup: `src/app.ts` — mounts CORS, JSON/urlencoded parsing, routes at `/api`
-- Routes: `src/routes/index.ts` mounts sub-routers; `src/routes/health.ts` exposes `GET /health` (full path: `/api/health`)
-- Depends on: `@workspace/db`, `@workspace/api-zod`
+- Routes: `src/routes/index.ts` mounts sub-routers; `src/routes/health.ts` exposes `GET /health` (full path: `/api/health`); `src/routes/summarize.ts` exposes `POST /summarize` (full path: `/api/summarize`) for AI summary generation
+- Depends on: `@workspace/db`, `@workspace/api-zod`, `openai`
 - `pnpm --filter @workspace/api-server run dev` — run the dev server
 - `pnpm --filter @workspace/api-server run build` — production esbuild bundle (`dist/index.cjs`)
 - Build bundles an allowlist of deps (express, cors, pg, drizzle-orm, zod, etc.) and externalizes the rest

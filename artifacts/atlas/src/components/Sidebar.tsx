@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { WorkSpot, Category } from "@/lib/types";
-import { CATEGORIES, RATING_LABELS } from "@/lib/types";
+import { CATEGORIES, RATING_LABELS, computeWorkabilityScore, getSpotTags } from "@/lib/types";
 import { spotsToGeoJSON, spotsToKML, downloadFile } from "@/lib/export";
 
 interface SidebarProps {
@@ -10,9 +10,10 @@ interface SidebarProps {
   onAddClick: () => void;
   isFormOpen: boolean;
   onClose: () => void;
+  onBackToBrowse: () => void;
 }
 
-export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClick, isFormOpen, onClose }: SidebarProps) {
+export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClick, isFormOpen, onClose, onBackToBrowse }: SidebarProps) {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [showExport, setShowExport] = useState(false);
@@ -22,15 +23,11 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
       !search ||
       spot.name.toLowerCase().includes(search.toLowerCase()) ||
       spot.address.toLowerCase().includes(search.toLowerCase()) ||
+      spot.city.toLowerCase().includes(search.toLowerCase()) ||
       spot.description.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = !activeCategory || spot.category === activeCategory;
     return matchesSearch && matchesCategory;
   });
-
-  const avgRating = (spot: WorkSpot) => {
-    const r = spot.ratings;
-    return ((r.wifi + r.power + r.noise + r.coffee) / 4).toFixed(1);
-  };
 
   return (
     <aside className="sidebar">
@@ -41,9 +38,12 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
             <circle cx="28.725" cy="67.275" r="28.725" fill="#1A1A18"/>
           </svg>
           <h1>Atlas</h1>
-          <button className="sidebar-close" onClick={onClose} aria-label="Close sidebar">◀</button>
+          <button className="sidebar-close" onClick={onClose} aria-label="Close sidebar">&#9664;</button>
         </div>
         <p className="sidebar-tagline">Find your next great work spot</p>
+        <button className="browse-back-btn" onClick={onBackToBrowse}>
+          &#8592; Browse all spots
+        </button>
       </div>
 
       <div className="sidebar-search">
@@ -113,6 +113,8 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
       <div className="sidebar-list">
         {filtered.map((spot) => {
           const cat = CATEGORIES.find((c) => c.value === spot.category);
+          const score = computeWorkabilityScore(spot);
+          const tags = getSpotTags(spot).slice(0, 4);
           return (
             <button
               key={spot.id}
@@ -123,13 +125,21 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
                 <span className="spot-card-icon">{cat?.icon}</span>
                 <div className="spot-card-info">
                   <span className="spot-card-name">{spot.name}</span>
-                  <span className="spot-card-category">{cat?.label}</span>
+                  <span className="spot-card-category">{cat?.label} &middot; {spot.city}</span>
                 </div>
-                <span className="spot-card-rating">{avgRating(spot)}</span>
+                <span className="spot-card-rating">{score.toFixed(1)}</span>
               </div>
               <div className="spot-card-address">{spot.address}</div>
+              {spot.aiSummary && (
+                <div className="spot-card-summary">{spot.aiSummary}</div>
+              )}
+              <div className="spot-card-tags">
+                {tags.map((t) => (
+                  <span key={t} className="spot-card-tag">{t}</span>
+                ))}
+              </div>
               <div className="spot-card-ratings">
-                {(Object.keys(spot.ratings) as (keyof WorkSpot["ratings"])[]).map((key) => (
+                {(["wifi", "power", "noise", "coffee", "lighting", "seating", "outlets"] as (keyof WorkSpot["ratings"])[]).map((key) => (
                   <div key={key} className="spot-card-rating-item">
                     <span className="rating-label">{RATING_LABELS[key]}</span>
                     <div className="rating-dots">

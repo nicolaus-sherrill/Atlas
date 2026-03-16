@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import type { WorkSpot, Category } from "@/lib/types";
-import { CATEGORIES, RATING_LABELS } from "@/lib/types";
+import { useState } from "react";
+import type { WorkSpot, Category, TransitAccess } from "@/lib/types";
+import { CATEGORIES, RATING_LABELS, TRANSIT_LABELS } from "@/lib/types";
 
 interface SpotFormProps {
   pendingLocation: { lat: number; lng: number } | null;
@@ -11,12 +11,25 @@ interface SpotFormProps {
 export default function SpotForm({ pendingLocation, onSubmit, onCancel }: SpotFormProps) {
   const [name, setName] = useState("");
   const [category, setCategory] = useState<Category>("cafe");
+  const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
   const [description, setDescription] = useState("");
-  const [ratings, setRatings] = useState({ wifi: 3, power: 3, noise: 3, coffee: 3 });
+  const [ratings, setRatings] = useState<WorkSpot["ratings"]>({
+    wifi: 3, power: 3, noise: 3, coffee: 3, lighting: 3, seating: 3, outlets: 3,
+  });
+  const [food, setFood] = useState(false);
+  const [drink, setDrink] = useState(false);
+  const [ada, setAda] = useState(false);
+  const [transit, setTransit] = useState<TransitAccess>({
+    walking: false, biking: false, driving: false, train: false, bus: false,
+  });
 
   const updateRating = (key: keyof typeof ratings, value: number) => {
     setRatings((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const toggleTransit = (key: keyof TransitAccess) => {
+    setTransit((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -26,10 +39,15 @@ export default function SpotForm({ pendingLocation, onSubmit, onCancel }: SpotFo
     onSubmit({
       name: name.trim(),
       category,
+      city: city.trim() || "Unknown",
       address: address.trim() || `${pendingLocation.lat.toFixed(4)}, ${pendingLocation.lng.toFixed(4)}`,
       lat: pendingLocation.lat,
       lng: pendingLocation.lng,
       ratings,
+      food,
+      drink,
+      ada,
+      transit,
       description: description.trim(),
     });
   };
@@ -87,15 +105,27 @@ export default function SpotForm({ pendingLocation, onSubmit, onCancel }: SpotFo
           </div>
         </div>
 
-        <div className="form-group">
-          <label htmlFor="address">Address</label>
-          <input
-            id="address"
-            type="text"
-            placeholder="123 Main St, City"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-          />
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="city">City</label>
+            <input
+              id="city"
+              type="text"
+              placeholder="e.g. Brooklyn"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="address">Address</label>
+            <input
+              id="address"
+              type="text"
+              placeholder="123 Main St"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+            />
+          </div>
         </div>
 
         <div className="form-group">
@@ -117,6 +147,49 @@ export default function SpotForm({ pendingLocation, onSubmit, onCancel }: SpotFo
                   ))}
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label>Amenities</label>
+          <div className="amenities-row">
+            <button
+              type="button"
+              className={`amenity-toggle ${food ? "active" : ""}`}
+              onClick={() => setFood(!food)}
+            >
+              🍽️ Food
+            </button>
+            <button
+              type="button"
+              className={`amenity-toggle ${drink ? "active" : ""}`}
+              onClick={() => setDrink(!drink)}
+            >
+              🥤 Drinks
+            </button>
+            <button
+              type="button"
+              className={`amenity-toggle ${ada ? "active" : ""}`}
+              onClick={() => setAda(!ada)}
+            >
+              ♿ ADA
+            </button>
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label>Transit Access</label>
+          <div className="transit-row">
+            {(Object.keys(transit) as (keyof TransitAccess)[]).map((key) => (
+              <button
+                key={key}
+                type="button"
+                className={`transit-toggle ${transit[key] ? "active" : ""}`}
+                onClick={() => toggleTransit(key)}
+              >
+                {TRANSIT_LABELS[key].icon} {TRANSIT_LABELS[key].label}
+              </button>
             ))}
           </div>
         </div>
