@@ -71,6 +71,132 @@ TAGS.forEach((tag) => {
   TAG_CATEGORY_MAP[tag.id] = tag.category;
 });
 
+export type DayOfWeek = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
+
+export const DAYS_OF_WEEK: DayOfWeek[] = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+
+export const DAY_LABELS: Record<DayOfWeek, string> = {
+  monday: "Mon",
+  tuesday: "Tue",
+  wednesday: "Wed",
+  thursday: "Thu",
+  friday: "Fri",
+  saturday: "Sat",
+  sunday: "Sun",
+};
+
+export const DAY_LABELS_FULL: Record<DayOfWeek, string> = {
+  monday: "Monday",
+  tuesday: "Tuesday",
+  wednesday: "Wednesday",
+  thursday: "Thursday",
+  friday: "Friday",
+  saturday: "Saturday",
+  sunday: "Sunday",
+};
+
+export interface DayHours {
+  closed: boolean;
+  open: string;
+  close: string;
+}
+
+export type OperatingHours = Record<DayOfWeek, DayHours>;
+
+export const DEFAULT_OPERATING_HOURS: OperatingHours = {
+  monday: { closed: false, open: "08:00", close: "18:00" },
+  tuesday: { closed: false, open: "08:00", close: "18:00" },
+  wednesday: { closed: false, open: "08:00", close: "18:00" },
+  thursday: { closed: false, open: "08:00", close: "18:00" },
+  friday: { closed: false, open: "08:00", close: "18:00" },
+  saturday: { closed: true, open: "08:00", close: "18:00" },
+  sunday: { closed: true, open: "08:00", close: "18:00" },
+};
+
+function timeToMinutes(time: string): number {
+  const [h, m] = time.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function formatTime12h(time: string): string {
+  const [h, m] = time.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return m === 0 ? `${hour12} ${period}` : `${hour12}:${String(m).padStart(2, "0")} ${period}`;
+}
+
+function getCurrentDay(): DayOfWeek {
+  const jsDay = new Date().getDay();
+  const map: DayOfWeek[] = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+  return map[jsDay];
+}
+
+function getPreviousDay(day: DayOfWeek): DayOfWeek {
+  const idx = DAYS_OF_WEEK.indexOf(day);
+  return DAYS_OF_WEEK[(idx + 6) % 7];
+}
+
+function isOvernightSchedule(openMin: number, closeMin: number): boolean {
+  return closeMin <= openMin;
+}
+
+export function isOpenNow(hours: OperatingHours): boolean {
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const day = getCurrentDay();
+  const dh = hours[day];
+
+  if (!dh.closed) {
+    const openMin = timeToMinutes(dh.open);
+    const closeMin = timeToMinutes(dh.close);
+    if (isOvernightSchedule(openMin, closeMin)) {
+      if (nowMin >= openMin) return true;
+    } else {
+      if (nowMin >= openMin && nowMin < closeMin) return true;
+    }
+  }
+
+  const prevDay = getPreviousDay(day);
+  const prevDh = hours[prevDay];
+  if (!prevDh.closed) {
+    const prevOpenMin = timeToMinutes(prevDh.open);
+    const prevCloseMin = timeToMinutes(prevDh.close);
+    if (isOvernightSchedule(prevOpenMin, prevCloseMin) && prevCloseMin > 0) {
+      if (nowMin < prevCloseMin) return true;
+    }
+  }
+
+  return false;
+}
+
+export function getTodayHoursLabel(hours: OperatingHours): string {
+  const day = getCurrentDay();
+  const dh = hours[day];
+  if (dh.closed) return "Closed today";
+  return `${formatTime12h(dh.open)} – ${formatTime12h(dh.close)}`;
+}
+
+export function formatWeeklyHours(hours: OperatingHours): string[] {
+  const lines: string[] = [];
+  let i = 0;
+  while (i < DAYS_OF_WEEK.length) {
+    const startDay = DAYS_OF_WEEK[i];
+    const dh = hours[startDay];
+    let j = i + 1;
+    while (j < DAYS_OF_WEEK.length) {
+      const nextDh = hours[DAYS_OF_WEEK[j]];
+      if (nextDh.closed !== dh.closed || (!dh.closed && (nextDh.open !== dh.open || nextDh.close !== dh.close))) break;
+      j++;
+    }
+    const endDay = DAYS_OF_WEEK[j - 1];
+    const dayRange = startDay === endDay ? DAY_LABELS[startDay] : `${DAY_LABELS[startDay]}–${DAY_LABELS[endDay]}`;
+    const timeRange = dh.closed ? "Closed" : `${formatTime12h(dh.open)} – ${formatTime12h(dh.close)}`;
+    lines.push(`${dayRange}: ${timeRange}`);
+    i = j;
+  }
+  return lines;
+}
+
 export interface WorkSpot {
   id: string;
   name: string;
@@ -83,6 +209,7 @@ export interface WorkSpot {
   tags: TagId[];
   description: string;
   aiSummary?: string;
+  operatingHours?: OperatingHours;
   submittedAt: string;
 }
 

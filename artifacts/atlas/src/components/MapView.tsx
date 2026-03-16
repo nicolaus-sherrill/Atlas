@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { WorkSpot, Category } from "@/lib/types";
-import { CATEGORIES, calcScore, getSpotDisplayTags, scoreToLabel, SCORE_CATEGORIES } from "@/lib/types";
+import { CATEGORIES, calcScore, getSpotDisplayTags, scoreToLabel, SCORE_CATEGORIES, isOpenNow, getTodayHoursLabel } from "@/lib/types";
 import { getGoogleMapsUrl, getAppleMapsUrl } from "@/lib/export";
 import { fetchAllCrowdStatuses, submitCrowdReport, getBusynessInfo, timeAgo, BUSYNESS_LEVELS, type CrowdStatus } from "@/lib/crowd";
 
@@ -112,6 +112,10 @@ function createPopupContent(spot: WorkSpot, crowdStatus: CrowdStatus | null): st
       </div>
     </div>
     <div style="font-size:12px;color:#1A1A18;opacity:0.6;margin-bottom:6px;">${safeAddress}</div>
+    ${spot.operatingHours ? `<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+      <span style="display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;color:#fff;background:${isOpenNow(spot.operatingHours) ? '#4a7c59' : '#8b4513'};">${isOpenNow(spot.operatingHours) ? 'Open' : 'Closed'}</span>
+      <span style="font-size:11px;color:#1A1A18;opacity:0.7;">${escapeHtml(getTodayHoursLabel(spot.operatingHours))}</span>
+    </div>` : ''}
     ${summaryHtml}
     ${crowdHtml}
     <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px;">

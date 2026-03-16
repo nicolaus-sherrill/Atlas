@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import type { WorkSpot, Category } from "@/lib/types";
-import { CATEGORIES, calcScore, getSpotDisplayTags, scoreToLabel, SCORE_CATEGORIES } from "@/lib/types";
+import { CATEGORIES, calcScore, getSpotDisplayTags, scoreToLabel, SCORE_CATEGORIES, isOpenNow, getTodayHoursLabel } from "@/lib/types";
 import ScoreDots from "./ScoreDots";
 import { spotsToGeoJSON, spotsToKML, downloadFile } from "@/lib/export";
 import { searchAddress, type GeocodingResult } from "@/lib/geocode";
@@ -192,6 +192,17 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
                 </div>
               </div>
               <div className="spot-card-address">{spot.address}</div>
+              {spot.operatingHours && (() => {
+                const openNow = isOpenNow(spot.operatingHours);
+                return (
+                  <div className="spot-card-hours">
+                    <span className={`spot-card-hours-badge ${openNow ? "open" : "closed"}`}>
+                      {openNow ? "Open" : "Closed"}
+                    </span>
+                    <span className="spot-card-hours-today">{getTodayHoursLabel(spot.operatingHours)}</span>
+                  </div>
+                );
+              })()}
               {crowdStatuses[spot.id] && (() => {
                 const cs = crowdStatuses[spot.id];
                 const info = getBusynessInfo(cs.level);

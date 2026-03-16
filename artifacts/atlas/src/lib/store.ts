@@ -1,6 +1,6 @@
-import type { WorkSpot, TagId, CategoryScores } from "./types";
+import type { WorkSpot, TagId, CategoryScores, OperatingHours } from "./types";
 
-const STORAGE_KEY = "atlas_spots_v6";
+const STORAGE_KEY = "atlas_spots_v7";
 
 const SEED_DATA: WorkSpot[] = [
   {
@@ -15,6 +15,15 @@ const SEED_DATA: WorkSpot[] = [
     tags: ["natural_lighting", "quiet", "alcohol", "outdoor_seating", "laptop_friendly", "ada_accessible", "transit_nearby", "bike_racks"] as TagId[],
     description: "Airy lounge with high-end design, big windows, modern furniture, and outdoor seating. Great espresso and dairy-free milk options.",
     aiSummary: "A beautifully designed Austin cafe with big windows, natural light, comfy furniture, and outdoor seating. Fast wifi, accessible outlets, and great coffee.",
+    operatingHours: {
+      monday: { closed: false, open: "07:00", close: "19:00" },
+      tuesday: { closed: false, open: "07:00", close: "19:00" },
+      wednesday: { closed: false, open: "07:00", close: "19:00" },
+      thursday: { closed: false, open: "07:00", close: "19:00" },
+      friday: { closed: false, open: "07:00", close: "20:00" },
+      saturday: { closed: false, open: "08:00", close: "20:00" },
+      sunday: { closed: false, open: "08:00", close: "18:00" },
+    },
     submittedAt: "2025-12-01T10:00:00Z",
   },
   {
@@ -29,6 +38,15 @@ const SEED_DATA: WorkSpot[] = [
     tags: ["natural_lighting", "open_late", "food", "alcohol", "outdoor_seating", "laptop_friendly", "generous_seating", "ada_accessible", "bike_racks", "free_parking"] as TagId[],
     description: "Family-friendly lakeside coffee roasters with a massive outdoor deck and live music. Long opening hours and diverse crowd.",
     aiSummary: "An iconic lakeside Austin cafe with a huge outdoor deck, live music, and spacious seating. Fast wifi, accessible outlets, and long hours.",
+    operatingHours: {
+      monday: { closed: false, open: "07:00", close: "23:00" },
+      tuesday: { closed: false, open: "07:00", close: "23:00" },
+      wednesday: { closed: false, open: "07:00", close: "23:00" },
+      thursday: { closed: false, open: "07:00", close: "23:00" },
+      friday: { closed: false, open: "07:00", close: "00:00" },
+      saturday: { closed: false, open: "07:00", close: "00:00" },
+      sunday: { closed: false, open: "07:00", close: "23:00" },
+    },
     submittedAt: "2025-11-28T09:00:00Z",
   },
   {
@@ -43,6 +61,15 @@ const SEED_DATA: WorkSpot[] = [
     tags: ["natural_lighting", "food", "outdoor_seating", "ada_accessible", "transit_nearby", "bike_racks"] as TagId[],
     description: "Charming South Congress cafe with a relaxed vibe. Good coffee and a nice spot for casual remote work.",
     aiSummary: "A cozy South Congress cafe with good coffee and a laid-back Austin vibe. Walkable location with bus access and bike racks.",
+    operatingHours: {
+      monday: { closed: false, open: "07:00", close: "17:00" },
+      tuesday: { closed: false, open: "07:00", close: "17:00" },
+      wednesday: { closed: false, open: "07:00", close: "17:00" },
+      thursday: { closed: false, open: "07:00", close: "17:00" },
+      friday: { closed: false, open: "07:00", close: "17:00" },
+      saturday: { closed: false, open: "08:00", close: "17:00" },
+      sunday: { closed: false, open: "08:00", close: "15:00" },
+    },
     submittedAt: "2025-11-20T08:30:00Z",
   },
   {
@@ -57,6 +84,15 @@ const SEED_DATA: WorkSpot[] = [
     tags: ["natural_lighting", "food", "laptop_friendly", "generous_seating", "ada_accessible", "transit_nearby", "bike_racks"] as TagId[],
     description: "Clean, modern specialty coffee shop with reliable wifi and ample seating for remote workers.",
     aiSummary: "A sleek specialty coffee shop on South Lamar with excellent coffee, reliable wifi, and plenty of outlets. ADA accessible with good transit options.",
+    operatingHours: {
+      monday: { closed: false, open: "06:30", close: "18:00" },
+      tuesday: { closed: false, open: "06:30", close: "18:00" },
+      wednesday: { closed: false, open: "06:30", close: "18:00" },
+      thursday: { closed: false, open: "06:30", close: "18:00" },
+      friday: { closed: false, open: "06:30", close: "18:00" },
+      saturday: { closed: false, open: "07:00", close: "18:00" },
+      sunday: { closed: false, open: "07:00", close: "17:00" },
+    },
     submittedAt: "2025-11-15T10:00:00Z",
   },
   {
@@ -71,6 +107,15 @@ const SEED_DATA: WorkSpot[] = [
     tags: ["natural_lighting", "food", "alcohol", "laptop_friendly", "generous_seating", "ada_accessible", "transit_nearby", "bike_racks"] as TagId[],
     description: "Wine bar and cafe hybrid in downtown Austin. Great coffee by day, wine by evening.",
     aiSummary: "A unique downtown Austin venue blending specialty coffee and wine. Excellent drinks, good wifi, and a comfortable work atmosphere.",
+    operatingHours: {
+      monday: { closed: false, open: "07:00", close: "22:00" },
+      tuesday: { closed: false, open: "07:00", close: "22:00" },
+      wednesday: { closed: false, open: "07:00", close: "22:00" },
+      thursday: { closed: false, open: "07:00", close: "22:00" },
+      friday: { closed: false, open: "07:00", close: "23:00" },
+      saturday: { closed: false, open: "08:00", close: "23:00" },
+      sunday: { closed: false, open: "08:00", close: "20:00" },
+    },
     submittedAt: "2025-11-10T11:00:00Z",
   },
   {
@@ -85,6 +130,15 @@ const SEED_DATA: WorkSpot[] = [
     tags: ["natural_lighting", "food", "laptop_friendly", "generous_seating", "ada_accessible", "bike_racks", "free_parking"] as TagId[],
     description: "East Austin coffee shop with a spacious interior and strong espresso.",
     aiSummary: "A roomy East Austin coffee shop with top-notch roasting, solid wifi, and plenty of outlets. Best reached by car or bike.",
+    operatingHours: {
+      monday: { closed: false, open: "07:00", close: "18:00" },
+      tuesday: { closed: false, open: "07:00", close: "18:00" },
+      wednesday: { closed: false, open: "07:00", close: "18:00" },
+      thursday: { closed: false, open: "07:00", close: "18:00" },
+      friday: { closed: false, open: "07:00", close: "18:00" },
+      saturday: { closed: false, open: "07:00", close: "18:00" },
+      sunday: { closed: false, open: "08:00", close: "16:00" },
+    },
     submittedAt: "2025-11-05T09:30:00Z",
   },
   {
@@ -99,6 +153,15 @@ const SEED_DATA: WorkSpot[] = [
     tags: ["natural_lighting", "quiet", "laptop_friendly", "ada_accessible", "transit_nearby", "bike_racks"] as TagId[],
     description: "Quiet bookstore with a calm reading atmosphere. Perfect for focused work.",
     aiSummary: "A serene East Austin bookstore with a quiet, focused atmosphere ideal for deep work. Limited outlets but great natural lighting.",
+    operatingHours: {
+      monday: { closed: false, open: "10:00", close: "18:00" },
+      tuesday: { closed: false, open: "10:00", close: "18:00" },
+      wednesday: { closed: false, open: "10:00", close: "18:00" },
+      thursday: { closed: false, open: "10:00", close: "18:00" },
+      friday: { closed: false, open: "10:00", close: "20:00" },
+      saturday: { closed: false, open: "10:00", close: "20:00" },
+      sunday: { closed: false, open: "11:00", close: "17:00" },
+    },
     submittedAt: "2025-10-28T14:00:00Z",
   },
   {
@@ -113,6 +176,15 @@ const SEED_DATA: WorkSpot[] = [
     tags: ["natural_lighting", "open_late", "quiet", "laptop_friendly", "generous_seating", "no_wifi_password", "ada_accessible", "transit_nearby", "bike_racks", "free_parking"] as TagId[],
     description: "Stunning modern library with rooftop garden, quiet study rooms, and blazing fast wifi.",
     aiSummary: "Austin's award-winning central library with a rooftop garden, quiet study rooms, fast wifi, and abundant outlets. Fully ADA accessible.",
+    operatingHours: {
+      monday: { closed: false, open: "10:00", close: "21:00" },
+      tuesday: { closed: false, open: "10:00", close: "21:00" },
+      wednesday: { closed: false, open: "10:00", close: "21:00" },
+      thursday: { closed: false, open: "10:00", close: "21:00" },
+      friday: { closed: false, open: "10:00", close: "18:00" },
+      saturday: { closed: false, open: "10:00", close: "17:00" },
+      sunday: { closed: false, open: "12:00", close: "18:00" },
+    },
     submittedAt: "2025-10-20T10:00:00Z",
   },
   {
@@ -127,6 +199,15 @@ const SEED_DATA: WorkSpot[] = [
     tags: ["natural_lighting", "food", "laptop_friendly", "generous_seating", "ada_accessible", "transit_nearby", "bike_racks"] as TagId[],
     description: "Downtown coffee shop with a welcoming community vibe. Good seating and reliable wifi for remote work.",
     aiSummary: "A friendly downtown Austin coffee shop with solid wifi, good seating, and a community atmosphere. Great for afternoon work sessions.",
+    operatingHours: {
+      monday: { closed: false, open: "07:00", close: "17:00" },
+      tuesday: { closed: false, open: "07:00", close: "17:00" },
+      wednesday: { closed: false, open: "07:00", close: "17:00" },
+      thursday: { closed: false, open: "07:00", close: "17:00" },
+      friday: { closed: false, open: "07:00", close: "17:00" },
+      saturday: { closed: false, open: "08:00", close: "16:00" },
+      sunday: { closed: false, open: "08:00", close: "16:00" },
+    },
     submittedAt: "2025-10-15T11:30:00Z",
   },
   {
@@ -141,6 +222,15 @@ const SEED_DATA: WorkSpot[] = [
     tags: ["open_late", "food", "alcohol", "ada_accessible", "bike_racks", "free_parking"] as TagId[],
     description: "Unique Austin venue doubling as a casual work spot. Quirky atmosphere and late hours.",
     aiSummary: "A uniquely Austin venue with a quirky atmosphere and late-night hours. Decent wifi and a fun change of pace for remote workers.",
+    operatingHours: {
+      monday: { closed: false, open: "11:00", close: "00:00" },
+      tuesday: { closed: false, open: "11:00", close: "00:00" },
+      wednesday: { closed: false, open: "11:00", close: "00:00" },
+      thursday: { closed: false, open: "11:00", close: "00:00" },
+      friday: { closed: false, open: "11:00", close: "02:00" },
+      saturday: { closed: false, open: "10:00", close: "02:00" },
+      sunday: { closed: false, open: "12:00", close: "22:00" },
+    },
     submittedAt: "2025-10-10T15:00:00Z",
   },
   {
@@ -155,6 +245,15 @@ const SEED_DATA: WorkSpot[] = [
     tags: ["natural_lighting", "food", "laptop_friendly", "generous_seating", "ada_accessible", "bike_racks", "free_parking"] as TagId[],
     description: "East Austin coffee shop with excellent specialty drinks and a bright, open interior great for work.",
     aiSummary: "A bright, open East Austin coffee shop with excellent specialty coffee, reliable wifi, and good outlet access.",
+    operatingHours: {
+      monday: { closed: false, open: "07:00", close: "17:00" },
+      tuesday: { closed: false, open: "07:00", close: "17:00" },
+      wednesday: { closed: false, open: "07:00", close: "17:00" },
+      thursday: { closed: false, open: "07:00", close: "17:00" },
+      friday: { closed: false, open: "07:00", close: "17:00" },
+      saturday: { closed: false, open: "07:00", close: "17:00" },
+      sunday: { closed: false, open: "08:00", close: "15:00" },
+    },
     submittedAt: "2025-10-05T09:00:00Z",
   },
   {
@@ -169,6 +268,15 @@ const SEED_DATA: WorkSpot[] = [
     tags: ["natural_lighting", "food", "laptop_friendly", "ada_accessible", "transit_nearby", "bike_racks"] as TagId[],
     description: "Minimalist South Lamar coffee shop with outstanding single-origin brews and a clean aesthetic.",
     aiSummary: "A minimalist South Lamar coffee shop known for exceptional single-origin coffee. Clean design, good lighting, and decent wifi.",
+    operatingHours: {
+      monday: { closed: false, open: "07:00", close: "18:00" },
+      tuesday: { closed: false, open: "07:00", close: "18:00" },
+      wednesday: { closed: false, open: "07:00", close: "18:00" },
+      thursday: { closed: false, open: "07:00", close: "18:00" },
+      friday: { closed: false, open: "07:00", close: "18:00" },
+      saturday: { closed: false, open: "08:00", close: "18:00" },
+      sunday: { closed: false, open: "08:00", close: "16:00" },
+    },
     submittedAt: "2025-09-28T10:30:00Z",
   },
   {
@@ -183,6 +291,15 @@ const SEED_DATA: WorkSpot[] = [
     tags: ["natural_lighting", "quiet", "food", "laptop_friendly", "ada_accessible", "bike_racks", "free_parking"] as TagId[],
     description: "Japanese-inspired Austin coffee shop with beautifully crafted drinks and a serene atmosphere.",
     aiSummary: "A Japanese-inspired coffee shop in North Austin with meticulously crafted drinks and a calm, minimalist interior. Great for focused work.",
+    operatingHours: {
+      monday: { closed: true, open: "08:00", close: "17:00" },
+      tuesday: { closed: false, open: "08:00", close: "17:00" },
+      wednesday: { closed: false, open: "08:00", close: "17:00" },
+      thursday: { closed: false, open: "08:00", close: "17:00" },
+      friday: { closed: false, open: "08:00", close: "17:00" },
+      saturday: { closed: false, open: "09:00", close: "17:00" },
+      sunday: { closed: false, open: "09:00", close: "15:00" },
+    },
     submittedAt: "2025-09-20T08:00:00Z",
   },
 ];

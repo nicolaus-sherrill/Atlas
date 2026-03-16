@@ -1359,7 +1359,6 @@ html, body, #root {
   flex-wrap: wrap;
   gap: 6px;
 }
-
 .tag-chip {
   padding: 6px 14px;
   border-radius: 20px;
@@ -2127,4 +2126,92 @@ html, body, #root {
     align-items: stretch;
     width: 100%;
   }
+}
+
+
+.spot-card-hours {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+}
+
+.spot-card-hours-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.spot-card-hours-badge.open {
+  background: #4a7c59;
+}
+
+.spot-card-hours-badge.closed {
+  background: #8b4513;
+}
+
+.spot-card-hours-today {
+  font-size: 11px;
+  color: var(--text);
+  opacity: 0.7;
+}
+
+.operating-hours-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.operating-hours-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.operating-hours-day {
+  width: 80px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.operating-hours-closed-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text);
+  opacity: 0.7;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.operating-hours-closed-toggle input[type="checkbox"] {
+  accent-color: var(--primary);
+}
+
+.operating-hours-times {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.operating-hours-times input[type="time"] {
+  padding: 3px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 12px;
+  background: var(--white);
+  color: var(--text);
+}
+
+.operating-hours-times span {
+  font-size: 12px;
+  color: var(--text);
+  opacity: 0.5;
 }
