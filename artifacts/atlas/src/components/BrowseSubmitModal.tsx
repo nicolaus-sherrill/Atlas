@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { WorkSpot, Category, TagId } from "@/lib/types";
-import { CATEGORIES, TAG_CATEGORIES } from "@/lib/types";
+import type { WorkSpot, Category, TagId, CategoryScores, ScoreCategory } from "@/lib/types";
+import { CATEGORIES, TAG_CATEGORIES, EMPTY_SCORES } from "@/lib/types";
 
 interface BrowseSubmitModalProps {
   onSubmit: (spot: Omit<WorkSpot, "id" | "submittedAt">) => void;
@@ -14,7 +14,12 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
   const [latStr, setLatStr] = useState("");
   const [lngStr, setLngStr] = useState("");
   const [description, setDescription] = useState("");
+  const [scores, setScores] = useState<CategoryScores>({ ...EMPTY_SCORES });
   const [selectedTags, setSelectedTags] = useState<Set<TagId>>(new Set());
+
+  const setScore = (key: ScoreCategory, value: number) => {
+    setScores((prev) => ({ ...prev, [key]: value }));
+  };
 
   const toggleTag = (tagId: TagId) => {
     setSelectedTags((prev) => {
@@ -24,6 +29,8 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
       return next;
     });
   };
+
+  const allTags = TAG_CATEGORIES.flatMap((g) => g.tags);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,6 +46,7 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
       address: address.trim() || "No address provided",
       lat: isNaN(lat) ? 0 : lat,
       lng: isNaN(lng) ? 0 : lng,
+      scores,
       tags: Array.from(selectedTags),
       description: description.trim(),
     });
@@ -120,24 +128,42 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
           </div>
 
           <div className="form-group">
-            <label>What does this spot offer?</label>
-            <div className="tag-groups">
+            <label>Rate this spot</label>
+            <div className="score-categories">
               {TAG_CATEGORIES.map((group) => (
-                <div key={group.key} className="tag-group">
-                  <div className="tag-group-header">{group.label}</div>
-                  <div className="tag-group-items">
-                    {group.tags.map((tag) => (
-                      <label key={tag.id} className="tag-checkbox">
-                        <input
-                          type="checkbox"
-                          checked={selectedTags.has(tag.id)}
-                          onChange={() => toggleTag(tag.id)}
-                        />
-                        <span>{tag.label}</span>
-                      </label>
+                <div key={group.key} className="score-category-row">
+                  <span className="score-category-name">{group.label}</span>
+                  <div className="score-dots">
+                    {[0, 1, 2, 3, 4, 5].map((v) => (
+                      <button
+                        key={v}
+                        type="button"
+                        className={`score-dot ${scores[group.key] >= v && v > 0 ? "filled" : ""} ${v === 0 && scores[group.key] === 0 ? "zero-active" : ""}`}
+                        onClick={() => setScore(group.key, v)}
+                        title={v === 0 ? "Not rated" : `${v}/5`}
+                      >
+                        {v === 0 ? "–" : v}
+                      </button>
                     ))}
                   </div>
                 </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Tags</label>
+            <p className="form-hint-text">Select any that apply — tags refine your scores.</p>
+            <div className="tag-grid">
+              {allTags.map((tag) => (
+                <label key={tag.id} className="tag-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={selectedTags.has(tag.id)}
+                    onChange={() => toggleTag(tag.id)}
+                  />
+                  <span>{tag.label}</span>
+                </label>
               ))}
             </div>
           </div>

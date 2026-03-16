@@ -1,6 +1,6 @@
 import { useState, useMemo, Fragment } from "react";
 import type { WorkSpot, Category } from "@/lib/types";
-import { CATEGORIES, calcScore, getSpotDisplayTags, getTagLabel, TAG_CATEGORIES, scoreToLabel } from "@/lib/types";
+import { CATEGORIES, calcScore, getSpotDisplayTags, getTagLabel, TAG_CATEGORIES, scoreToLabel, SCORE_CATEGORY_LABELS } from "@/lib/types";
 import BrowseSubmitModal from "./BrowseSubmitModal";
 import MultiSelectDropdown from "./MultiSelectDropdown";
 
@@ -151,7 +151,7 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
           <tbody>
             {filtered.map((spot, i) => {
               const cat = CATEGORIES.find((c) => c.value === spot.category);
-              const score = calcScore(spot.tags);
+              const score = calcScore(spot.scores, spot.tags);
               const displayTags = getSpotDisplayTags(spot).slice(0, 3);
               const allTags = getSpotDisplayTags(spot);
               const isExpanded = expandedId === spot.id;
@@ -212,6 +212,14 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
                             <div className="browse-detail-score-summary">
                               <span className="browse-score">{score.toFixed(1)}</span>
                               <span className="browse-score-label">{scoreToLabel(score)}</span>
+                            </div>
+                            <div className="browse-detail-category-scores">
+                              {(Object.keys(spot.scores) as Array<keyof typeof spot.scores>).map((key) => (
+                                <div key={key} className="browse-detail-category-score">
+                                  <span className="browse-detail-category-name">{SCORE_CATEGORY_LABELS[key]}</span>
+                                  <span className="browse-detail-category-value">{spot.scores[key]}/5</span>
+                                </div>
+                              ))}
                             </div>
                             <div className="browse-detail-tags">
                               {allTags.map((t) => (

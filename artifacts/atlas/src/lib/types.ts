@@ -7,6 +7,19 @@ export const CATEGORIES: { value: Category; label: string; icon: string }[] = [
   { value: "park", label: "Park", icon: "🌳" },
 ];
 
+export type ScoreCategory = "wifi" | "outlets" | "food" | "environment" | "hours" | "access";
+
+export type CategoryScores = Record<ScoreCategory, number>;
+
+export const EMPTY_SCORES: CategoryScores = {
+  wifi: 0,
+  outlets: 0,
+  food: 0,
+  environment: 0,
+  hours: 0,
+  access: 0,
+};
+
 export type TagId =
   | "wifi_fast" | "wifi_reliable" | "wifi_password_free" | "cell_signal_strong"
   | "outlets_every_seat" | "outlets_ample" | "outlets_limited" | "standing_desk"
@@ -15,90 +28,86 @@ export type TagId =
   | "coffee_quality" | "food_available" | "water_refill" | "alcohol_available"
   | "ada_entrance" | "ada_restroom" | "transit_nearby" | "bike_rack" | "parking_free";
 
-export type ScoreCategory = "wifi" | "outlets" | "environment" | "hours" | "food" | "access";
-
 export interface TagDefinition {
   id: TagId;
   label: string;
-  points: number;
   category: ScoreCategory;
 }
 
 export interface TagCategoryGroup {
   key: ScoreCategory;
   label: string;
-  weight: number;
-  max: number;
+  baseWeight: number;
   tags: TagDefinition[];
 }
 
 export const TAG_CATEGORIES: TagCategoryGroup[] = [
   {
-    key: "wifi", label: "WiFi & Connectivity", weight: 0.25, max: 10,
+    key: "wifi", label: "WiFi", baseWeight: 0.25,
     tags: [
-      { id: "wifi_fast", label: "Fast WiFi (50+ Mbps)", points: 4, category: "wifi" },
-      { id: "wifi_reliable", label: "Reliable connection", points: 3, category: "wifi" },
-      { id: "wifi_password_free", label: "No password needed", points: 2, category: "wifi" },
-      { id: "cell_signal_strong", label: "Strong cell signal", points: 1, category: "wifi" },
+      { id: "wifi_fast", label: "Fast WiFi (50+ Mbps)", category: "wifi" },
+      { id: "wifi_reliable", label: "Reliable connection", category: "wifi" },
+      { id: "wifi_password_free", label: "No password needed", category: "wifi" },
+      { id: "cell_signal_strong", label: "Strong cell signal", category: "wifi" },
     ],
   },
   {
-    key: "outlets", label: "Outlets & Power", weight: 0.20, max: 10,
+    key: "outlets", label: "Outlets", baseWeight: 0.20,
     tags: [
-      { id: "outlets_every_seat", label: "Outlet at every seat", points: 5, category: "outlets" },
-      { id: "outlets_ample", label: "Ample outlets", points: 3, category: "outlets" },
-      { id: "outlets_limited", label: "Limited outlets", points: 1, category: "outlets" },
-      { id: "standing_desk", label: "Standing desk available", points: 1, category: "outlets" },
+      { id: "outlets_every_seat", label: "Outlet at every seat", category: "outlets" },
+      { id: "outlets_ample", label: "Ample outlets", category: "outlets" },
+      { id: "outlets_limited", label: "Limited outlets", category: "outlets" },
+      { id: "standing_desk", label: "Standing desk available", category: "outlets" },
     ],
   },
   {
-    key: "environment", label: "Environment", weight: 0.20, max: 10,
+    key: "environment", label: "Environment", baseWeight: 0.20,
     tags: [
-      { id: "noise_quiet", label: "Quiet / library-level", points: 4, category: "environment" },
-      { id: "noise_moderate", label: "Moderate background noise", points: 2, category: "environment" },
-      { id: "natural_light", label: "Good natural light", points: 2, category: "environment" },
-      { id: "temp_controlled", label: "Climate controlled", points: 1, category: "environment" },
-      { id: "seating_comfortable", label: "Comfortable seating", points: 1, category: "environment" },
-      { id: "table_space", label: "Generous table space", points: 2, category: "environment" },
+      { id: "noise_quiet", label: "Quiet / library-level", category: "environment" },
+      { id: "noise_moderate", label: "Moderate background noise", category: "environment" },
+      { id: "natural_light", label: "Good natural light", category: "environment" },
+      { id: "temp_controlled", label: "Climate controlled", category: "environment" },
+      { id: "seating_comfortable", label: "Comfortable seating", category: "environment" },
+      { id: "table_space", label: "Generous table space", category: "environment" },
     ],
   },
   {
-    key: "hours", label: "Hours & Logistics", weight: 0.15, max: 10,
+    key: "hours", label: "Hours", baseWeight: 0.15,
     tags: [
-      { id: "open_early", label: "Opens before 8am", points: 2, category: "hours" },
-      { id: "open_late", label: "Open past 8pm", points: 2, category: "hours" },
-      { id: "no_time_limit", label: "No time limit enforced", points: 3, category: "hours" },
-      { id: "walk_in", label: "Walk-in friendly", points: 2, category: "hours" },
-      { id: "reservation_available", label: "Reservations available", points: 1, category: "hours" },
+      { id: "open_early", label: "Opens before 8am", category: "hours" },
+      { id: "open_late", label: "Open past 8pm", category: "hours" },
+      { id: "no_time_limit", label: "No time limit enforced", category: "hours" },
+      { id: "walk_in", label: "Walk-in friendly", category: "hours" },
+      { id: "reservation_available", label: "Reservations available", category: "hours" },
     ],
   },
   {
-    key: "food", label: "Food & Beverage", weight: 0.10, max: 10,
+    key: "food", label: "Food & Beverage", baseWeight: 0.10,
     tags: [
-      { id: "coffee_quality", label: "Good coffee", points: 3, category: "food" },
-      { id: "food_available", label: "Food menu available", points: 3, category: "food" },
-      { id: "water_refill", label: "Free water refill", points: 2, category: "food" },
-      { id: "alcohol_available", label: "Beer/wine available", points: 2, category: "food" },
+      { id: "coffee_quality", label: "Good coffee", category: "food" },
+      { id: "food_available", label: "Food menu available", category: "food" },
+      { id: "water_refill", label: "Free water refill", category: "food" },
+      { id: "alcohol_available", label: "Beer/wine available", category: "food" },
     ],
   },
   {
-    key: "access", label: "Accessibility", weight: 0.10, max: 10,
+    key: "access", label: "Accessibility", baseWeight: 0.10,
     tags: [
-      { id: "ada_entrance", label: "ADA accessible entrance", points: 3, category: "access" },
-      { id: "ada_restroom", label: "ADA restroom", points: 2, category: "access" },
-      { id: "transit_nearby", label: "Transit stop within 5 min walk", points: 2, category: "access" },
-      { id: "bike_rack", label: "Bike rack available", points: 2, category: "access" },
-      { id: "parking_free", label: "Free parking nearby", points: 1, category: "access" },
+      { id: "ada_entrance", label: "ADA accessible entrance", category: "access" },
+      { id: "ada_restroom", label: "ADA restroom", category: "access" },
+      { id: "transit_nearby", label: "Transit stop within 5 min walk", category: "access" },
+      { id: "bike_rack", label: "Bike rack available", category: "access" },
+      { id: "parking_free", label: "Free parking nearby", category: "access" },
     ],
   },
 ];
 
-const TAG_MAP: Record<string, [ScoreCategory, number]> = {};
 const TAG_LABEL_MAP: Record<string, string> = {};
+const TAG_CATEGORY_MAP: Record<string, ScoreCategory> = {};
 TAG_CATEGORIES.forEach((group) => {
   group.tags.forEach((tag) => {
-    TAG_MAP[tag.id] = [tag.category, tag.points];
     TAG_LABEL_MAP[tag.id] = tag.label;
+    TAG_CATEGORY_MAP[tag.id] = tag.category;
   });
 });
 
@@ -110,35 +119,39 @@ export interface WorkSpot {
   address: string;
   lat: number;
   lng: number;
+  scores: CategoryScores;
   tags: TagId[];
   description: string;
   aiSummary?: string;
   submittedAt: string;
 }
 
-export function calcScore(tags: string[]): number {
-  const categories: Record<ScoreCategory, { weight: number; max: number; pts: number }> = {
-    wifi: { weight: 0.25, max: 10, pts: 0 },
-    outlets: { weight: 0.20, max: 10, pts: 0 },
-    environment: { weight: 0.20, max: 10, pts: 0 },
-    hours: { weight: 0.15, max: 10, pts: 0 },
-    food: { weight: 0.10, max: 10, pts: 0 },
-    access: { weight: 0.10, max: 10, pts: 0 },
-  };
+const TAG_WEIGHT_BONUS = 0.02;
 
-  tags.forEach((tag) => {
-    const entry = TAG_MAP[tag];
-    if (entry) {
-      const [cat, pts] = entry;
-      categories[cat].pts = Math.min(categories[cat].max, categories[cat].pts + pts);
-    }
+export function calcScore(scores: CategoryScores, tags: TagId[]): number {
+  const tagCounts: Record<ScoreCategory, number> = {
+    wifi: 0, outlets: 0, food: 0, environment: 0, hours: 0, access: 0,
+  };
+  tags.forEach((t) => {
+    const cat = TAG_CATEGORY_MAP[t];
+    if (cat) tagCounts[cat]++;
   });
 
-  const raw = Object.values(categories).reduce((sum, c) => {
-    return sum + (c.pts / c.max) * c.weight;
-  }, 0);
+  const rawWeights: Record<ScoreCategory, number> = {} as any;
+  let totalWeight = 0;
+  TAG_CATEGORIES.forEach((group) => {
+    const w = group.baseWeight + tagCounts[group.key] * TAG_WEIGHT_BONUS;
+    rawWeights[group.key] = w;
+    totalWeight += w;
+  });
 
-  return Math.round(raw * 50) / 10;
+  let result = 0;
+  TAG_CATEGORIES.forEach((group) => {
+    const normalizedWeight = rawWeights[group.key] / totalWeight;
+    result += normalizedWeight * scores[group.key];
+  });
+
+  return Math.round(result * 10) / 10;
 }
 
 export function scoreToDots(score: number): string {
@@ -160,3 +173,12 @@ export function getTagLabel(tagId: string): string {
 export function getSpotDisplayTags(spot: WorkSpot): string[] {
   return spot.tags.map((t) => TAG_LABEL_MAP[t] || t);
 }
+
+export const SCORE_CATEGORY_LABELS: Record<ScoreCategory, string> = {
+  wifi: "WiFi",
+  outlets: "Outlets",
+  food: "Food & Beverage",
+  environment: "Environment",
+  hours: "Hours",
+  access: "Accessibility",
+};

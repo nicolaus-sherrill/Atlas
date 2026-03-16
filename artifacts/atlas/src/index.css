@@ -1249,48 +1249,101 @@ html, body, #root {
   cursor: not-allowed;
 }
 
-.tag-groups {
+.score-categories {
   display: flex;
   flex-direction: column;
   gap: 0;
 }
 
-.tag-group {
-  padding: 0;
-}
-
-.tag-group-header {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--muted);
-  padding: 10px 0 6px;
+.score-category-section {
+  padding: 10px 0;
   border-top: 1px solid var(--border);
 }
 
-.tag-group:first-child .tag-group-header {
+.score-category-section:first-child {
   border-top: none;
   padding-top: 0;
 }
 
-.tag-group-items {
+.score-category-row {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.score-category-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  min-width: 100px;
+}
+
+.score-dots {
+  display: flex;
   gap: 4px;
+}
+
+.score-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.score-dot:hover {
+  border-color: var(--sage);
+  color: var(--sage);
+}
+
+.score-dot.filled {
+  background: var(--sage);
+  color: #fff;
+  border-color: var(--sage);
+}
+
+.score-dot.zero-active {
+  background: var(--border);
+  color: var(--text);
+  border-color: var(--muted);
+}
+
+.form-hint-text {
+  font-size: 12px;
+  color: var(--muted);
+  margin: -4px 0 8px;
+  line-height: 1.4;
+}
+
+.tag-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 16px;
 }
 
 .tag-checkbox {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--text);
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
   cursor: pointer;
-  padding: 3px 0;
+  padding: 2px 0;
 }
 
 .tag-checkbox input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   accent-color: var(--sage);
   cursor: pointer;
   flex-shrink: 0;
@@ -1309,6 +1362,31 @@ html, body, #root {
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
+}
+
+.browse-detail-category-scores {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 16px;
+  margin: 8px 0;
+}
+
+.browse-detail-category-score {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.browse-detail-category-name {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.browse-detail-category-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
 }
 
 /* ========== BROWSE SUBMIT MODAL ========== */

@@ -48,7 +48,7 @@ function createPopupContent(spot: WorkSpot): string {
   const safeName = escapeHtml(spot.name);
   const safeAddress = escapeHtml(spot.address);
   const safeCategory = escapeHtml(cat?.label || spot.category);
-  const score = calcScore(spot.tags);
+  const score = calcScore(spot.scores, spot.tags);
   const label = scoreToLabel(score);
   const tags = getSpotDisplayTags(spot);
 

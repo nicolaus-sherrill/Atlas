@@ -30,7 +30,7 @@ router.post("/summarize", async (req, res) => {
       return;
     }
 
-    const { name, category, city, description, tags, score } = req.body;
+    const { name, category, city, description, tags, scoreBreakdown, overallScore } = req.body;
 
     if (!name || typeof name !== "string" || name.length > 200) {
       res.status(400).json({ error: "name is required and must be under 200 characters" });
@@ -53,8 +53,9 @@ Spot: ${name}
 Category: ${category || "unknown"}
 City: ${city || "unknown"}
 Description from users: ${description}
+Category scores: ${scoreBreakdown || "unknown"}
+Overall workability score: ${typeof overallScore === "number" ? `${overallScore.toFixed(1)}/5.0` : "unknown"}
 Features: ${tagList}
-Workability score: ${typeof score === "number" ? `${score.toFixed(1)}/5.0` : "unknown"}
 
 Write a natural, helpful summary in 1-2 sentences. Do not use bullet points.`;
 

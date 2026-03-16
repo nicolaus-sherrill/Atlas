@@ -164,7 +164,7 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
       <div className="sidebar-list">
         {filtered.map((spot) => {
           const cat = CATEGORIES.find((c) => c.value === spot.category);
-          const score = calcScore(spot.tags);
+          const score = calcScore(spot.scores, spot.tags);
           const tags = getSpotDisplayTags(spot).slice(0, 4);
           return (
             <button

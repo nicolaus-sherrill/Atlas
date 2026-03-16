@@ -14,7 +14,8 @@ export function spotsToGeoJSON(spots: WorkSpot[]): string {
       city: spot.city,
       address: spot.address,
       description: spot.description,
-      score: calcScore(spot.tags),
+      score: calcScore(spot.scores, spot.tags),
+      scores: spot.scores,
       tags: spot.tags,
     },
   }));
@@ -30,7 +31,7 @@ export function spotsToKML(spots: WorkSpot[]): string {
   const placemarks = spots
     .map((spot) => {
       const cat = CATEGORIES.find((c) => c.value === spot.category);
-      const score = calcScore(spot.tags);
+      const score = calcScore(spot.scores, spot.tags);
       const tagLabels = getSpotDisplayTags(spot).join(", ");
       return `    <Placemark>
       <name>${escapeXml(spot.name)}</name>

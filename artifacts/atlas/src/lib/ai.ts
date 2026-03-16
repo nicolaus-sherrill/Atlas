@@ -1,8 +1,12 @@
 import type { WorkSpot } from "./types";
-import { getSpotDisplayTags, calcScore } from "./types";
+import { getSpotDisplayTags, calcScore, SCORE_CATEGORY_LABELS } from "./types";
 
 export async function generateSummary(spot: WorkSpot): Promise<string> {
   try {
+    const scoreBreakdown = (Object.keys(spot.scores) as Array<keyof typeof spot.scores>)
+      .map((key) => `${SCORE_CATEGORY_LABELS[key]}: ${spot.scores[key]}/5`)
+      .join(", ");
+
     const res = await fetch("/api/summarize", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -12,7 +16,9 @@ export async function generateSummary(spot: WorkSpot): Promise<string> {
         city: spot.city,
         description: spot.description,
         tags: getSpotDisplayTags(spot),
-        score: calcScore(spot.tags),
+        scores: spot.scores,
+        scoreBreakdown,
+        overallScore: calcScore(spot.scores, spot.tags),
       }),
     });
 
