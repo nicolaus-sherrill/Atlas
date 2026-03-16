@@ -3,6 +3,7 @@ import MapView from "@/components/MapView";
 import Sidebar from "@/components/Sidebar";
 import SpotForm from "@/components/SpotForm";
 import BrowseView from "@/components/BrowseView";
+import ChatPanel from "@/components/ChatPanel";
 import { getAllSpots, addSpot, updateSpot } from "@/lib/store";
 import { generateSummary } from "@/lib/ai";
 import type { WorkSpot } from "@/lib/types";
@@ -14,6 +15,7 @@ function App() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [pendingLocation, setPendingLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [pendingGeoData, setPendingGeoData] = useState<{ address: string; city: string } | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const toggleMap = useCallback(() => {
     setMapOpen((prev) => !prev);
@@ -121,6 +123,7 @@ function App() {
             onSpotSelect={handleBrowseSpotSelect}
             onAddClick={handleAddClick}
             onBrowseSubmit={handleSubmit}
+            onChatOpen={() => setIsChatOpen(true)}
           />
         )}
       </div>
@@ -157,6 +160,10 @@ function App() {
           )}
         </svg>
       </button>
+
+      {isChatOpen && (
+        <ChatPanel spots={spots} onClose={() => setIsChatOpen(false)} />
+      )}
     </div>
   );
 }

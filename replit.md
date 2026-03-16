@@ -49,6 +49,7 @@ Community-powered map web app for finding great remote work spots. Built with Re
 - Transit access: Walking, Biking, Driving, Train, Bus
 - **Workability Score**: Computed from all 7 rating dimensions (0-5 scale)
 - **AI Summaries**: OpenAI-generated spot summaries via api-server `/api/summarize` endpoint (gpt-4o-mini)
+- **AI Itinerary Planner Chat**: Conversational AI assistant (Atlas Planner) that helps plan workday itineraries using spots from the database. Streaming responses via SSE, slide-out chat panel from browse view header. Uses gpt-4o-mini via `/api/chat` endpoint.
 - "Get Directions" links to Google Maps and Apple Maps
 - Export spots as GeoJSON or KML for use in other map apps
 - localStorage persistence (key: `atlas_spots_v2`) with 10 pre-seeded NYC sample locations
@@ -68,6 +69,7 @@ Community-powered map web app for finding great remote work spots. Built with Re
 - `src/lib/geocoding.ts` — Nominatim reverse/forward geocoding utility with rate limiting
 - `src/lib/types.ts` — TypeScript types, constants, computeWorkabilityScore(), getSpotTags()
 - `src/lib/store.ts` — localStorage data layer with seed data (10 NYC spots)
+- `src/components/ChatPanel.tsx` — AI itinerary planner chat slide-out panel with streaming SSE
 - `src/lib/ai.ts` — Client-side AI summary generation via /api/summarize
 - `src/lib/export.ts` — GeoJSON/KML export and map app deep links
 - `src/index.css` — All styles (custom CSS, no Tailwind)
@@ -104,7 +106,7 @@ Express 5 API server. Routes live in `src/routes/` and use `@workspace/api-zod` 
 
 - Entry: `src/index.ts` — reads `PORT`, starts Express
 - App setup: `src/app.ts` — mounts CORS, JSON/urlencoded parsing, routes at `/api`
-- Routes: `src/routes/index.ts` mounts sub-routers; `src/routes/health.ts` exposes `GET /health` (full path: `/api/health`); `src/routes/summarize.ts` exposes `POST /summarize` (full path: `/api/summarize`) for AI summary generation
+- Routes: `src/routes/index.ts` mounts sub-routers; `src/routes/health.ts` exposes `GET /health` (full path: `/api/health`); `src/routes/summarize.ts` exposes `POST /summarize` (full path: `/api/summarize`) for AI summary generation; `src/routes/chat.ts` exposes `POST /chat` (full path: `/api/chat`) for streaming AI itinerary planner chat via SSE
 - Depends on: `@workspace/db`, `@workspace/api-zod`, `openai`
 - `pnpm --filter @workspace/api-server run dev` — run the dev server
 - `pnpm --filter @workspace/api-server run build` — production esbuild bundle (`dist/index.cjs`)

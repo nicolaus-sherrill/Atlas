@@ -9,11 +9,12 @@ interface BrowseViewProps {
   onSpotSelect: (id: string) => void;
   onAddClick: () => void;
   onBrowseSubmit: (spot: Omit<WorkSpot, "id" | "submittedAt">) => void;
+  onChatOpen: () => void;
 }
 
 const ALL_FILTER_TAGS = TAGS.map((t) => t.label);
 
-export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSubmit }: BrowseViewProps) {
+export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSubmit, onChatOpen }: BrowseViewProps) {
   const [search, setSearch] = useState("");
   const [activeCities, setActiveCities] = useState<Set<string>>(new Set());
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
@@ -74,9 +75,17 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
           </div>
           <p className="browse-tagline">Community-powered spots for remote work, handpicked by the internet.</p>
         </div>
-        <button className="btn-submit-place" onClick={() => setShowSubmitModal(true)}>
-          Submit a place
-        </button>
+        <div className="browse-header-actions">
+          <button className="btn-plan-day" onClick={onChatOpen}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            Plan my day
+          </button>
+          <button className="btn-submit-place" onClick={() => setShowSubmitModal(true)}>
+            Submit a place
+          </button>
+        </div>
       </header>
 
       <div className="browse-filters">
