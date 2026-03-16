@@ -14,9 +14,10 @@ interface SidebarProps {
   isFormOpen: boolean;
   onGeocode: (lat: number, lng: number, address: string, city: string) => void;
   onDeleteSpot: (id: string) => void;
+  onChatOpen: () => void;
 }
 
-export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClick, isFormOpen, onGeocode, onDeleteSpot }: SidebarProps) {
+export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClick, isFormOpen, onGeocode, onDeleteSpot, onChatOpen }: SidebarProps) {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [showExport, setShowExport] = useState(false);
@@ -90,6 +91,12 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
           <h1>Atlas</h1>
         </div>
         <p className="sidebar-tagline">Find your next great work spot</p>
+        <button className="btn-plan-day" onClick={onChatOpen}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+          Plan my day
+        </button>
       </div>
 
       <div className="sidebar-search">

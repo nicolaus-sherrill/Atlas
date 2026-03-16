@@ -125,6 +125,7 @@ function App() {
             isFormOpen={isFormOpen}
             onGeocode={handleGeocode}
             onDeleteSpot={handleDeleteSpot}
+            onChatOpen={() => setIsChatOpen(true)}
           />
         ) : (
           <BrowseView
