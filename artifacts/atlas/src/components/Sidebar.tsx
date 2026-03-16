@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import type { WorkSpot, Category } from "@/lib/types";
 import { CATEGORIES, calcScore, getSpotDisplayTags, scoreToLabel, SCORE_CATEGORIES, isOpenNow, getTodayHoursLabel } from "@/lib/types";
-import ScoreDots from "./ScoreDots";
 import { spotsToGeoJSON, spotsToKML, downloadFile } from "@/lib/export";
 import { searchAddress, type GeocodingResult } from "@/lib/geocode";
 import { fetchAllCrowdStatuses, getBusynessInfo, timeAgo, type CrowdStatus } from "@/lib/crowd";
@@ -200,7 +199,6 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
                 </div>
                 <div className="spot-card-score-block">
                   <span className="spot-card-rating">{score.toFixed(1)}</span>
-                  <ScoreDots score={score} className="spot-card-dots" />
                   <span className="spot-card-score-label">{scoreToLabel(score)}</span>
                 </div>
               </div>

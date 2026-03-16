@@ -1548,11 +1548,6 @@ html, body, #root {
   flex-shrink: 0;
 }
 
-.spot-card-dots {
-  font-size: 10px;
-  letter-spacing: 1px;
-}
-
 .spot-card-score-label {
   font-size: 9px;
   color: var(--muted);
