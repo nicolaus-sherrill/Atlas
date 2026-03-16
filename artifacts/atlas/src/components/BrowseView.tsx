@@ -1,11 +1,13 @@
 import { useState, useMemo, Fragment } from "react";
 import type { WorkSpot, Category } from "@/lib/types";
 import { CATEGORIES, computeWorkabilityScore, getSpotTags } from "@/lib/types";
+import BrowseSubmitModal from "./BrowseSubmitModal";
 
 interface BrowseViewProps {
   spots: WorkSpot[];
   onSpotSelect: (id: string) => void;
   onAddClick: () => void;
+  onBrowseSubmit: (spot: Omit<WorkSpot, "id" | "submittedAt">) => void;
 }
 
 const ALL_FILTER_TAGS = [
@@ -14,12 +16,13 @@ const ALL_FILTER_TAGS = [
   "Driving", "Train", "Bus",
 ];
 
-export default function BrowseView({ spots, onSpotSelect, onAddClick }: BrowseViewProps) {
+export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSubmit }: BrowseViewProps) {
   const [search, setSearch] = useState("");
   const [activeCity, setActiveCity] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [activeTags, setActiveTags] = useState<Set<string>>(new Set());
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
 
   const cities = useMemo(() => {
     const set = new Set(spots.map((s) => s.city));
@@ -65,7 +68,7 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick }: BrowseVi
           </div>
           <p className="browse-tagline">Community-powered spots for remote work, handpicked by the internet.</p>
         </div>
-        <button className="btn-submit-place" onClick={onAddClick}>
+        <button className="btn-submit-place" onClick={() => setShowSubmitModal(true)}>
           Submit a place
         </button>
       </header>
@@ -254,6 +257,15 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick }: BrowseVi
         )}
       </div>
 
+      {showSubmitModal && (
+        <BrowseSubmitModal
+          onSubmit={(spot) => {
+            onBrowseSubmit(spot);
+            setShowSubmitModal(false);
+          }}
+          onClose={() => setShowSubmitModal(false)}
+        />
+      )}
     </div>
   );
 }

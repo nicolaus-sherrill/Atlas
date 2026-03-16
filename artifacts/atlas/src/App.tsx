@@ -105,6 +105,7 @@ function App() {
             spots={spots}
             onSpotSelect={handleBrowseSpotSelect}
             onAddClick={handleAddClick}
+            onBrowseSubmit={handleSubmit}
           />
         )}
       </div>
