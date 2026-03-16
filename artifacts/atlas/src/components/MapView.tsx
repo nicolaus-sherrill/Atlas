@@ -119,10 +119,6 @@ export default function MapView({ spots, selectedSpotId, onMapClick, onSpotSelec
       maxZoom: 19,
     }).addTo(map);
 
-    map.on("click", (e: L.LeafletMouseEvent) => {
-      onMapClick(e.latlng.lat, e.latlng.lng);
-    });
-
     mapRef.current = map;
 
     return () => {
@@ -138,10 +134,14 @@ export default function MapView({ spots, selectedSpotId, onMapClick, onSpotSelec
     const map = mapRef.current;
     if (!map) return;
 
-    map.off("click");
-    map.on("click", (e: L.LeafletMouseEvent) => {
+    const handler = (e: L.LeafletMouseEvent) => {
       onMapClickRef.current(e.latlng.lat, e.latlng.lng);
-    });
+    };
+    map.on("click", handler);
+
+    return () => {
+      map.off("click", handler);
+    };
   }, []);
 
   useEffect(() => {

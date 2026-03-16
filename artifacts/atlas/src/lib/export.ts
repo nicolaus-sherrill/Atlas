@@ -75,11 +75,15 @@ export function downloadFile(content: string, filename: string, mimeType: string
 }
 
 export function getGoogleMapsUrl(lat: number, lng: number, name?: string): string {
-  const q = name ? encodeURIComponent(name) : `${lat},${lng}`;
-  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=&travelmode=driving`;
+  const destination = name
+    ? `${encodeURIComponent(name)}+@${lat},${lng}`
+    : `${lat},${lng}`;
+  return `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=driving`;
 }
 
 export function getAppleMapsUrl(lat: number, lng: number, name?: string): string {
-  const q = name ? encodeURIComponent(name) : `${lat},${lng}`;
-  return `https://maps.apple.com/?daddr=${lat},${lng}&dirflg=d&t=m`;
+  const daddr = name
+    ? `${encodeURIComponent(name)}+@${lat},${lng}`
+    : `${lat},${lng}`;
+  return `https://maps.apple.com/?daddr=${daddr}&dirflg=d&t=m`;
 }
