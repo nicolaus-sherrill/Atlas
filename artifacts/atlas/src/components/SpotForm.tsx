@@ -1,0 +1,141 @@
+import { useState, useEffect } from "react";
+import type { WorkSpot, Category } from "@/lib/types";
+import { CATEGORIES, RATING_LABELS } from "@/lib/types";
+
+interface SpotFormProps {
+  pendingLocation: { lat: number; lng: number } | null;
+  onSubmit: (spot: Omit<WorkSpot, "id" | "submittedAt">) => void;
+  onCancel: () => void;
+}
+
+export default function SpotForm({ pendingLocation, onSubmit, onCancel }: SpotFormProps) {
+  const [name, setName] = useState("");
+  const [category, setCategory] = useState<Category>("cafe");
+  const [address, setAddress] = useState("");
+  const [description, setDescription] = useState("");
+  const [ratings, setRatings] = useState({ wifi: 3, power: 3, noise: 3, coffee: 3 });
+
+  const updateRating = (key: keyof typeof ratings, value: number) => {
+    setRatings((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || !pendingLocation) return;
+
+    onSubmit({
+      name: name.trim(),
+      category,
+      address: address.trim() || `${pendingLocation.lat.toFixed(4)}, ${pendingLocation.lng.toFixed(4)}`,
+      lat: pendingLocation.lat,
+      lng: pendingLocation.lng,
+      ratings,
+      description: description.trim(),
+    });
+  };
+
+  return (
+    <div className="spot-form-overlay">
+      <form className="spot-form" onSubmit={handleSubmit}>
+        <div className="spot-form-header">
+          <h2>Add a Spot</h2>
+          <button type="button" className="spot-form-close" onClick={onCancel}>
+            &times;
+          </button>
+        </div>
+
+        {!pendingLocation && (
+          <div className="spot-form-hint">
+            <span>📍</span>
+            <p>Click anywhere on the map to set the location</p>
+          </div>
+        )}
+
+        {pendingLocation && (
+          <div className="spot-form-location">
+            <span>📍</span>
+            <span>{pendingLocation.lat.toFixed(5)}, {pendingLocation.lng.toFixed(5)}</span>
+          </div>
+        )}
+
+        <div className="form-group">
+          <label htmlFor="name">Name</label>
+          <input
+            id="name"
+            type="text"
+            placeholder="e.g. The Daily Grind"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="category">Category</label>
+          <div className="category-select">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat.value}
+                type="button"
+                className={`category-option ${category === cat.value ? "active" : ""}`}
+                onClick={() => setCategory(cat.value)}
+              >
+                <span>{cat.icon}</span>
+                <span>{cat.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="address">Address</label>
+          <input
+            id="address"
+            type="text"
+            placeholder="123 Main St, City"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Ratings</label>
+          <div className="ratings-grid">
+            {(Object.keys(ratings) as (keyof typeof ratings)[]).map((key) => (
+              <div key={key} className="rating-row">
+                <span className="rating-row-label">{RATING_LABELS[key]}</span>
+                <div className="rating-row-dots">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      className={`rating-button ${i <= ratings[key] ? "filled" : ""}`}
+                      onClick={() => updateRating(key, i)}
+                    >
+                      ●
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="description">Notes (optional)</label>
+          <textarea
+            id="description"
+            placeholder="What makes this spot great for working?"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+          />
+        </div>
+
+        <button type="submit" className="btn-submit" disabled={!name.trim() || !pendingLocation}>
+          Add Spot
+        </button>
+      </form>
+    </div>
+  );
+}

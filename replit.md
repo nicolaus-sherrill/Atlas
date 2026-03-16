@@ -21,7 +21,8 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 ```text
 artifacts-monorepo/
 ├── artifacts/              # Deployable applications
-│   └── api-server/         # Express API server
+│   ├── api-server/         # Express API server
+│   └── atlas/              # Atlas - Community-powered work spot map
 ├── lib/                    # Shared libraries
 │   ├── api-spec/           # OpenAPI spec + Orval codegen config
 │   ├── api-client-react/   # Generated React Query hooks
@@ -34,6 +35,34 @@ artifacts-monorepo/
 ├── tsconfig.json           # Root TS project references
 └── package.json            # Root package with hoisted devDeps
 ```
+
+## Atlas (`artifacts/atlas`)
+
+Community-powered map web app for finding great remote work spots. Built with React + Vite, Leaflet.js + OpenStreetMap, and localStorage for persistence.
+
+### Features
+- Interactive Leaflet map with custom-styled markers
+- Browse, search, and filter locations by category (café, library, coworking, park)
+- Submit new spots with workability ratings (WiFi, Power, Noise, Coffee)
+- "Get Directions" links to Google Maps and Apple Maps
+- Export spots as GeoJSON or KML for use in other map apps
+- localStorage persistence with 10 pre-seeded sample locations
+- Responsive sidebar with toggle
+
+### Design
+- Color palette: off-white (#F5F3EF), near-black (#1A1A18), warm stone (#C8B89A), muted sage (#8A9E8C)
+- Typography: Inter from Google Fonts
+- Map tiles: CARTO Light (OpenStreetMap-based)
+
+### Key Files
+- `src/App.tsx` — Main app layout with sidebar + map
+- `src/components/MapView.tsx` — Leaflet map with markers and popups
+- `src/components/Sidebar.tsx` — Search, filter, spot list, export
+- `src/components/SpotForm.tsx` — Add new spot form
+- `src/lib/store.ts` — localStorage data layer with seed data
+- `src/lib/export.ts` — GeoJSON/KML export and map app deep links
+- `src/lib/types.ts` — TypeScript types and constants
+- `src/index.css` — All styles (custom CSS, no Tailwind)
 
 ## TypeScript & Composite Projects
 
