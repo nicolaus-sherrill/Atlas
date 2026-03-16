@@ -1,16 +1,19 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { WorkSpot, Category, TagId, CategoryScores, ScoreCategory, OperatingHours, DayOfWeek } from "@/lib/types";
 import { CATEGORIES, TAGS, SCORE_CATEGORIES, EMPTY_SCORES, DEFAULT_OPERATING_HOURS, DAYS_OF_WEEK, DAY_LABELS_FULL } from "@/lib/types";
-import { reverseGeocode, forwardGeocode } from "@/lib/geocoding";
+import { reverseGeocode } from "@/lib/geocoding";
+import AddressAutocomplete from "@/components/AddressAutocomplete";
+import type { GeocodingResult } from "@/lib/geocode";
 
 interface SpotFormProps {
   pendingLocation: { lat: number; lng: number } | null;
   geoData: { address: string; city: string } | null;
   onSubmit: (spot: Omit<WorkSpot, "id" | "submittedAt">) => void;
   onCancel: () => void;
+  onLocationChange?: (lat: number, lng: number) => void;
 }
 
-export default function SpotForm({ pendingLocation, geoData, onSubmit, onCancel }: SpotFormProps) {
+export default function SpotForm({ pendingLocation, geoData, onSubmit, onCancel, onLocationChange }: SpotFormProps) {
   const [name, setName] = useState("");
   const [category, setCategory] = useState<Category>("cafe");
   const [city, setCity] = useState("");
@@ -21,7 +24,6 @@ export default function SpotForm({ pendingLocation, geoData, onSubmit, onCancel 
   const [selectedTags, setSelectedTags] = useState<Set<TagId>>(new Set());
   const [operatingHours, setOperatingHours] = useState<OperatingHours>(JSON.parse(JSON.stringify(DEFAULT_OPERATING_HOURS)));
 
-  const addressDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const geocodeSeqRef = useRef<number>(0);
 
   useEffect(() => {
@@ -37,38 +39,20 @@ export default function SpotForm({ pendingLocation, geoData, onSubmit, onCancel 
     });
   }, [pendingLocation?.lat, pendingLocation?.lng]);
 
-  const handleAddressChange = useCallback((value: string) => {
-    setAddress(value);
-    if (addressDebounceRef.current) {
-      clearTimeout(addressDebounceRef.current);
-    }
-    if (!value.trim() || value.trim().length < 5) return;
-    addressDebounceRef.current = setTimeout(() => {
-      const seq = ++geocodeSeqRef.current;
-      setCityLoading(true);
-      forwardGeocode(value.trim()).then((result) => {
-        if (seq === geocodeSeqRef.current) {
-          setCity(result.city);
-          setCityLoading(false);
-        }
-      });
-    }, 1200);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (addressDebounceRef.current) {
-        clearTimeout(addressDebounceRef.current);
-      }
-    };
-  }, []);
-
   useEffect(() => {
     if (geoData) {
       if (geoData.address) setAddress(geoData.address);
       if (geoData.city) setCity(geoData.city);
     }
   }, [geoData]);
+
+  const handleAddressSelect = (result: GeocodingResult) => {
+    setAddress(result.displayName);
+    setCity(result.city);
+    if (onLocationChange) {
+      onLocationChange(result.lat, result.lng);
+    }
+  };
 
   const setScore = (key: ScoreCategory, value: number) => {
     setScores((prev) => ({ ...prev, [key]: value }));
@@ -147,12 +131,12 @@ export default function SpotForm({ pendingLocation, geoData, onSubmit, onCancel 
         <div className="form-row">
           <div className="form-group">
             <label htmlFor="address">Address</label>
-            <input
+            <AddressAutocomplete
               id="address"
-              type="text"
-              placeholder="123 Main St"
               value={address}
-              onChange={(e) => handleAddressChange(e.target.value)}
+              onChange={setAddress}
+              onSelect={handleAddressSelect}
+              placeholder="123 Main St"
             />
           </div>
           <div className="form-group">

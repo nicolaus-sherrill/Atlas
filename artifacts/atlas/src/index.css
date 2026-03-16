@@ -682,6 +682,14 @@ html, body, #root {
   color: var(--muted);
 }
 
+.address-autocomplete {
+  position: relative;
+}
+
+.address-autocomplete input {
+  width: 100%;
+}
+
 .geocode-loading {
   padding: 8px 14px;
   font-size: 12px;

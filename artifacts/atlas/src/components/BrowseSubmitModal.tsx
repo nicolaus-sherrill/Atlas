@@ -1,6 +1,8 @@
 import { useState } from "react";
 import type { WorkSpot, Category, TagId, CategoryScores, ScoreCategory, OperatingHours, DayOfWeek } from "@/lib/types";
 import { CATEGORIES, TAGS, SCORE_CATEGORIES, EMPTY_SCORES, DEFAULT_OPERATING_HOURS, DAYS_OF_WEEK, DAY_LABELS_FULL } from "@/lib/types";
+import AddressAutocomplete from "@/components/AddressAutocomplete";
+import type { GeocodingResult } from "@/lib/geocode";
 
 interface BrowseSubmitModalProps {
   onSubmit: (spot: Omit<WorkSpot, "id" | "submittedAt">) => void;
@@ -11,6 +13,9 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
   const [name, setName] = useState("");
   const [category, setCategory] = useState<Category>("cafe");
   const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [lat, setLat] = useState(0);
+  const [lng, setLng] = useState(0);
   const [description, setDescription] = useState("");
   const [scores, setScores] = useState<CategoryScores>({ ...EMPTY_SCORES });
   const [selectedTags, setSelectedTags] = useState<Set<TagId>>(new Set());
@@ -36,6 +41,13 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
     }));
   };
 
+  const handleAddressSelect = (result: GeocodingResult) => {
+    setAddress(result.displayName);
+    setCity(result.city);
+    setLat(result.lat);
+    setLng(result.lng);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
@@ -43,10 +55,10 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
     onSubmit({
       name: name.trim(),
       category,
-      city: "Unknown",
+      city: city || "Unknown",
       address: address.trim() || "No address provided",
-      lat: 0,
-      lng: 0,
+      lat,
+      lng,
       scores,
       tags: Array.from(selectedTags),
       description: description.trim(),
@@ -80,14 +92,21 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
 
           <div className="form-group">
             <label htmlFor="browse-address">Address</label>
-            <input
+            <AddressAutocomplete
               id="browse-address"
-              type="text"
-              placeholder="123 Main St, Austin, TX"
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              onChange={setAddress}
+              onSelect={handleAddressSelect}
+              placeholder="123 Main St, Austin, TX"
             />
           </div>
+
+          {city && (
+            <div className="form-group">
+              <label>City</label>
+              <div className="city-display">{city}</div>
+            </div>
+          )}
 
           <div className="form-group">
             <label htmlFor="browse-category">Category</label>

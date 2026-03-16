@@ -153,6 +153,10 @@ function App() {
             geoData={pendingGeoData}
             onSubmit={handleSubmit}
             onCancel={handleFormCancel}
+            onLocationChange={(lat, lng) => {
+              setPendingLocation({ lat, lng });
+              setPendingGeoData(null);
+            }}
           />
         )}
       </div>
