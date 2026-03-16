@@ -33,20 +33,20 @@ export interface TagDefinition {
 }
 
 export const TAGS: TagDefinition[] = [
+  { id: "wifi_portal", label: "WiFi Network Portal", category: "wifi" },
+  { id: "no_wifi_password", label: "No WiFi Password", category: "wifi" },
   { id: "natural_lighting", label: "Natural Lighting", category: "atmosphere" },
-  { id: "open_late", label: "Open Late", category: "hours" },
   { id: "quiet", label: "Quiet", category: "atmosphere" },
+  { id: "outdoor_seating", label: "Outdoor Seating", category: "atmosphere" },
+  { id: "laptop_friendly", label: "Laptop-Friendly", category: "atmosphere" },
+  { id: "generous_seating", label: "Generous Seating", category: "atmosphere" },
+  { id: "open_late", label: "Open Late", category: "hours" },
   { id: "food", label: "Food", category: "food" },
   { id: "alcohol", label: "Alcohol", category: "food" },
   { id: "ada_accessible", label: "ADA Accessible", category: "access" },
   { id: "bike_racks", label: "Bike Racks Available", category: "access" },
   { id: "transit_nearby", label: "Transit Stop Nearby", category: "access" },
-  { id: "outdoor_seating", label: "Outdoor Seating", category: "atmosphere" },
   { id: "free_parking", label: "Free Parking Nearby", category: "access" },
-  { id: "laptop_friendly", label: "Laptop-Friendly", category: "atmosphere" },
-  { id: "wifi_portal", label: "WiFi Network Portal", category: "wifi" },
-  { id: "no_wifi_password", label: "No WiFi Password", category: "wifi" },
-  { id: "generous_seating", label: "Generous Seating", category: "atmosphere" },
 ];
 
 export interface ScoreCategoryDef {
@@ -127,6 +127,17 @@ export function getTagLabel(tagId: string): string {
 
 export function getSpotDisplayTags(spot: WorkSpot): string[] {
   return spot.tags.map((t) => TAG_LABEL_MAP[t] || t);
+}
+
+export function getTagsGroupedByCategory(): { category: ScoreCategoryDef; tags: TagDefinition[] }[] {
+  const groups: { category: ScoreCategoryDef; tags: TagDefinition[] }[] = [];
+  SCORE_CATEGORIES.forEach((sc) => {
+    const catTags = TAGS.filter((t) => t.category === sc.key);
+    if (catTags.length > 0) {
+      groups.push({ category: sc, tags: catTags });
+    }
+  });
+  return groups;
 }
 
 export const SCORE_CATEGORY_LABELS: Record<ScoreCategory, string> = {
