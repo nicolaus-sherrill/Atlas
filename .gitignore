@@ -47,3 +47,15 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# local embedded Postgres data
+.local-db
+/.env
+
+# model eval reports
+.ai-eval
+
+# Cloudflare local secrets
+.dev.vars*
+!.dev.vars.example
+.wrangler
