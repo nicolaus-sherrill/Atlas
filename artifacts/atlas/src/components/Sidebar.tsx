@@ -12,7 +12,8 @@ interface SidebarProps {
   onAddClick: () => void;
   isFormOpen: boolean;
   onGeocode: (lat: number, lng: number, address: string, city: string) => void;
-  onDeleteSpot: (id: string) => void;
+  // Only passed for admins; everyone else gets no delete control
+  onDeleteSpot?: (id: string) => void;
   onChatOpen: () => void;
 }
 
@@ -236,7 +237,7 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
                   <span className="spot-card-tag">+{getSpotDisplayTags(spot).length - 4}</span>
                 )}
               </div>
-              {confirmDeleteId === spot.id ? (
+              {onDeleteSpot && (confirmDeleteId === spot.id ? (
                 <div className="spot-card-delete-confirm" onClick={(e) => e.stopPropagation()}>
                   <span>Delete this spot?</span>
                   <button
@@ -276,7 +277,7 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
                     <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
                   </svg>
                 </button>
-              )}
+              ))}
             </div>
           );
         })}

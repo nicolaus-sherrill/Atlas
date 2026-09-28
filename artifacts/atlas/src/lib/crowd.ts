@@ -1,4 +1,5 @@
-const API_URL = "/api";
+import { supabase } from "./supabase";
+import { ensureSession } from "./session";
 
 export interface CrowdStatus {
   level: number;
@@ -43,34 +44,22 @@ export function timeAgo(isoString: string): string {
 
 export async function submitCrowdReport(spotId: string, level: number): Promise<boolean> {
   try {
-    const res = await fetch(`${API_URL}/crowd-report`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ spotId, level }),
-    });
-    return res.ok;
+    await ensureSession();
   } catch {
     return false;
   }
+  const { error } = await supabase.from("crowd_reports").insert({ spot_id: spotId, level });
+  return !error;
 }
 
 export async function fetchCrowdStatus(spotId: string): Promise<SpotCrowdData | null> {
-  try {
-    const res = await fetch(`${API_URL}/crowd-status/${spotId}`);
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
+  const { data, error } = await supabase.rpc("crowd_status", { p_spot_id: spotId });
+  if (error || !data) return null;
+  return data as SpotCrowdData;
 }
 
 export async function fetchAllCrowdStatuses(): Promise<Record<string, CrowdStatus>> {
-  try {
-    const res = await fetch(`${API_URL}/crowd-status`);
-    if (!res.ok) return {};
-    const data = await res.json();
-    return data.statuses || {};
-  } catch {
-    return {};
-  }
+  const { data, error } = await supabase.rpc("crowd_status_all");
+  if (error || !data) return {};
+  return data as Record<string, CrowdStatus>;
 }

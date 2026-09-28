@@ -210,6 +210,12 @@ export interface WorkSpot {
   description: string;
   aiSummary?: string;
   operatingHours?: OperatingHours;
+  website?: string;
+  // The real place this spot was matched to on OpenStreetMap, if any
+  osmType?: "node" | "way" | "relation";
+  osmId?: number;
+  // How many people's ratings the scores average
+  ratingCount?: number;
   submittedAt: string;
 }
 

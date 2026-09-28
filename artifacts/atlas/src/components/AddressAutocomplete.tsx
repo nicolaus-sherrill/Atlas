@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { searchAddress, type GeocodingResult } from "@/lib/geocode";
+import { searchAddress, searchPlaces, type GeocodingResult } from "@/lib/geocode";
 
 interface AddressAutocompleteProps {
   value: string;
@@ -7,6 +7,9 @@ interface AddressAutocompleteProps {
   onSelect: (result: GeocodingResult) => void;
   placeholder?: string;
   id?: string;
+  // "place" suggests named businesses, libraries and parks; "address" suggests street addresses
+  mode?: "address" | "place";
+  autoFocus?: boolean;
 }
 
 export default function AddressAutocomplete({
@@ -15,6 +18,8 @@ export default function AddressAutocomplete({
   onSelect,
   placeholder = "123 Main St",
   id,
+  mode = "address",
+  autoFocus,
 }: AddressAutocompleteProps) {
   const [results, setResults] = useState<GeocodingResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -43,7 +48,8 @@ export default function AddressAutocomplete({
         const controller = new AbortController();
         abortRef.current = controller;
         try {
-          const data = await searchAddress(val.trim(), controller.signal);
+          const search = mode === "place" ? searchPlaces : searchAddress;
+          const data = await search(val.trim(), controller.signal);
           if (!controller.signal.aborted) {
             setResults(data);
             setOpen(data.length > 0);
@@ -56,7 +62,7 @@ export default function AddressAutocomplete({
         }
       }, 350);
     },
-    [onChange],
+    [onChange, mode],
   );
 
   const handleSelect = useCallback(
@@ -97,20 +103,36 @@ export default function AddressAutocomplete({
         value={value}
         onChange={handleChange}
         autoComplete="off"
+        autoFocus={autoFocus}
+        role="combobox"
+        aria-expanded={open}
+        aria-autocomplete="list"
       />
       {loading && <div className="geocode-loading">Searching...</div>}
+
       {open && results.length > 0 && (
-        <div className="geocode-dropdown">
+        <div className="geocode-dropdown" role="listbox">
           {results.map((r, i) => (
             <button
               key={i}
               type="button"
               className="geocode-result"
+              role="option"
               onClick={() => handleSelect(r)}
             >
-              {r.displayName}
+              {r.name ? (
+                <>
+                  <span className="geocode-result-name">{r.name}</span>
+                  <span className="geocode-result-address">{r.address}</span>
+                </>
+              ) : (
+                r.displayName
+              )}
             </button>
           ))}
+          {mode === "place" && (
+            <div className="geocode-credit">Search by Photon, data © OpenStreetMap contributors</div>
+          )}
         </div>
       )}
     </div>

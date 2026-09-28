@@ -1,8 +1,10 @@
 import { useState } from "react";
 import type { WorkSpot, Category, TagId, CategoryScores, ScoreCategory } from "@/lib/types";
-import { CATEGORIES, TAGS, SCORE_CATEGORIES, EMPTY_SCORES, DEFAULT_OPERATING_HOURS } from "@/lib/types";
+import { CATEGORIES, TAGS, SCORE_CATEGORIES, EMPTY_SCORES } from "@/lib/types";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import type { GeocodingResult } from "@/lib/geocode";
+import PlaceLinkCard from "@/components/PlaceLinkCard";
+import { usePlaceLink } from "@/hooks/use-place-link";
 
 interface BrowseSubmitModalProps {
   onSubmit: (spot: Omit<WorkSpot, "id" | "submittedAt">) => void;
@@ -14,11 +16,25 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
   const [category, setCategory] = useState<Category>("cafe");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
-  const [lat, setLat] = useState(0);
-  const [lng, setLng] = useState(0);
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [description, setDescription] = useState("");
   const [scores, setScores] = useState<CategoryScores>({ ...EMPTY_SCORES });
   const [selectedTags, setSelectedTags] = useState<Set<TagId>>(new Set());
+
+  const { link, select, clear } = usePlaceLink((details) => {
+    if (details.category) setCategory(details.category);
+    if (details.suggestedTags.length) setSelectedTags((prev) => new Set([...prev, ...details.suggestedTags]));
+  });
+
+  const handleNameSelect = (result: GeocodingResult) => {
+    setName(result.name ?? result.displayName);
+    setAddress(result.address);
+    setCity(result.city);
+    setLocation({ lat: result.lat, lng: result.lng });
+    if (result.category) setCategory(result.category);
+    if (result.place) select(result.place, result.name ?? "");
+    else clear();
+  };
 
   const setScore = (key: ScoreCategory, value: number) => {
     setScores((prev) => ({ ...prev, [key]: value }));
@@ -35,27 +51,30 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
 
 
   const handleAddressSelect = (result: GeocodingResult) => {
-    setAddress(result.displayName);
+    setAddress(result.address || result.displayName);
     setCity(result.city);
-    setLat(result.lat);
-    setLng(result.lng);
+    setLocation({ lat: result.lat, lng: result.lng });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim() || !location) return;
+    const details = link && !link.loading ? link.details : null;
 
     onSubmit({
       name: name.trim(),
       category,
       city: city || "Unknown",
       address: address.trim() || "No address provided",
-      lat,
-      lng,
+      lat: location.lat,
+      lng: location.lng,
       scores,
       tags: Array.from(selectedTags),
       description: description.trim(),
-      operatingHours: DEFAULT_OPERATING_HOURS,
+      operatingHours: details?.operatingHours,
+      website: details?.website,
+      osmType: link?.place.osmType,
+      osmId: link?.place.osmId,
     });
   };
 
@@ -72,15 +91,16 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
 
           <div className="form-group">
             <label htmlFor="browse-name">Name</label>
-            <input
+            <AddressAutocomplete
               id="browse-name"
-              type="text"
-              placeholder="e.g. The Daily Grind"
+              mode="place"
               value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
+              onChange={setName}
+              onSelect={handleNameSelect}
+              placeholder="Start typing the place's name"
               autoFocus
             />
+            {link && <PlaceLinkCard link={link} onClear={clear} />}
           </div>
 
           <div className="form-group">
@@ -169,7 +189,10 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
             />
           </div>
 
-          <button type="submit" className="btn-submit" disabled={!name.trim()}>
+          {name.trim() && !location && (
+            <p className="spot-form-hint-text">Pick the place from the suggestions, or choose an address, so Atlas knows where it is.</p>
+          )}
+          <button type="submit" className="btn-submit" disabled={!name.trim() || !location}>
             Submit Place
           </button>
         </form>

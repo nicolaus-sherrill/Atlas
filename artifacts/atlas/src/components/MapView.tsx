@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import "maplibre-gl/dist/maplibre-gl.css";
+import { setWorkerUrl } from "maplibre-gl";
+import { maplibreGL } from "@maplibre/maplibre-gl-leaflet";
+import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
+
+// The production bundle has to ship MapLibre's worker itself; the dev server resolves it on its own.
+if (import.meta.env.PROD) setWorkerUrl(maplibreWorkerUrl);
 import type { WorkSpot, Category } from "@/lib/types";
 import { CATEGORIES, calcScore, getSpotDisplayTags, scoreToLabel, SCORE_CATEGORIES, isOpenNow, getTodayHoursLabel } from "@/lib/types";
 import { getGoogleMapsUrl, getAppleMapsUrl } from "@/lib/export";
@@ -112,6 +119,7 @@ function createPopupContent(spot: WorkSpot, crowdStatus: CrowdStatus | null): st
       </div>
     </div>
     <div style="font-size:12px;color:#1A1A18;opacity:0.6;margin-bottom:6px;">${safeAddress}</div>
+    ${spot.website && /^https?:\/\//i.test(spot.website) ? `<div style="font-size:12px;margin-bottom:6px;"><a href="${escapeHtml(spot.website)}" target="_blank" rel="noopener" style="color:#1A1A18;">Website &#8599;</a></div>` : ""}
     ${spot.operatingHours ? `<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
       <span style="display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;color:#fff;background:${isOpenNow(spot.operatingHours) ? '#4a7c59' : '#8b4513'};">${isOpenNow(spot.operatingHours) ? 'Open' : 'Closed'}</span>
       <span style="font-size:11px;color:#1A1A18;opacity:0.7;">${escapeHtml(getTodayHoursLabel(spot.operatingHours))}</span>
@@ -168,10 +176,9 @@ export default function MapView({ spots, selectedSpotId, onMapClick, onSpotSelec
 
     L.control.zoom({ position: "bottomright" }).addTo(map);
 
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
-      maxZoom: 19,
-    }).addTo(map);
+    // OpenFreeMap: free, keyless vector tiles built on OpenStreetMap data.
+    // The style carries its own OpenFreeMap and OpenStreetMap credits
+    maplibreGL({ style: "https://tiles.openfreemap.org/styles/positron" }).addTo(map);
 
     mapRef.current = map;
 

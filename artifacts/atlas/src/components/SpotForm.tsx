@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import type { WorkSpot, Category, TagId, CategoryScores, ScoreCategory } from "@/lib/types";
-import { CATEGORIES, TAGS, SCORE_CATEGORIES, EMPTY_SCORES, DEFAULT_OPERATING_HOURS } from "@/lib/types";
-import { reverseGeocode } from "@/lib/geocoding";
+import { CATEGORIES, TAGS, SCORE_CATEGORIES, EMPTY_SCORES } from "@/lib/types";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
-import type { GeocodingResult } from "@/lib/geocode";
+import { reverseGeocode, type GeocodingResult } from "@/lib/geocode";
+import PlaceLinkCard from "@/components/PlaceLinkCard";
+import { usePlaceLink } from "@/hooks/use-place-link";
 
 interface SpotFormProps {
   pendingLocation: { lat: number; lng: number } | null;
@@ -24,6 +25,21 @@ export default function SpotForm({ pendingLocation, geoData, onSubmit, onCancel,
   const [selectedTags, setSelectedTags] = useState<Set<TagId>>(new Set());
 
   const geocodeSeqRef = useRef<number>(0);
+
+  const { link, select, clear } = usePlaceLink((details) => {
+    if (details.category) setCategory(details.category);
+    if (details.suggestedTags.length) setSelectedTags((prev) => new Set([...prev, ...details.suggestedTags]));
+  });
+
+  const handleNameSelect = (result: GeocodingResult) => {
+    setName(result.name ?? result.displayName);
+    setAddress(result.address);
+    setCity(result.city);
+    if (result.category) setCategory(result.category);
+    onLocationChange?.(result.lat, result.lng);
+    if (result.place) select(result.place, result.name ?? "");
+    else clear();
+  };
 
   useEffect(() => {
     if (!pendingLocation) return;
@@ -46,7 +62,7 @@ export default function SpotForm({ pendingLocation, geoData, onSubmit, onCancel,
   }, [geoData]);
 
   const handleAddressSelect = (result: GeocodingResult) => {
-    setAddress(result.displayName);
+    setAddress(result.address || result.displayName);
     setCity(result.city);
     if (onLocationChange) {
       onLocationChange(result.lat, result.lng);
@@ -70,6 +86,7 @@ export default function SpotForm({ pendingLocation, geoData, onSubmit, onCancel,
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !pendingLocation) return;
+    const details = link && !link.loading ? link.details : null;
 
     onSubmit({
       name: name.trim(),
@@ -81,7 +98,10 @@ export default function SpotForm({ pendingLocation, geoData, onSubmit, onCancel,
       scores,
       tags: Array.from(selectedTags),
       description: description.trim(),
-      operatingHours: DEFAULT_OPERATING_HOURS,
+      operatingHours: details?.operatingHours,
+      website: details?.website,
+      osmType: link?.place.osmType,
+      osmId: link?.place.osmId,
     });
   };
 
@@ -111,14 +131,15 @@ export default function SpotForm({ pendingLocation, geoData, onSubmit, onCancel,
 
         <div className="form-group">
           <label htmlFor="name">Name</label>
-          <input
+          <AddressAutocomplete
             id="name"
-            type="text"
-            placeholder="e.g. The Daily Grind"
+            mode="place"
             value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
+            onChange={setName}
+            onSelect={handleNameSelect}
+            placeholder="Start typing the place's name"
           />
+          {link && <PlaceLinkCard link={link} onClear={clear} />}
         </div>
 
         <div className="form-row">

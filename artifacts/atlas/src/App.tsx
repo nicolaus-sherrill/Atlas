@@ -4,12 +4,26 @@ import Sidebar from "@/components/Sidebar";
 import SpotForm from "@/components/SpotForm";
 import BrowseView from "@/components/BrowseView";
 import ChatPanel from "@/components/ChatPanel";
-import { getAllSpots, addSpot, updateSpot, deleteSpot } from "@/lib/store";
-import { generateSummary } from "@/lib/ai";
+import { fetchSpots, addSpot, removeSpot, requestSummary, DuplicatePlaceError } from "@/lib/store";
+import { useIsAdmin } from "@/lib/admin";
 import type { WorkSpot } from "@/lib/types";
 
 function App() {
-  const [spots, setSpots] = useState<WorkSpot[]>(() => getAllSpots());
+  const [spots, setSpots] = useState<WorkSpot[]>([]);
+  const [notice, setNotice] = useState<string | null>(null);
+  const isAdmin = useIsAdmin();
+
+  const reloadSpots = useCallback(async () => {
+    try {
+      setSpots(await fetchSpots());
+    } catch {
+      setNotice("Couldn't load spots. Check your connection and refresh.");
+    }
+  }, []);
+
+  useEffect(() => {
+    reloadSpots();
+  }, [reloadSpots]);
   const [mapOpen, setMapOpen] = useState(false);
   const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -54,20 +68,31 @@ function App() {
     }
   };
 
-  const handleSubmit = async (spot: Omit<WorkSpot, "id" | "submittedAt">) => {
-    const newSpot = addSpot(spot);
-    setSpots(getAllSpots());
-    setIsFormOpen(false);
-    setPendingLocation(null);
-    setPendingGeoData(null);
-    setSelectedSpotId(newSpot.id);
-
-    if (newSpot.description) {
-      const summary = await generateSummary(newSpot);
-      if (summary) {
-        updateSpot(newSpot.id, { aiSummary: summary });
-        setSpots(getAllSpots());
+  // Resolves true when the spot saved, so a form can stay open (keeping what was typed) on failure
+  const handleSubmit = async (spot: Omit<WorkSpot, "id" | "submittedAt">): Promise<boolean> => {
+    try {
+      const newSpot = await addSpot(spot);
+      setSpots((prev) => [newSpot, ...prev]);
+      setIsFormOpen(false);
+      setPendingLocation(null);
+      setPendingGeoData(null);
+      setSelectedSpotId(newSpot.id);
+      if (newSpot.description) {
+        requestSummary(newSpot.id).then((wrote) => {
+          if (wrote) reloadSpots();
+        });
       }
+      return true;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      setNotice(
+        err instanceof DuplicatePlaceError
+          ? "That place is already on Atlas. Search the list to find it."
+          : message.includes("Too many")
+            ? "You've added a lot of spots this hour. Try again a little later."
+            : "Couldn't save that spot. Check the details and try again.",
+      );
+      return false;
     }
   };
 
@@ -80,11 +105,15 @@ function App() {
     }
   }, [isFormOpen]);
 
-  const handleDeleteSpot = useCallback((id: string) => {
-    deleteSpot(id);
-    setSpots(getAllSpots());
-    if (selectedSpotId === id) {
-      setSelectedSpotId(null);
+  const handleDeleteSpot = useCallback(async (id: string) => {
+    try {
+      await removeSpot(id);
+      setSpots((prev) => prev.filter((s) => s.id !== id));
+      if (selectedSpotId === id) {
+        setSelectedSpotId(null);
+      }
+    } catch {
+      setNotice("Couldn't remove that spot.");
     }
   }, [selectedSpotId]);
 
@@ -93,25 +122,6 @@ function App() {
     setPendingLocation(null);
     setPendingGeoData(null);
   };
-
-  useEffect(() => {
-    const spotsWithoutSummary = spots.filter((s) => s.description && !s.aiSummary);
-    if (spotsWithoutSummary.length === 0) return;
-
-    let cancelled = false;
-    (async () => {
-      for (const spot of spotsWithoutSummary) {
-        if (cancelled) break;
-        const summary = await generateSummary(spot);
-        if (summary && !cancelled) {
-          updateSpot(spot.id, { aiSummary: summary });
-          setSpots(getAllSpots());
-        }
-      }
-    })();
-
-    return () => { cancelled = true; };
-  }, []);
 
   return (
     <div className={`app-shell ${mapOpen ? "map-open" : "map-closed"}`}>
@@ -124,7 +134,7 @@ function App() {
             onAddClick={handleAddClick}
             isFormOpen={isFormOpen}
             onGeocode={handleGeocode}
-            onDeleteSpot={handleDeleteSpot}
+            onDeleteSpot={isAdmin ? handleDeleteSpot : undefined}
             onChatOpen={() => setIsChatOpen(true)}
           />
         ) : (
@@ -133,8 +143,10 @@ function App() {
             onSpotSelect={handleBrowseSpotSelect}
             onAddClick={handleAddClick}
             onBrowseSubmit={handleSubmit}
+            onRated={reloadSpots}
+            onNotice={setNotice}
             onChatOpen={() => setIsChatOpen(true)}
-            onDeleteSpot={handleDeleteSpot}
+            onDeleteSpot={isAdmin ? handleDeleteSpot : undefined}
           />
         )}
       </div>
@@ -175,6 +187,12 @@ function App() {
           )}
         </svg>
       </button>
+
+      {notice && (
+        <div className="app-notice" role="status" onClick={() => setNotice(null)}>
+          {notice}
+        </div>
+      )}
 
       {isChatOpen && (
         <ChatPanel spots={spots} onClose={() => setIsChatOpen(false)} />

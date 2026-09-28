@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import type { WorkSpot } from "@/lib/types";
-import { calcScore, getSpotDisplayTags, SCORE_CATEGORY_LABELS } from "@/lib/types";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -42,18 +41,6 @@ export default function ChatPanel({ spots, onClose }: ChatPanelProps) {
     setInput("");
     setIsStreaming(true);
 
-    const spotsPayload = spots.map((s) => ({
-      name: s.name,
-      category: s.category,
-      city: s.city,
-      address: s.address,
-      tags: getSpotDisplayTags(s),
-      scores: s.scores,
-      overallScore: calcScore(s.scores, s.tags),
-      description: s.description,
-      aiSummary: s.aiSummary,
-    }));
-
     const assistantMessage: ChatMessage = { role: "assistant", content: "" };
     setMessages([...newMessages, assistantMessage]);
 
@@ -62,10 +49,8 @@ export default function ChatPanel({ spots, onClose }: ChatPanelProps) {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: newMessages,
-          spots: spotsPayload,
-        }),
+        // The server reads the spots itself, so a visitor can't add invented places to the planner
+        body: JSON.stringify({ messages: newMessages }),
         signal: abortRef.current.signal,
       });
 

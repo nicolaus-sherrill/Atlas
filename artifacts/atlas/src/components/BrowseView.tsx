@@ -2,6 +2,9 @@ import { useState, useMemo, Fragment } from "react";
 import type { WorkSpot, Category } from "@/lib/types";
 import { CATEGORIES, calcScore, getSpotDisplayTags, TAGS, SCORE_CATEGORIES, scoreToLabel, SCORE_CATEGORY_LABELS } from "@/lib/types";
 import BrowseSubmitModal from "./BrowseSubmitModal";
+import RateSpot from "./RateSpot";
+import SuggestEditModal from "./SuggestEditModal";
+import ReportProblemModal from "./ReportProblemModal";
 import ScoreDots from "./ScoreDots";
 import MultiSelectDropdown from "./MultiSelectDropdown";
 
@@ -9,14 +12,19 @@ interface BrowseViewProps {
   spots: WorkSpot[];
   onSpotSelect: (id: string) => void;
   onAddClick: () => void;
-  onBrowseSubmit: (spot: Omit<WorkSpot, "id" | "submittedAt">) => void;
+  onBrowseSubmit: (spot: Omit<WorkSpot, "id" | "submittedAt">) => Promise<boolean>;
+  onRated: () => void;
+  onNotice: (message: string) => void;
   onChatOpen: () => void;
-  onDeleteSpot: (id: string) => void;
+  // Only passed for admins; everyone else gets no delete control
+  onDeleteSpot?: (id: string) => void;
 }
 
 const ALL_FILTER_TAGS = TAGS.map((t) => t.label);
 
-export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSubmit, onChatOpen, onDeleteSpot }: BrowseViewProps) {
+export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSubmit, onRated, onNotice, onChatOpen, onDeleteSpot }: BrowseViewProps) {
+  const [editingSpot, setEditingSpot] = useState<WorkSpot | null>(null);
+  const [reportingSpot, setReportingSpot] = useState<WorkSpot | null>(null);
   const [search, setSearch] = useState("");
   const [activeCities, setActiveCities] = useState<Set<string>>(new Set());
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
@@ -224,6 +232,11 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
                             <div className="browse-detail-score-summary">
                               <span className="browse-score">{score.toFixed(1)}</span>
                               <span className="browse-score-label">{scoreToLabel(score)}</span>
+                              {spot.ratingCount !== undefined && (
+                                <span className="browse-rating-count">
+                                  {spot.ratingCount === 1 ? "1 rating" : `${spot.ratingCount} ratings`}
+                                </span>
+                              )}
                             </div>
                             <div className="browse-detail-category-scores">
                               {(Object.keys(spot.scores) as Array<keyof typeof spot.scores>).map((key) => (
@@ -238,6 +251,7 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
                                 <span key={t} className="browse-tag-pill">{t}</span>
                               ))}
                             </div>
+                            <RateSpot spotId={spot.id} onRated={onRated} />
                           </div>
                           <div className="browse-detail-actions">
                             <button
@@ -246,7 +260,38 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
                             >
                               View on Map &rarr;
                             </button>
-                            {confirmDeleteId === spot.id ? (
+                            <button
+                              type="button"
+                              className="browse-detail-link-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingSpot(spot);
+                              }}
+                            >
+                              Suggest an edit
+                            </button>
+                            <button
+                              type="button"
+                              className="browse-detail-link-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setReportingSpot(spot);
+                              }}
+                            >
+                              Report a problem
+                            </button>
+                            {spot.website && (
+                              <a
+                                className="browse-detail-link-btn"
+                                href={spot.website}
+                                target="_blank"
+                                rel="noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                Website &#8599;
+                              </a>
+                            )}
+                            {onDeleteSpot && (confirmDeleteId === spot.id ? (
                               <div className="browse-delete-confirm">
                                 <span>Delete this spot?</span>
                                 <button
@@ -288,7 +333,7 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
                                 </svg>
                                 Delete
                               </button>
-                            )}
+                            ))}
                           </div>
                         </div>
                       </td>
@@ -307,11 +352,44 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
         )}
       </div>
 
+      <footer className="browse-footer">
+        Atlas's spot data is open under the{" "}
+        <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noreferrer">
+          Open Database License
+        </a>
+        . Place details include data ©{" "}
+        <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">
+          OpenStreetMap contributors
+        </a>
+        .
+      </footer>
+
+      {editingSpot && (
+        <SuggestEditModal
+          spot={editingSpot}
+          onClose={() => setEditingSpot(null)}
+          onSent={() => {
+            setEditingSpot(null);
+            onNotice("Thanks. Your edit is waiting for review.");
+          }}
+        />
+      )}
+
+      {reportingSpot && (
+        <ReportProblemModal
+          spot={reportingSpot}
+          onClose={() => setReportingSpot(null)}
+          onSent={() => {
+            setReportingSpot(null);
+            onNotice("Thanks. We'll look into it.");
+          }}
+        />
+      )}
+
       {showSubmitModal && (
         <BrowseSubmitModal
-          onSubmit={(spot) => {
-            onBrowseSubmit(spot);
-            setShowSubmitModal(false);
+          onSubmit={async (spot) => {
+            if (await onBrowseSubmit(spot)) setShowSubmitModal(false);
           }}
           onClose={() => setShowSubmitModal(false)}
         />
