@@ -9,12 +9,14 @@ import path from "node:path";
 const M = path.resolve(import.meta.dirname, "../../supabase/migrations") + "/";
 const db = new PGlite({ extensions: { pgcrypto } });
 await db.exec(`
-  create role anon nologin; create role authenticated nologin; create role service_role nologin;
+  create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;
   create schema auth; create table auth.users (id uuid primary key);
   create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
   create function auth.role() returns text language sql stable as $$ select nullif(current_setting('request.jwt.claim.role', true), '') $$;
   create schema extensions;
-  grant usage on schema public, auth, extensions to anon, authenticated;
+  grant usage on schema public, auth, extensions to anon, authenticated, service_role;
+  -- Supabase grants service_role full table rights by default; mirror that for tables made later
+  alter default privileges in schema public grant all on tables to service_role;
   grant execute on all functions in schema auth to anon, authenticated;
 `);
 for (const f of readdirSync(M).filter((f) => f.endsWith(".sql")).sort()) await db.exec(readFileSync(M + f, "utf8"));
@@ -155,6 +157,12 @@ ok("restoring brings them back", (await spotRow("seed-1")).rating_count === 3);
 await asRater(raterA, "10.0.0.1");
 await db.query("delete from public.ratings where spot_id='seed-1'");
 ok("a rater can withdraw their own rating", (await spotRow("seed-1")).rating_count === 2);
+
+// ---------- server key ----------
+await db.exec(`reset role; select set_config('request.jwt.claim.role','service_role',false), set_config('request.jwt.claim.sub','',false); set role service_role;`);
+const serverWrite = await throws("update public.spots set ai_summary = 'server test' where id = 'seed-2'");
+await db.exec("reset role");
+ok("server key can save an AI summary", !serverWrite && (await rows("select ai_summary from public.spots where id='seed-2'"))[0].ai_summary === "server test", serverWrite ?? "");
 
 await asAnon("7.7.7.7");
 ok("anon can't read admins table", !!(await throws("select * from private.admins")));
