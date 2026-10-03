@@ -63,6 +63,15 @@ pnpm --filter @workspace/scripts run test-db    # database access-rule checks
 The local app reads and writes the live Supabase project. The bot check only runs on the live
 addresses, so adding or rating spots from localhost fails by design.
 
+### Fonts
+
+Atlas is set in Satoshi Variable, from [Fontshare](https://www.fontshare.com/fonts/satoshi). Its
+licence allows serving it from the site but not putting the files on a public server, so they stay
+out of this repository. Download Satoshi from Fontshare, convert the two variable files to WOFF2,
+and save them as `artifacts/atlas/public/fonts/Satoshi-Variable.woff2` and
+`Satoshi-VariableItalic.woff2`. Without them the app falls back to the system font, and
+`pnpm run deploy` stops before building.
+
 ### Database changes
 
 Add a file to `supabase/migrations/`, add checks to `scripts/src/test-db-permissions.mjs`, run

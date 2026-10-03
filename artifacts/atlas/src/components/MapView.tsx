@@ -105,7 +105,7 @@ function createPopupContent(spot: WorkSpot, crowdStatus: CrowdStatus | null): st
 
   const crowdHtml = createCrowdHtml(crowdStatus, spot.id);
 
-  return `<div style="font-family:'Inter',sans-serif;max-width:280px;padding:4px;">
+  return `<div style="max-width:280px;padding:4px;">
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
       <span style="font-size:18px;">${cat?.icon || "📍"}</span>
       <div style="flex:1;">

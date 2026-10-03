@@ -8,7 +8,7 @@
     "build": "vite build --config vite.config.ts",
     "serve": "vite preview --config vite.config.ts --host 0.0.0.0",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p worker/tsconfig.json --noEmit",
-    "deploy": "vite build --config vite.config.ts && wrangler pages deploy",
+    "deploy": "test -f public/fonts/Satoshi-Variable.woff2 -a -f public/fonts/Satoshi-VariableItalic.woff2 || { echo 'Satoshi is missing from public/fonts; see README, Fonts' >&2; exit 1; } && vite build --config vite.config.ts && wrangler pages deploy",
     "api:dev": "wrangler pages dev ./dist/public --port 8787",
     "deploy:keepalive": "wrangler deploy --config keepalive/wrangler.jsonc"
   },

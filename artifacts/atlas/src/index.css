@@ -1,4 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* Satoshi Variable, self-hosted under Fontshare's licence. The files are not in git (the
+   licence forbids putting them on a public server); see README "Fonts" */
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-Variable.woff2") format("woff2");
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-VariableItalic.woff2") format("woff2");
+  font-weight: 300 900;
+  font-style: italic;
+  font-display: swap;
+}
 
 * {
   margin: 0;
@@ -23,7 +39,8 @@ html, body, #root {
   height: 100%;
   width: 100%;
   overflow: hidden;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: Satoshi, "Satoshi Variable", system-ui, sans-serif;
+  font-feature-settings: "ss02" 1, "ss03" 1, "kern" 1;
   color: var(--text);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
@@ -362,13 +379,15 @@ html, body, #root {
 
 .col-map {
   width: 160px;
+  white-space: nowrap;
 }
 
 .browse-map-link {
   border: none;
   background: none;
   color: var(--sage);
-  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
   font-size: 12px;
   cursor: pointer;
   padding: 4px 8px;
@@ -1141,7 +1160,7 @@ html, body, #root {
   margin-bottom: 16px;
   font-size: 12px;
   color: var(--text);
-  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-variant-numeric: tabular-nums;
 }
 
 .form-group {
@@ -2766,4 +2785,13 @@ html, body, #root {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Controls and Leaflet don't inherit the page font by default */
+button,
+input,
+textarea,
+select,
+.leaflet-container {
+  font-family: inherit;
 }
