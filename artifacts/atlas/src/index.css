@@ -26,16 +26,7 @@
 }
 
 :root {
-  /* Atlas's original names, aliased to Atmo Intent roles while each surface moves over. Retired once nothing reads them */
-  --bg: var(--color-surface-canvas);
-  --text: var(--color-text-primary);
-  --stone: var(--color-border-control);
-  --sage: var(--color-action-primary-bg);
-  --white: var(--color-surface-card);
-  --border: var(--color-border-divider);
-  --muted: var(--color-text-secondary);
-  --cream: var(--color-surface-raised);
-  --focus: var(--color-focus-ring);
+  /* Off the radius chart; moves to radius tokens with step 7 */
   --radius: 10px;
 }
 
@@ -217,7 +208,7 @@ html, body, #root {
 }
 
 .dropdown-item:hover {
-  background: var(--bg);
+  background-image: linear-gradient(var(--color-overlay-hover), var(--color-overlay-hover));
 }
 
 .dropdown-item input[type="checkbox"] {
@@ -285,7 +276,7 @@ html, body, #root {
 }
 
 .browse-table tbody tr.browse-row:hover {
-  background: rgba(200, 184, 154, 0.08);
+  background-image: linear-gradient(var(--color-overlay-hover), var(--color-overlay-hover));
 }
 
 .browse-table tbody tr.browse-row.expanded {
@@ -369,15 +360,25 @@ html, body, #root {
 }
 
 .score-dots {
-  letter-spacing: 1.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
 
-.dots-filled {
-  color: var(--sage);
+/* Rating dots: filled for the score, a ring for the rest */
+.rating-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
 }
 
-.dots-empty {
-  color: #D5D0C8;
+.rating-dot.filled {
+  background: var(--color-data-filled);
+}
+
+.rating-dot.empty {
+  box-shadow: inset 0 0 0 1.5px var(--color-data-empty);
 }
 
 .col-map {
@@ -399,7 +400,8 @@ html, body, #root {
 }
 
 .browse-map-link:hover {
-  background: rgba(138, 158, 140, 0.15);
+  color: var(--color-text-primary);
+  text-decoration: underline;
 }
 
 .browse-arrow {
@@ -448,12 +450,6 @@ html, body, #root {
   flex-shrink: 0;
 }
 
-.browse-score-label {
-  font-size: 12px;
-  color: var(--color-text-secondary);
-  font-weight: 500;
-}
-
 .browse-detail-tags {
   display: flex;
   flex-wrap: wrap;
@@ -475,7 +471,8 @@ html, body, #root {
 }
 
 .browse-detail-map-btn:hover {
-  opacity: 0.85;
+  background: var(--color-action-primary-bg-hover);
+  border-color: var(--color-action-primary-bg-hover);
 }
 
 .browse-detail-actions {
@@ -490,7 +487,7 @@ html, body, #root {
   align-items: center;
   gap: 4px;
   padding: 6px 12px;
-  border: 1px solid var(--color-border-divider);
+  border: 1px solid var(--color-border-control);
   border-radius: var(--radius);
   background: transparent;
   color: var(--color-text-secondary);
@@ -501,9 +498,8 @@ html, body, #root {
 }
 
 .browse-delete-btn:hover {
-  color: #c0392b;
-  border-color: #c0392b;
-  background: rgba(192, 57, 43, 0.06);
+  color: var(--color-action-destructive-text);
+  border-color: var(--color-action-destructive-border);
 }
 
 .browse-delete-confirm {
@@ -516,23 +512,30 @@ html, body, #root {
 
 .browse-delete-yes {
   padding: 4px 10px;
-  border: none;
+  border: 1px solid var(--color-action-destructive-border);
   border-radius: var(--radius);
-  background: #c0392b;
-  color: #fff;
+  background: transparent;
+  color: var(--color-action-destructive-text);
   font-size: 12px;
   font-family: inherit;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.browse-delete-yes:active {
+  background: var(--color-action-destructive-bg-pressed);
+  border-color: var(--color-action-destructive-bg-pressed);
+  color: var(--color-action-destructive-text-hover);
 }
 
 .browse-delete-yes:hover {
-  opacity: 0.85;
+  background: var(--color-action-destructive-bg-hover);
+  color: var(--color-action-destructive-text-hover);
 }
 
 .browse-delete-no {
   padding: 4px 10px;
-  border: 1px solid var(--color-border-divider);
+  border: 1px solid var(--color-border-control);
   border-radius: var(--radius);
   background: transparent;
   color: var(--color-text-primary);
@@ -543,7 +546,7 @@ html, body, #root {
 }
 
 .browse-delete-no:hover {
-  background: var(--bg);
+  border-color: var(--color-border-strong);
 }
 
 .browse-empty {
@@ -681,8 +684,8 @@ html, body, #root {
 }
 
 .sidebar-search input:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-offset);
 }
 
 .sidebar-search input::placeholder {
@@ -740,7 +743,7 @@ html, body, #root {
 }
 
 .geocode-result:hover {
-  background: var(--cream);
+  background-image: linear-gradient(var(--color-overlay-hover), var(--color-overlay-hover));
 }
 
 .sidebar-categories {
@@ -797,7 +800,7 @@ html, body, #root {
 }
 
 .btn-primary:hover {
-  opacity: 0.85;
+  background: var(--color-action-primary-bg-hover);
 }
 
 .btn-secondary {
@@ -814,8 +817,7 @@ html, body, #root {
 }
 
 .btn-secondary:hover {
-  border-color: var(--stone);
-  background: var(--bg);
+  border-color: var(--color-border-strong);
 }
 
 .export-panel {
@@ -852,9 +854,7 @@ html, body, #root {
 }
 
 .export-buttons button:hover {
-  background: var(--sage);
-  color: var(--white);
-  border-color: var(--sage);
+  border-color: var(--color-border-strong);
 }
 
 .sidebar-count {
@@ -1016,8 +1016,8 @@ html, body, #root {
 }
 
 .spot-card-delete-btn:hover {
-  color: #c0392b;
-  background: rgba(192, 57, 43, 0.08);
+  color: var(--color-action-destructive-text);
+  background-image: linear-gradient(var(--color-overlay-hover), var(--color-overlay-hover));
 }
 
 .spot-card-delete-confirm {
@@ -1026,32 +1026,38 @@ html, body, #root {
   gap: 8px;
   margin-top: 6px;
   padding: 6px 8px;
-  background: rgba(192, 57, 43, 0.04);
-  border: 1px solid rgba(192, 57, 43, 0.15);
-  border-radius: var(--radius);
+  background: var(--color-status-negative-surface);
+    border-radius: var(--radius);
   font-size: 11px;
   color: var(--color-text-primary);
 }
 
 .spot-card-delete-yes {
   padding: 3px 8px;
-  border: none;
+  border: 1px solid var(--color-action-destructive-border);
   border-radius: 4px;
-  background: #c0392b;
-  color: #fff;
+  background: transparent;
+  color: var(--color-action-destructive-text);
   font-size: 11px;
   font-family: inherit;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.spot-card-delete-yes:active {
+  background: var(--color-action-destructive-bg-pressed);
+  border-color: var(--color-action-destructive-bg-pressed);
+  color: var(--color-action-destructive-text-hover);
 }
 
 .spot-card-delete-yes:hover {
-  opacity: 0.85;
+  background: var(--color-action-destructive-bg-hover);
+  color: var(--color-action-destructive-text-hover);
 }
 
 .spot-card-delete-no {
   padding: 3px 8px;
-  border: 1px solid var(--color-border-divider);
+  border: 1px solid var(--color-border-control);
   border-radius: 4px;
   background: transparent;
   color: var(--color-text-primary);
@@ -1062,7 +1068,7 @@ html, body, #root {
 }
 
 .spot-card-delete-no:hover {
-  background: var(--bg);
+  border-color: var(--color-border-strong);
 }
 
 .sidebar-empty {
@@ -1125,7 +1131,7 @@ html, body, #root {
 }
 
 .spot-form-close:hover {
-  background: var(--border);
+  background-image: linear-gradient(var(--color-overlay-hover), var(--color-overlay-hover));
   color: var(--color-text-primary);
 }
 
@@ -1210,8 +1216,8 @@ html, body, #root {
 
 .form-group input:focus-visible,
 .form-group textarea:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-offset);
 }
 
 .category-select {
@@ -1261,11 +1267,12 @@ html, body, #root {
 }
 
 .btn-submit:hover:not(:disabled) {
-  opacity: 0.9;
+  background: var(--color-action-primary-bg-hover);
 }
 
 .btn-submit:disabled {
-  opacity: 0.4;
+  background: var(--color-action-primary-bg-disabled);
+  color: var(--color-action-primary-text-disabled);
   cursor: not-allowed;
 }
 
@@ -1303,20 +1310,29 @@ html, body, #root {
 .score-dot-char {
   border: none;
   background: none;
-  padding: 2px;
+  padding: 3px;
   cursor: pointer;
-  font-size: 14px;
-  line-height: 1;
-  color: #D5D0C8;
-  transition: color 0.15s ease;
+  font-size: 0;
+  line-height: 0;
 }
 
-.score-dot-char:hover {
-  color: var(--sage);
+/* Drawn like the rating dots: a ring until chosen, then filled */
+.score-dot-char::before {
+  content: "";
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  box-shadow: inset 0 0 0 1.5px var(--color-data-empty);
 }
 
-.score-dot-char.filled {
-  color: var(--sage);
+.score-dot-char:hover::before {
+  box-shadow: inset 0 0 0 1.5px var(--color-data-filled);
+}
+
+.score-dot-char.filled::before {
+  background: var(--color-data-filled);
+  box-shadow: none;
 }
 
 .tag-chip-grid {
@@ -1345,8 +1361,8 @@ html, body, #root {
 }
 
 .tag-chip:hover {
-  border-color: var(--sage);
-  color: var(--sage);
+  border-color: var(--color-border-strong);
+  color: var(--color-text-primary);
 }
 
 .tag-chip.active {
@@ -1363,11 +1379,10 @@ html, body, #root {
   flex-shrink: 0;
 }
 
-.spot-card-score-label {
-  font-size: 9px;
+.spot-card-rating-count {
+  font-size: 11px;
   color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+  white-space: nowrap;
 }
 
 .browse-detail-category-scores {
@@ -1456,7 +1471,9 @@ html, body, #root {
 }
 
 .btn-plan-day:hover {
-  opacity: 0.9;
+  background: var(--color-selected-bg);
+  border-color: var(--color-selected-bg);
+  color: var(--color-selected-text);
 }
 
 .sidebar-plan-day {
@@ -1528,7 +1545,7 @@ html, body, #root {
 }
 
 .chat-panel-close:hover {
-  background: var(--border);
+  background-image: linear-gradient(var(--color-overlay-hover), var(--color-overlay-hover));
   color: var(--color-text-primary);
 }
 
@@ -1607,8 +1624,7 @@ html, body, #root {
 }
 
 .chat-suggestion:hover {
-  border-color: var(--sage);
-  background: rgba(138, 158, 140, 0.06);
+  border-color: var(--color-border-strong);
 }
 
 .chat-message {
@@ -1726,8 +1742,8 @@ html, body, #root {
 }
 
 .chat-input-wrapper:focus-within {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-offset);
 }
 
 .chat-input {
@@ -1764,11 +1780,12 @@ html, body, #root {
 }
 
 .chat-send:hover:not(:disabled) {
-  opacity: 0.85;
+  background: var(--color-action-primary-bg-hover);
 }
 
 .chat-send:disabled {
-  opacity: 0.4;
+  background: var(--color-action-primary-bg-disabled);
+  color: var(--color-action-primary-text-disabled);
   cursor: not-allowed;
 }
 
@@ -1834,7 +1851,7 @@ html, body, #root {
 }
 
 .leaflet-control-zoom a:hover {
-  background: var(--white) !important;
+  background-image: linear-gradient(var(--color-overlay-hover), var(--color-overlay-hover)) !important;
 }
 
 /* ========== CROWD REPORTING ========== */
@@ -1936,8 +1953,7 @@ html, body, #root {
 }
 
 .crowd-level-option:hover {
-  background: var(--bg);
-  border-color: var(--text);
+  border-color: var(--color-border-strong);
 }
 
 .crowd-report-success {
@@ -2131,21 +2147,34 @@ html, body, #root {
   margin: 4px 0;
 }
 
-.spot-card-hours-badge {
-  display: inline-block;
-  padding: 1px 6px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 600;
-  color: #fff;
+/* Open: a filled dot and the word. Closed: a ring, and the word and hours set aside in tertiary grey */
+.hours-dot {
+  width: var(--dot-size);
+  height: var(--dot-size);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
 }
 
-.spot-card-hours-badge.open {
-  background: #4a7c59;
+.spot-card-hours.open .hours-dot {
+  background: var(--color-dot-open);
 }
 
-.spot-card-hours-badge.closed {
-  background: #8b4513;
+.spot-card-hours.closed .hours-dot {
+  box-shadow: inset 0 0 0 1.5px var(--color-dot-closed);
+}
+
+.hours-state {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.spot-card-hours.open .hours-state {
+  color: var(--color-text-primary);
+}
+
+.spot-card-hours.closed .hours-state,
+.spot-card-hours.closed .spot-card-hours-today {
+  color: var(--color-text-tertiary);
 }
 
 .spot-card-hours-today {
@@ -2763,13 +2792,13 @@ html, body, #root {
 /* ========== FOCUS, LAYERING, MOTION ========== */
 
 :focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-offset);
 }
 
 .browse-search:focus-within {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-offset);
 }
 
 /* Modals render into body, above the map button (1000) */

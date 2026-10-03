@@ -1,6 +1,6 @@
 import { useState, useMemo, Fragment } from "react";
 import type { WorkSpot, Category } from "@/lib/types";
-import { CATEGORIES, calcScore, getSpotDisplayTags, TAGS, SCORE_CATEGORIES, scoreToLabel, SCORE_CATEGORY_LABELS } from "@/lib/types";
+import { CATEGORIES, calcScore, getSpotDisplayTags, TAGS, SCORE_CATEGORIES, SCORE_CATEGORY_LABELS } from "@/lib/types";
 import BrowseSubmitModal from "./BrowseSubmitModal";
 import RateSpot from "./RateSpot";
 import SuggestEditModal from "./SuggestEditModal";
@@ -231,7 +231,6 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
                           <div className="browse-detail-meta">
                             <div className="browse-detail-score-summary">
                               <span className="browse-score">{score.toFixed(1)}</span>
-                              <span className="browse-score-label">{scoreToLabel(score)}</span>
                               {spot.ratingCount !== undefined && (
                                 <span className="browse-rating-count">
                                   {spot.ratingCount === 1 ? "1 rating" : `${spot.ratingCount} ratings`}

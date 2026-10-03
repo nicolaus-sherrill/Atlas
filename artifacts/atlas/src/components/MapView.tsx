@@ -9,7 +9,7 @@ import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&ur
 // The production bundle has to ship MapLibre's worker itself; the dev server resolves it on its own.
 if (import.meta.env.PROD) setWorkerUrl(maplibreWorkerUrl);
 import type { WorkSpot, Category } from "@/lib/types";
-import { CATEGORIES, calcScore, getSpotDisplayTags, scoreToLabel, SCORE_CATEGORIES, isOpenNow, getTodayHoursLabel } from "@/lib/types";
+import { CATEGORIES, calcScore, getSpotDisplayTags, SCORE_CATEGORIES, isOpenNow, getTodayHoursLabel } from "@/lib/types";
 import { getGoogleMapsUrl, getAppleMapsUrl } from "@/lib/export";
 import { fetchAllCrowdStatuses, submitCrowdReport, getBusynessInfo, timeAgo, BUSYNESS_LEVELS, type CrowdStatus } from "@/lib/crowd";
 
@@ -87,7 +87,6 @@ function createPopupContent(spot: WorkSpot, crowdStatus: CrowdStatus | null): st
   const safeAddress = escapeHtml(spot.address);
   const safeCategory = escapeHtml(cat?.label || spot.category);
   const score = calcScore(spot.scores, spot.tags);
-  const label = scoreToLabel(score);
   const tags = getSpotDisplayTags(spot);
 
   const googleUrl = getGoogleMapsUrl(spot.lat, spot.lng, spot.name);
@@ -114,15 +113,20 @@ function createPopupContent(spot: WorkSpot, crowdStatus: CrowdStatus | null): st
       </div>
       <div style="text-align:center;">
         <div style="background:var(--color-action-primary-bg);color:var(--color-action-primary-text);font-weight:700;font-size:13px;padding:3px 8px;border-radius:6px;">${score.toFixed(1)}</div>
-        <div style="font-size:11px;letter-spacing:1px;margin-top:2px;"><span style="color:#8A9E8C;">${"●".repeat(Math.round(score))}</span><span style="color:#D5D0C8;">${"○".repeat(5 - Math.round(score))}</span></div>
-        <div style="font-size:9px;color:#1A1A18;opacity:0.5;margin-top:1px;">${label}</div>
+        ${spot.ratingCount !== undefined ? `<div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px;white-space:nowrap;">${spot.ratingCount === 1 ? "1 rating" : `${spot.ratingCount} ratings`}</div>` : ""}
       </div>
     </div>
     <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:6px;">${safeAddress}</div>
     ${spot.website && /^https?:\/\//i.test(spot.website) ? `<div style="font-size:12px;margin-bottom:6px;"><a href="${escapeHtml(spot.website)}" target="_blank" rel="noopener" style="color:var(--color-text-primary);text-decoration:underline;">Website &#8599;</a></div>` : ""}
     ${spot.operatingHours ? `<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
-      <span style="display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;color:#fff;background:${isOpenNow(spot.operatingHours) ? '#4a7c59' : '#8b4513'};">${isOpenNow(spot.operatingHours) ? 'Open' : 'Closed'}</span>
-      <span style="font-size:11px;color:var(--color-text-secondary);">${escapeHtml(getTodayHoursLabel(spot.operatingHours))}</span>
+      ${(() => {
+        const open = isOpenNow(spot.operatingHours);
+        const dot = open
+          ? `<span style="width:var(--dot-size);height:var(--dot-size);border-radius:50%;background:var(--color-dot-open);flex-shrink:0;"></span>`
+          : `<span style="width:var(--dot-size);height:var(--dot-size);border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--color-dot-closed);flex-shrink:0;"></span>`;
+        return `${dot}<span style="font-size:11px;font-weight:500;color:${open ? "var(--color-text-primary)" : "var(--color-text-tertiary)"};">${open ? "Open" : "Closed"}</span>
+      <span style="font-size:11px;color:${open ? "var(--color-text-secondary)" : "var(--color-text-tertiary)"};">${escapeHtml(getTodayHoursLabel(spot.operatingHours!))}</span>`;
+      })()}
     </div>` : ''}
     ${summaryHtml}
     ${crowdHtml}

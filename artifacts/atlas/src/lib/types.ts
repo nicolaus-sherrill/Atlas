@@ -173,7 +173,7 @@ export function getTodayHoursLabel(hours: OperatingHours): string {
   const day = getCurrentDay();
   const dh = hours[day];
   if (dh.closed) return "Closed today";
-  return `${formatTime12h(dh.open)} – ${formatTime12h(dh.close)}`;
+  return `${formatTime12h(dh.open)}–${formatTime12h(dh.close)}`;
 }
 
 export function formatWeeklyHours(hours: OperatingHours): string[] {
@@ -190,7 +190,7 @@ export function formatWeeklyHours(hours: OperatingHours): string[] {
     }
     const endDay = DAYS_OF_WEEK[j - 1];
     const dayRange = startDay === endDay ? DAY_LABELS[startDay] : `${DAY_LABELS[startDay]}–${DAY_LABELS[endDay]}`;
-    const timeRange = dh.closed ? "Closed" : `${formatTime12h(dh.open)} – ${formatTime12h(dh.close)}`;
+    const timeRange = dh.closed ? "Closed" : `${formatTime12h(dh.open)}–${formatTime12h(dh.close)}`;
     lines.push(`${dayRange}: ${timeRange}`);
     i = j;
   }
@@ -260,13 +260,6 @@ export function calcScore(tagsOrScores: TagId[] | CategoryScores, tags?: TagId[]
   });
 
   return Math.round(result * 10) / 10;
-}
-
-export function scoreToLabel(score: number): string {
-  if (score >= 4.5) return "Excellent";
-  if (score >= 3.5) return "Good";
-  if (score >= 2.5) return "Decent";
-  return "Limited";
 }
 
 export function getTagLabel(tagId: string): string {

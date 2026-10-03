@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import type { WorkSpot, Category } from "@/lib/types";
-import { CATEGORIES, calcScore, getSpotDisplayTags, scoreToLabel, SCORE_CATEGORIES, isOpenNow, getTodayHoursLabel } from "@/lib/types";
+import { CATEGORIES, calcScore, getSpotDisplayTags, SCORE_CATEGORIES, isOpenNow, getTodayHoursLabel } from "@/lib/types";
 import { spotsToGeoJSON, spotsToKML, downloadFile } from "@/lib/export";
 import { searchAddress, type GeocodingResult } from "@/lib/geocode";
 import { fetchAllCrowdStatuses, getBusynessInfo, timeAgo, type CrowdStatus } from "@/lib/crowd";
@@ -200,17 +200,20 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
                 </div>
                 <div className="spot-card-score-block">
                   <span className="spot-card-rating">{score.toFixed(1)}</span>
-                  <span className="spot-card-score-label">{scoreToLabel(score)}</span>
+                  {spot.ratingCount !== undefined && (
+                    <span className="spot-card-rating-count">
+                      {spot.ratingCount === 1 ? "1 rating" : `${spot.ratingCount} ratings`}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="spot-card-address">{spot.address}</div>
               {spot.operatingHours && (() => {
                 const openNow = isOpenNow(spot.operatingHours);
                 return (
-                  <div className="spot-card-hours">
-                    <span className={`spot-card-hours-badge ${openNow ? "open" : "closed"}`}>
-                      {openNow ? "Open" : "Closed"}
-                    </span>
+                  <div className={`spot-card-hours ${openNow ? "open" : "closed"}`}>
+                    <span className="hours-dot" aria-hidden="true" />
+                    <span className="hours-state">{openNow ? "Open" : "Closed"}</span>
                     <span className="spot-card-hours-today">{getTodayHoursLabel(spot.operatingHours)}</span>
                   </div>
                 );
