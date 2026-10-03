@@ -2025,6 +2025,36 @@ html, body, #root {
   margin-top: 4px;
 }
 
+/* Browse table: columns leave where the table's own width runs out, least-needed first.
+   Widths measured with Inter; recheck after Satoshi */
+.browse-table-wrapper {
+  container: browse-table / inline-size;
+}
+@container browse-table (max-width: 836px) {
+  .col-tags { display: none; }
+}
+@container browse-table (max-width: 676px) {
+  .col-city { display: none; }
+}
+@container browse-table (max-width: 576px) {
+  .col-map { display: none; }
+}
+@container browse-table (max-width: 411px) {
+  .col-num { display: none; }
+  .col-name { min-width: 0; }
+  .col-category,
+  .col-score { width: 0; min-width: 0; white-space: nowrap; }
+  .browse-table thead th,
+  .browse-table tbody td { padding-left: 8px; padding-right: 8px; }
+  .browse-table thead th.col-name,
+  .browse-table tbody td.col-name { padding-left: 0; }
+  .browse-table thead th.col-score,
+  .browse-table tbody td.col-score { padding-right: 0; text-align: right; }
+}
+@container browse-table (max-width: 365px) {
+  .browse-detail-category-scores { grid-template-columns: 1fr; }
+}
+
 /* ========== RESPONSIVE ========== */
 
 @media (max-width: 768px) {
@@ -2043,11 +2073,6 @@ html, body, #root {
 
   .browse-table {
     font-size: 13px;
-  }
-
-  .col-tags,
-  .col-city {
-    display: none;
   }
 
   .map-open .panel-left {
@@ -2228,7 +2253,8 @@ html, body, #root {
 .browse-footer {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 24px 60px 40px;
+  /* bottom clears the map button (24px + 48px) */
+  padding: 24px 60px 96px;
   font-size: 11px;
   line-height: 1.5;
   color: var(--muted);
@@ -2240,7 +2266,7 @@ html, body, #root {
 
 @media (max-width: 768px) {
   .browse-footer {
-    padding: 24px 16px 32px;
+    padding: 24px 16px 96px;
   }
 }
 
