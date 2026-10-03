@@ -1798,6 +1798,11 @@ html, body, #root {
   outline-offset: var(--focus-offset);
 }
 
+/* The wrapper carries the focus ring, so the textarea inside it doesn't draw a second one */
+.chat-input:focus-visible {
+  outline: none;
+}
+
 .chat-input {
   flex: 1;
   border: none;
