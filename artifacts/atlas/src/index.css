@@ -2109,10 +2109,6 @@ html, body, #root {
     padding-right: 20px;
   }
 
-  .browse-table {
-    font-size: 13px;
-  }
-
   .map-open .panel-left {
     width: 0;
     min-width: 0;

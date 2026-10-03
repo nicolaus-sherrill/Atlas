@@ -72,6 +72,14 @@ and save them as `artifacts/atlas/public/fonts/Satoshi-Variable.woff2` and
 `Satoshi-VariableItalic.woff2`. Without them the app falls back to the system font, and
 `pnpm run deploy` stops before building.
 
+### Type
+
+Atlas uses six of the design system's type roles: label 11, body-s 13, body-m 16, body-l 19,
+body-xl 23 and subheading-s 28. Set a size with `font-size: var(--type-<role>-font-size)` and its
+tracking with `var(--type-<role>-letter-spacing)`, or `var(--text-tracking-plus-6)` for caps.
+`pnpm --filter @workspace/atlas run check:type` fails on any other size or tracking value in
+`src/`, and `typecheck` and `deploy` run it.
+
 ### Database changes
 
 Add a file to `supabase/migrations/`, add checks to `scripts/src/test-db-permissions.mjs`, run
