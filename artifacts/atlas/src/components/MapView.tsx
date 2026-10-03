@@ -40,17 +40,17 @@ function createCrowdHtml(status: CrowdStatus | null, spotId: string): string {
     const info = getBusynessInfo(status.level);
     return `<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;padding:4px 8px;background:var(--color-surface-raised);border-radius:6px;">
       ${crowdMarkHtml(info.level)}
-      <span style="font-weight:500;font-size:12px;color:var(--color-text-primary);">${escapeHtml(info.label)}</span>
-      <span style="font-size:10px;color:var(--color-text-secondary);">${timeAgo(status.lastReportedAt)}</span>
+      <span style="font-weight:500;font-size:var(--type-label-font-size);letter-spacing:var(--type-label-letter-spacing);color:var(--color-text-primary);">${escapeHtml(info.label)}</span>
+      <span style="font-size:var(--type-label-font-size);letter-spacing:var(--type-label-letter-spacing);color:var(--color-text-secondary);">${timeAgo(status.lastReportedAt)}</span>
     </div>
     <button data-crowd-report="${escapeHtml(spotId)}" style="
       display:block;width:100%;padding:5px 0;border:1px solid var(--color-border-control);border-radius:6px;background:var(--color-surface-card);
-      color:var(--color-text-primary);font-size:11px;font-family:inherit;font-weight:500;cursor:pointer;margin-bottom:8px;
+      color:var(--color-text-primary);font-size:var(--type-label-font-size);letter-spacing:var(--type-label-letter-spacing);font-family:inherit;font-weight:500;cursor:pointer;margin-bottom:8px;
     "><span style="display:inline-flex;align-items:center;justify-content:center;gap:6px;">${iconSvg("users-three", "bold", 16)}Report crowd level</span></button>`;
   }
   return `<button data-crowd-report="${escapeHtml(spotId)}" style="
     display:block;width:100%;padding:5px 0;border:1px solid var(--color-border-control);border-radius:6px;background:var(--color-surface-card);
-    color:var(--color-text-primary);font-size:11px;font-family:inherit;font-weight:500;cursor:pointer;margin-bottom:8px;
+    color:var(--color-text-primary);font-size:var(--type-label-font-size);letter-spacing:var(--type-label-letter-spacing);font-family:inherit;font-weight:500;cursor:pointer;margin-bottom:8px;
   "><span style="display:inline-flex;align-items:center;justify-content:center;gap:6px;">${iconSvg("users-three", "bold", 16)}Report crowd level</span></button>`;
 }
 
@@ -60,7 +60,7 @@ function createCrowdPickerHtml(spotId: string): string {
     `<button data-crowd-submit="${escapeHtml(spotId)}" data-crowd-level="${b.level}" style="
       display:block;width:100%;padding:5px 8px;border:1px solid var(--color-border-control);
       border-radius:6px;background:var(--color-surface-card);color:var(--color-text-primary);
-      font-size:11px;font-family:inherit;cursor:pointer;text-align:left;
+      font-size:var(--type-label-font-size);letter-spacing:var(--type-label-letter-spacing);font-family:inherit;cursor:pointer;text-align:left;
     ">${escapeHtml(b.label)}</button>`
   ).join("");
   return `<div style="display:flex;flex-direction:column;gap:3px;margin-bottom:8px;">${options}</div>`;
@@ -78,13 +78,13 @@ function createPopupContent(spot: WorkSpot, crowdStatus: CrowdStatus | null): st
   const appleUrl = getAppleMapsUrl(spot.lat, spot.lng, spot.name);
 
   const tagPills = tags.slice(0, 6).map((t) =>
-    `<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;color:var(--color-text-primary);border:1px solid var(--color-border-divider);">${escapeHtml(t)}</span>`
+    `<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:var(--type-label-font-size);letter-spacing:var(--type-label-letter-spacing);color:var(--color-text-primary);border:1px solid var(--color-border-divider);">${escapeHtml(t)}</span>`
   ).join(" ");
 
   const summaryHtml = spot.aiSummary
-    ? `<p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 8px;line-height:1.5;font-style:italic;">${escapeHtml(spot.aiSummary)}</p>`
+    ? `<p style="font-size:var(--type-body-s-font-size);letter-spacing:var(--type-body-s-letter-spacing);line-height:var(--type-body-s-line-height);color:var(--color-text-secondary);margin:0 0 8px;font-style:italic;">${escapeHtml(spot.aiSummary)}</p>`
     : spot.description
-      ? `<p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 8px;line-height:1.5;">${escapeHtml(spot.description)}</p>`
+      ? `<p style="font-size:var(--type-body-s-font-size);letter-spacing:var(--type-body-s-letter-spacing);line-height:var(--type-body-s-line-height);color:var(--color-text-secondary);margin:0 0 8px;">${escapeHtml(spot.description)}</p>`
       : "";
 
   const crowdHtml = createCrowdHtml(crowdStatus, spot.id);
@@ -93,24 +93,24 @@ function createPopupContent(spot: WorkSpot, crowdStatus: CrowdStatus | null): st
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
       <span style="display:flex;color:var(--color-text-primary);">${iconSvg(cat?.icon ?? "map-pin", cat ? "regular" : "fill", 20)}</span>
       <div style="flex:1;">
-        <div style="font-weight:600;font-size:15px;color:var(--color-text-primary);line-height:1.2;">${safeName}</div>
-        <div style="font-size:11px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.5px;">${safeCategory} &middot; ${escapeHtml(spot.city)}</div>
+        <div style="font-weight:600;font-size:var(--type-body-m-font-size);letter-spacing:var(--type-body-m-letter-spacing);line-height:var(--type-body-m-line-height);color:var(--color-text-primary);">${safeName}</div>
+        <div style="font-size:var(--type-label-font-size);letter-spacing:var(--text-tracking-plus-6);color:var(--color-text-secondary);text-transform:uppercase;">${safeCategory} &middot; ${escapeHtml(spot.city)}</div>
       </div>
       <div style="text-align:center;">
-        <div style="background:var(--color-action-primary-bg);color:var(--color-action-primary-text);font-weight:700;font-size:13px;padding:3px 8px;border-radius:6px;">${score.toFixed(1)}</div>
-        ${spot.ratingCount !== undefined ? `<div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px;white-space:nowrap;">${spot.ratingCount === 1 ? "1 rating" : `${spot.ratingCount} ratings`}</div>` : ""}
+        <div style="background:var(--color-action-primary-bg);color:var(--color-action-primary-text);font-weight:700;font-size:var(--type-body-s-font-size);letter-spacing:var(--type-body-s-letter-spacing);padding:3px 8px;border-radius:6px;">${score.toFixed(1)}</div>
+        ${spot.ratingCount !== undefined ? `<div style="font-size:var(--type-label-font-size);letter-spacing:var(--type-label-letter-spacing);color:var(--color-text-secondary);margin-top:2px;white-space:nowrap;">${spot.ratingCount === 1 ? "1 rating" : `${spot.ratingCount} ratings`}</div>` : ""}
       </div>
     </div>
-    <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:6px;">${safeAddress}</div>
-    ${spot.website && /^https?:\/\//i.test(spot.website) ? `<div style="font-size:12px;margin-bottom:6px;"><a href="${escapeHtml(spot.website)}" target="_blank" rel="noopener" style="color:var(--color-text-primary);text-decoration:underline;">Website &#8599;</a></div>` : ""}
+    <div style="font-size:var(--type-body-s-font-size);letter-spacing:var(--type-body-s-letter-spacing);line-height:var(--type-body-s-line-height);color:var(--color-text-secondary);margin-bottom:6px;">${safeAddress}</div>
+    ${spot.website && /^https?:\/\//i.test(spot.website) ? `<div style="font-size:var(--type-body-s-font-size);letter-spacing:var(--type-body-s-letter-spacing);margin-bottom:6px;"><a href="${escapeHtml(spot.website)}" target="_blank" rel="noopener" style="color:var(--color-text-primary);text-decoration:underline;">Website &#8599;</a></div>` : ""}
     ${spot.operatingHours ? `<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
       ${(() => {
         const open = isOpenNow(spot.operatingHours);
         const dot = open
           ? `<span style="width:var(--dot-size);height:var(--dot-size);border-radius:50%;background:var(--color-dot-open);flex-shrink:0;"></span>`
           : `<span style="width:var(--dot-size);height:var(--dot-size);border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--color-dot-closed);flex-shrink:0;"></span>`;
-        return `${dot}<span style="font-size:11px;font-weight:500;color:${open ? "var(--color-text-primary)" : "var(--color-text-tertiary)"};">${open ? "Open" : "Closed"}</span>
-      <span style="font-size:11px;color:${open ? "var(--color-text-secondary)" : "var(--color-text-tertiary)"};">${escapeHtml(getTodayHoursLabel(spot.operatingHours!))}</span>`;
+        return `${dot}<span style="font-size:var(--type-label-font-size);letter-spacing:var(--type-label-letter-spacing);font-weight:500;color:${open ? "var(--color-text-primary)" : "var(--color-text-tertiary)"};">${open ? "Open" : "Closed"}</span>
+      <span style="font-size:var(--type-label-font-size);letter-spacing:var(--type-label-letter-spacing);color:${open ? "var(--color-text-secondary)" : "var(--color-text-tertiary)"};">${escapeHtml(getTodayHoursLabel(spot.operatingHours!))}</span>`;
       })()}
     </div>` : ''}
     ${summaryHtml}
@@ -120,11 +120,11 @@ function createPopupContent(spot: WorkSpot, crowdStatus: CrowdStatus | null): st
     </div>
     <div style="display:flex;gap:6px;">
       <a href="${googleUrl}" target="_blank" rel="noopener" style="
-        flex:1;text-align:center;padding:6px 0;border-radius:6px;font-size:11px;font-weight:500;
+        flex:1;text-align:center;padding:6px 0;border-radius:6px;font-size:var(--type-label-font-size);letter-spacing:var(--type-label-letter-spacing);font-weight:500;
         border:1px solid var(--color-border-control);background:var(--color-surface-card);color:var(--color-text-primary);text-decoration:none;
       ">Google Maps</a>
       <a href="${appleUrl}" target="_blank" rel="noopener" style="
-        flex:1;text-align:center;padding:6px 0;border-radius:6px;font-size:11px;font-weight:500;
+        flex:1;text-align:center;padding:6px 0;border-radius:6px;font-size:var(--type-label-font-size);letter-spacing:var(--type-label-letter-spacing);font-weight:500;
         border:1px solid var(--color-border-control);background:var(--color-surface-card);color:var(--color-text-primary);text-decoration:none;
       ">Apple Maps</a>
     </div>
@@ -204,7 +204,7 @@ export default function MapView({ spots, selectedSpotId, onMapClick, onSpotSelec
           if (parent) {
             const picker = submitBtn.parentElement?.parentElement;
             if (picker) {
-              picker.innerHTML = `<div style="font-size:12px;color:#8A9E8C;font-weight:500;padding:4px 0;margin-bottom:6px;">&#10003; Report submitted</div>`;
+              picker.innerHTML = `<div style="font-size:var(--type-label-font-size);letter-spacing:var(--type-label-letter-spacing);color:#8A9E8C;font-weight:500;padding:4px 0;margin-bottom:6px;">&#10003; Report submitted</div>`;
             }
           }
           loadCrowdStatuses();
