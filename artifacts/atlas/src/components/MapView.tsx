@@ -38,7 +38,7 @@ function createMarkerIcon(category: Category, selected = false): L.DivIcon {
 function createCrowdHtml(status: CrowdStatus | null, spotId: string): string {
   if (status) {
     const info = getBusynessInfo(status.level);
-    return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;padding:4px 8px;background:var(--color-surface-raised);border-radius:6px;">
+    return `<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;padding:4px 8px;background:var(--color-surface-raised);border-radius:6px;">
       ${crowdMarkHtml(info.level)}
       <span style="font-weight:500;font-size:12px;color:var(--color-text-primary);">${escapeHtml(info.label)}</span>
       <span style="font-size:10px;color:var(--color-text-secondary);">${timeAgo(status.lastReportedAt)}</span>

@@ -1987,8 +1987,8 @@ html, body, #root {
 
 .spot-card-crowd {
   display: flex;
-  align-items: center;
-  gap: 5px;
+  align-items: baseline;
+  gap: 8px;
   font-size: 11px;
   color: var(--color-text-primary);
   margin-top: 4px;
@@ -2764,7 +2764,8 @@ select,
   width: var(--crowd-mark-width);
   border-radius: var(--crowd-mark-radius) var(--crowd-mark-radius) 0 0;
   flex-shrink: 0;
-  align-self: baseline;
+  /* fills the Open dot's 6px slot, so the words line up with the hours row */
+  margin: 0 1px;
 }
 
 .crowd-mark.level-1 { height: var(--crowd-mark-height-1); background: var(--color-data-sequential-1); }

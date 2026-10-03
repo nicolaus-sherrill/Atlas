@@ -176,6 +176,8 @@ function App() {
 
       <button
         className="map-toggle-fab"
+        // Over the open map, which stays light in both themes, the button takes the map's theme
+        data-theme={mapOpen ? "light" : undefined}
         onClick={toggleMap}
         aria-label={mapOpen ? "Hide map" : "Show map"}
       >
