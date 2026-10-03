@@ -7,6 +7,7 @@
     "dev": "vite --config vite.config.ts --host 0.0.0.0",
     "build": "vite build --config vite.config.ts",
     "serve": "vite preview --config vite.config.ts --host 0.0.0.0",
+    "check:type": "node scripts/check-type.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p worker/tsconfig.json --noEmit",
     "deploy": "test -f public/fonts/Satoshi-Variable.woff2 -a -f public/fonts/Satoshi-VariableItalic.woff2 || { echo 'Satoshi is missing from public/fonts; see README, Fonts' >&2; exit 1; } && vite build --config vite.config.ts && wrangler pages deploy",
     "api:dev": "wrangler pages dev ./dist/public --port 8787",
@@ -32,7 +33,7 @@
     "wrangler": "^4.141.0"
   },
   "dependencies": {
-    "@atmo-studio/design-system": "github:Atmo-Studio/atmo-design-system#082d8bea7bd1af62a7a22f4fef2c659a92dc191b",
+    "@atmo-studio/design-system": "github:Atmo-Studio/atmo-design-system#0e26e6b1e6501cba25ced035a7089fee6d4991f0",
     "@maplibre/maplibre-gl-leaflet": "^0.1.4",
     "@phosphor-icons/core": "2.1.1",
     "@supabase/supabase-js": "^2.117.2",
