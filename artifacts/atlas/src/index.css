@@ -1150,9 +1150,9 @@ html, body, #root {
 }
 
 .spot-form-header h2 {
-  font-size: 18px;
+  font-size: var(--type-body-l-font-size);
   font-weight: 700;
-  letter-spacing: -0.3px;
+  letter-spacing: var(--type-body-l-letter-spacing);
 }
 
 .spot-form-close {
@@ -1160,7 +1160,7 @@ html, body, #root {
   height: 28px;
   border: none;
   background: none;
-  font-size: 20px;
+  font-size: var(--type-body-l-font-size);
   color: var(--color-text-secondary);
   cursor: pointer;
   border-radius: 50%;
@@ -1185,12 +1185,9 @@ html, body, #root {
   margin-bottom: 16px;
 }
 
-.spot-form-hint span {
-  font-size: 20px;
-}
-
 .spot-form-hint p {
-  font-size: 13px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   color: var(--color-text-secondary);
 }
 
@@ -1202,7 +1199,8 @@ html, body, #root {
   background: var(--color-surface-raised);
   border-radius: 8px;
   margin-bottom: 16px;
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
 }
@@ -1221,7 +1219,8 @@ html, body, #root {
   padding: 10px 12px;
   border: 1px solid var(--color-border-divider);
   border-radius: 8px;
-  font-size: 13px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   background: var(--color-surface-raised);
   color: var(--color-text-primary);
   min-height: 38px;
@@ -1231,12 +1230,12 @@ html, body, #root {
 
 .form-group label {
   display: block;
-  font-size: 12px;
+  font-size: var(--type-label-font-size);
   font-weight: 600;
   color: var(--color-text-primary);
   margin-bottom: 6px;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: var(--text-tracking-plus-6);
 }
 
 .form-group input,
@@ -1245,7 +1244,8 @@ html, body, #root {
   padding: 10px 12px;
   border: 1px solid var(--color-border-control);
   border-radius: 8px;
-  font-size: 13px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
   background: var(--color-surface-card);
   color: var(--color-text-primary);
@@ -1272,7 +1272,8 @@ html, body, #root {
   border-radius: 8px;
   background: var(--color-surface-card);
   color: var(--color-text-primary);
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
   cursor: pointer;
   display: flex;
@@ -1298,7 +1299,8 @@ html, body, #root {
   border-radius: var(--radius);
   background: var(--color-action-primary-bg);
   color: var(--color-action-primary-text);
-  font-size: 14px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
   font-weight: 600;
   cursor: pointer;
@@ -1330,7 +1332,8 @@ html, body, #root {
 }
 
 .score-category-name {
-  font-size: 13px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   font-weight: 500;
   color: var(--color-text-primary);
   min-width: 100px;
@@ -1344,7 +1347,6 @@ html, body, #root {
 .score-dots-input {
   display: inline-flex;
   gap: 2px;
-  letter-spacing: 1.5px;
 }
 
 .score-dot-char {
@@ -1382,10 +1384,11 @@ html, body, #root {
 }
 
 .form-hint-text {
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   color: var(--color-text-secondary);
   margin: -4px 0 8px;
-  line-height: 1.4;
+  line-height: var(--type-body-s-line-height);
 }
 .tag-chip {
   padding: 6px 14px;
@@ -1393,7 +1396,8 @@ html, body, #root {
   border: 1px solid var(--color-border-control);
   background: var(--color-surface-card);
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -2251,7 +2255,8 @@ html, body, #root {
 
 .spot-form-hint-text {
   margin: 0 0 8px;
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   color: var(--color-text-secondary);
 }
 
