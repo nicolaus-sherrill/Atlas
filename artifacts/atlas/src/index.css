@@ -1565,7 +1565,8 @@ html, body, #root {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 15px;
+  font-size: var(--type-body-m-font-size);
+  letter-spacing: var(--type-body-m-letter-spacing);
   font-weight: 600;
   color: var(--color-text-primary);
 }
@@ -1623,21 +1624,22 @@ html, body, #root {
 }
 
 .chat-empty-icon {
-  font-size: 40px;
   margin-bottom: 4px;
 }
 
 .chat-empty h3 {
-  font-size: 18px;
+  font-size: var(--type-body-l-font-size);
+  letter-spacing: var(--type-body-l-letter-spacing);
   font-weight: 600;
   color: var(--color-text-primary);
 }
 
 .chat-empty p {
-  font-size: 13px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   color: var(--color-text-secondary);
   max-width: 300px;
-  line-height: 1.5;
+  line-height: var(--type-body-s-line-height);
 }
 
 .chat-suggestions {
@@ -1655,11 +1657,12 @@ html, body, #root {
   border-radius: var(--radius);
   background: var(--color-surface-card);
   color: var(--color-text-primary);
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
   cursor: pointer;
   text-align: left;
-  line-height: 1.4;
+  line-height: var(--type-body-s-line-height);
   transition: all 0.2s;
 }
 
@@ -1694,8 +1697,9 @@ html, body, #root {
   max-width: 85%;
   padding: 10px 14px;
   border-radius: 12px;
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
+  line-height: var(--type-body-s-line-height);
   word-break: break-word;
 }
 
@@ -1718,17 +1722,22 @@ html, body, #root {
 }
 
 .chat-md-h1 {
-  font-size: 15px;
+  font-size: var(--type-body-m-font-size);
+  letter-spacing: var(--type-body-m-letter-spacing);
+  line-height: var(--type-body-m-line-height);
   font-weight: 700;
 }
 
 .chat-md-h2 {
-  font-size: 14px;
+  font-size: var(--type-body-m-font-size);
+  letter-spacing: var(--type-body-m-letter-spacing);
+  line-height: var(--type-body-m-line-height);
   font-weight: 600;
 }
 
 .chat-md-h3 {
-  font-size: 13px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   font-weight: 600;
 }
 
@@ -1760,7 +1769,7 @@ html, body, #root {
 .chat-cursor {
   animation: blink 0.8s infinite;
   color: var(--color-mark);
-  font-size: 12px;
+  font-size: inherit;
   margin-left: 2px;
 }
 
@@ -1790,14 +1799,15 @@ html, body, #root {
   flex: 1;
   border: none;
   background: transparent;
-  font-size: 13px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
   color: var(--color-text-primary);
   outline: none;
   resize: none;
   min-height: 20px;
   max-height: 100px;
-  line-height: 1.4;
+  line-height: var(--type-body-s-line-height);
 }
 
 .chat-input::placeholder {
@@ -1830,7 +1840,8 @@ html, body, #root {
 }
 
 .chat-disclaimer {
-  font-size: 11px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   color: var(--color-text-secondary);
   text-align: center;
   margin-top: 8px;
