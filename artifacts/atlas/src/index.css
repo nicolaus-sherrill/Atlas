@@ -71,17 +71,18 @@ html, body, #root {
 }
 
 .browse-brand h1 {
-  font-size: 32px;
+  font-size: var(--type-subheading-s-font-size);
   font-weight: 700;
-  letter-spacing: -1px;
+  letter-spacing: var(--type-subheading-s-letter-spacing);
   color: var(--color-text-primary);
 }
 
 .browse-tagline {
-  font-size: 14px;
+  font-size: var(--type-body-m-font-size);
+  letter-spacing: var(--type-body-m-letter-spacing);
   color: var(--color-text-secondary);
   max-width: 400px;
-  line-height: 1.5;
+  line-height: var(--type-body-m-line-height);
 }
 
 .btn-submit-place {
@@ -90,7 +91,8 @@ html, body, #root {
   border-radius: var(--radius);
   background: var(--color-surface-card);
   color: var(--color-text-primary);
-  font-size: 13px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
   font-weight: 500;
   cursor: pointer;
@@ -125,7 +127,8 @@ html, body, #root {
   border: none;
   background: transparent;
   width: 100%;
-  font-size: 14px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
   color: var(--color-text-primary);
   outline: none;
@@ -164,7 +167,8 @@ html, body, #root {
   border: 1px solid var(--color-border-control);
   background: var(--color-surface-card);
   color: var(--color-text-primary);
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
   font-weight: 500;
   cursor: pointer;
@@ -201,7 +205,8 @@ html, body, #root {
   align-items: center;
   gap: 8px;
   padding: 6px 12px;
-  font-size: 13px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
   cursor: pointer;
   transition: background 0.15s;
@@ -229,7 +234,8 @@ html, body, #root {
   border: 1px solid var(--color-border-control);
   background: var(--color-surface-card);
   color: var(--color-text-primary);
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
   font-weight: 500;
   cursor: pointer;
@@ -256,17 +262,18 @@ html, body, #root {
 .browse-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
 }
 
 .browse-table thead th {
   text-align: left;
   padding: 12px 16px;
-  font-size: 11px;
+  font-size: var(--type-label-font-size);
   font-weight: 600;
   color: var(--color-text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: var(--text-tracking-plus-6);
   border-bottom: 1px solid var(--color-border-divider);
 }
 
@@ -305,6 +312,10 @@ html, body, #root {
   min-width: 180px;
 }
 
+.browse-row .col-name {
+  line-height: var(--type-body-s-line-height);
+}
+
 .col-city {
   min-width: 100px;
 }
@@ -317,7 +328,8 @@ html, body, #root {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 13px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
 }
 
 .col-tags {
@@ -336,7 +348,8 @@ html, body, #root {
   border-radius: 10px;
   background: none;
   border: 1px solid var(--color-border-divider);
-  font-size: 11px;
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
   color: var(--color-text-primary);
   white-space: nowrap;
 }
@@ -354,7 +367,8 @@ html, body, #root {
   background: var(--color-action-primary-bg);
   color: var(--color-action-primary-text);
   font-weight: 700;
-  font-size: 13px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   padding: 3px 10px;
   border-radius: 6px;
 }
@@ -392,7 +406,8 @@ html, body, #root {
   color: var(--color-text-secondary);
   font-family: inherit;
   font-variant-numeric: tabular-nums;
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 4px;
@@ -423,17 +438,19 @@ html, body, #root {
 }
 
 .browse-detail-summary {
-  font-size: 14px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   color: var(--color-text-primary);
-  line-height: 1.6;
+  line-height: var(--type-body-s-line-height);
   font-style: italic;
   margin-bottom: 8px;
 }
 
 .browse-detail-desc {
-  font-size: 13px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   color: var(--color-text-secondary);
-  line-height: 1.5;
+  line-height: var(--type-body-s-line-height);
 }
 
 .browse-detail-meta {
@@ -463,7 +480,8 @@ html, body, #root {
   border-radius: var(--radius);
   background: var(--color-action-primary-bg);
   color: var(--color-action-primary-text);
-  font-size: 13px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
   font-weight: 500;
   cursor: pointer;
@@ -491,7 +509,8 @@ html, body, #root {
   border-radius: var(--radius);
   background: transparent;
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
   cursor: pointer;
   transition: all 0.2s;
@@ -506,7 +525,8 @@ html, body, #root {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   color: var(--color-text-primary);
 }
 
@@ -516,7 +536,8 @@ html, body, #root {
   border-radius: var(--radius);
   background: transparent;
   color: var(--color-action-destructive-text);
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
   cursor: pointer;
   transition: background-color 0.2s, color 0.2s;
@@ -539,7 +560,8 @@ html, body, #root {
   border-radius: var(--radius);
   background: transparent;
   color: var(--color-text-primary);
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
   cursor: pointer;
   transition: all 0.2s;
@@ -553,7 +575,8 @@ html, body, #root {
   text-align: center;
   padding: 60px 20px;
   color: var(--color-text-secondary);
-  font-size: 14px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
 }
 
 .browse-empty p + p {
@@ -1455,7 +1478,8 @@ html, body, #root {
   border-radius: var(--radius);
   background: var(--color-surface-card);
   color: var(--color-text-primary);
-  font-size: 13px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
   font-weight: 500;
   cursor: pointer;
@@ -2221,7 +2245,8 @@ html, body, #root {
   border-radius: var(--radius);
   background: var(--color-surface-card);
   color: var(--color-text-primary);
-  font-size: 13px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   font-weight: 500;
   text-decoration: none;
   transition: border-color 0.2s;
@@ -2236,8 +2261,9 @@ html, body, #root {
   margin: 0 auto;
   /* bottom clears the map button (24px + 48px) */
   padding: 24px 60px 96px;
-  font-size: 11px;
-  line-height: 1.5;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
+  line-height: var(--type-body-s-line-height);
   color: var(--color-text-secondary);
 }
 
