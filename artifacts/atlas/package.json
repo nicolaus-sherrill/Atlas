@@ -36,6 +36,7 @@
     "@supabase/supabase-js": "^2.117.2",
     "leaflet": "^1.9.4",
     "maplibre-gl": "^6.11.2",
-    "react-leaflet": "^5.0.0"
+    "react-leaflet": "^5.0.0",
+    "@atmo-studio/design-system": "github:Atmo-Studio/atmo-design-system#7fdfb02b753df27a92a8b1673bacab5fa768c2fc"
   }
 }

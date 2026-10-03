@@ -80,6 +80,9 @@ importers:
 
   artifacts/atlas:
     dependencies:
+      '@atmo-studio/design-system':
+        specifier: github:Atmo-Studio/atmo-design-system#7fdfb02b753df27a92a8b1673bacab5fa768c2fc
+        version: https://codeload.github.com/Atmo-Studio/atmo-design-system/tar.gz/7fdfb02b753df27a92a8b1673bacab5fa768c2fc
       '@maplibre/maplibre-gl-leaflet':
         specifier: ^0.1.4
         version: 0.1.4(@types/leaflet@1.9.21)(leaflet@1.9.4)(maplibre-gl@6.11.2)
@@ -348,6 +351,11 @@ importers:
         version: 4.21.0
 
 packages:
+
+  '@atmo-studio/design-system@https://codeload.github.com/Atmo-Studio/atmo-design-system/tar.gz/7fdfb02b753df27a92a8b1673bacab5fa768c2fc':
+    resolution: {gitHosted: true, integrity: sha512-PSrTmnBurQ5fGeOA02ZLUSiIqM72RHCyuGgYOBkckuVp7jBxN8Qd0M/biQWQAg1Dvj1gSgGVxW9zcTAV7aBagQ==, tarball: https://codeload.github.com/Atmo-Studio/atmo-design-system/tar.gz/7fdfb02b753df27a92a8b1673bacab5fa768c2fc}
+    version: 0.1.0
+    engines: {node: '>=22'}
 
   '@babel/code-frame@7.29.0':
     resolution: {integrity: sha512-9NhCeYjq9+3uxgdtp20LSiJXJvN0FeCtNGpJxuMFZ1Kv3cWUNb6DOhJwUvcVCzKGR66cw4njwM6hrJLqgOwbcw==}
@@ -2930,6 +2938,8 @@ packages:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
 snapshots:
+
+  '@atmo-studio/design-system@https://codeload.github.com/Atmo-Studio/atmo-design-system/tar.gz/7fdfb02b753df27a92a8b1673bacab5fa768c2fc': {}
 
   '@babel/code-frame@7.29.0':
     dependencies:

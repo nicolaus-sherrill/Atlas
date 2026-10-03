@@ -1,3 +1,6 @@
+/* Atmo design system, Atlas brand: light on :root, dark by system preference */
+@import "@atmo-studio/design-system/css/atlas.css";
+
 /* Satoshi Variable, self-hosted under Fontshare's licence. The files are not in git (the
    licence forbids putting them on a public server); see README "Fonts" */
 @font-face {
@@ -23,24 +26,25 @@
 }
 
 :root {
-  --bg: #F5F3EF;
-  --text: #1A1A18;
-  --stone: #C8B89A;
-  --sage: #8A9E8C;
-  --white: #FFFFFF;
-  --border: #E5E1DA;
-  --muted: rgba(26, 26, 24, 0.5);
+  /* Atlas's original names, aliased to Atmo Intent roles while each surface moves over. Retired once nothing reads them */
+  --bg: var(--color-surface-canvas);
+  --text: var(--color-text-primary);
+  --stone: var(--color-border-control);
+  --sage: var(--color-action-primary-bg);
+  --white: var(--color-surface-card);
+  --border: var(--color-border-divider);
+  --muted: var(--color-text-secondary);
+  --cream: var(--color-surface-raised);
+  --focus: var(--color-focus-ring);
   --radius: 10px;
-  /* Atmo focus/ring, light: green-900. Aliased to the token in step 4 */
-  --focus: #2c3625;
 }
 
 html, body, #root {
   height: 100%;
   width: 100%;
   overflow: hidden;
-  font-family: Satoshi, "Satoshi Variable", system-ui, sans-serif;
-  font-feature-settings: "ss02" 1, "ss03" 1, "kern" 1;
+  font-family: var(--font-family-sans);
+  font-feature-settings: var(--font-feature-settings-text);
   color: var(--text);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
