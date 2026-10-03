@@ -675,14 +675,15 @@ html, body, #root {
 }
 
 .sidebar-brand h1 {
-  font-size: 24px;
+  font-size: var(--type-body-xl-font-size);
   font-weight: 700;
-  letter-spacing: -0.5px;
+  letter-spacing: var(--type-body-xl-letter-spacing);
   color: var(--color-text-primary);
 }
 
 .sidebar-tagline {
-  font-size: 13px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   color: var(--color-text-secondary);
   margin-top: 4px;
   font-weight: 400;
@@ -698,7 +699,8 @@ html, body, #root {
   padding: 10px 14px;
   border: 1px solid var(--color-border-control);
   border-radius: var(--radius);
-  font-size: 13px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
   background: var(--color-surface-card);
   color: var(--color-text-primary);
@@ -782,7 +784,8 @@ html, body, #root {
   border: 1px solid var(--color-border-control);
   background: var(--color-surface-card);
   color: var(--color-text-primary);
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
   font-weight: 500;
   cursor: pointer;
@@ -815,7 +818,8 @@ html, body, #root {
   border-radius: var(--radius);
   background: var(--color-action-primary-bg);
   color: var(--color-action-primary-text);
-  font-size: 13px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
   font-weight: 600;
   cursor: pointer;
@@ -832,7 +836,8 @@ html, body, #root {
   border-radius: var(--radius);
   background: var(--color-surface-card);
   color: var(--color-text-primary);
-  font-size: 13px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
   font-weight: 500;
   cursor: pointer;
@@ -852,7 +857,8 @@ html, body, #root {
 }
 
 .export-panel p {
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   color: var(--color-text-secondary);
   margin-bottom: 8px;
 }
@@ -869,7 +875,8 @@ html, body, #root {
   border-radius: 6px;
   background: var(--color-surface-card);
   color: var(--color-text-primary);
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
   font-weight: 500;
   cursor: pointer;
@@ -882,10 +889,10 @@ html, body, #root {
 
 .sidebar-count {
   padding: 0 24px 8px;
-  font-size: 11px;
+  font-size: var(--type-label-font-size);
   color: var(--color-text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: var(--text-tracking-plus-6);
   font-weight: 500;
 }
 
@@ -940,7 +947,6 @@ html, body, #root {
 }
 
 .spot-card-icon {
-  font-size: 20px;
   flex-shrink: 0;
 }
 
@@ -952,7 +958,9 @@ html, body, #root {
 .spot-card-name {
   display: block;
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
+  line-height: var(--type-body-s-line-height);
   color: var(--color-text-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -961,14 +969,15 @@ html, body, #root {
 
 .spot-card-category {
   display: block;
-  font-size: 11px;
+  font-size: var(--type-label-font-size);
   color: var(--color-text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: var(--text-tracking-plus-6);
 }
 
 .spot-card-rating {
-  font-size: 13px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   font-weight: 700;
   color: var(--color-action-primary-text);
   background: var(--color-action-primary-bg);
@@ -978,15 +987,18 @@ html, body, #root {
 }
 
 .spot-card-address {
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
+  line-height: var(--type-body-s-line-height);
   color: var(--color-text-secondary);
   margin-bottom: 6px;
 }
 
 .spot-card-summary {
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   color: var(--color-text-secondary);
-  line-height: 1.5;
+  line-height: var(--type-body-s-line-height);
   margin-bottom: 8px;
   font-style: italic;
 }
@@ -1004,7 +1016,8 @@ html, body, #root {
   border-radius: 8px;
   background: none;
   border: 1px solid var(--color-border-divider);
-  font-size: 10px;
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
   color: var(--color-text-primary);
 }
 
@@ -1051,7 +1064,8 @@ html, body, #root {
   padding: 6px 8px;
   background: var(--color-status-negative-surface);
     border-radius: var(--radius);
-  font-size: 11px;
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
   color: var(--color-text-primary);
 }
 
@@ -1061,7 +1075,8 @@ html, body, #root {
   border-radius: 4px;
   background: transparent;
   color: var(--color-action-destructive-text);
-  font-size: 11px;
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
   font-family: inherit;
   cursor: pointer;
   transition: background-color 0.2s, color 0.2s;
@@ -1084,7 +1099,8 @@ html, body, #root {
   border-radius: 4px;
   background: transparent;
   color: var(--color-text-primary);
-  font-size: 11px;
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
   font-family: inherit;
   cursor: pointer;
   transition: all 0.2s;
@@ -1098,7 +1114,8 @@ html, body, #root {
   text-align: center;
   padding: 40px 20px;
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
 }
 
 .sidebar-empty p + p {
@@ -2146,8 +2163,9 @@ html, body, #root {
   border-radius: var(--radius);
   background: var(--color-surface-inverse);
   color: var(--color-text-on-inverse);
-  font-size: 13px;
-  line-height: 1.4;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
+  line-height: var(--type-body-s-line-height);
   cursor: pointer;
 }
 
