@@ -727,7 +727,8 @@ html, body, #root {
 
 .geocode-loading {
   padding: 8px 14px;
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   color: var(--color-text-secondary);
 }
 
@@ -756,10 +757,11 @@ html, body, #root {
   background: var(--color-surface-card);
   cursor: pointer;
   text-align: left;
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   color: var(--color-text-primary);
   font-family: inherit;
-  line-height: 1.4;
+  line-height: var(--type-body-s-line-height);
   transition: background 0.15s;
 }
 
@@ -1424,7 +1426,8 @@ html, body, #root {
 }
 
 .spot-card-rating-count {
-  font-size: 11px;
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
   color: var(--color-text-secondary);
   white-space: nowrap;
 }
@@ -1444,12 +1447,12 @@ html, body, #root {
 }
 
 .browse-detail-category-name {
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   color: var(--color-text-secondary);
 }
 
 .browse-detail-category-value {
-  font-size: 12px;
   font-weight: 600;
   color: var(--color-text-primary);
 }
@@ -1948,7 +1951,8 @@ html, body, #root {
 /* ========== CROWD REPORTING ========== */
 
 .crowd-time {
-  font-size: 11px;
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
   color: var(--color-text-secondary);
 }
 
@@ -1970,11 +1974,11 @@ html, body, #root {
 }
 
 .typical-busyness-title {
-  font-size: 12px;
+  font-size: var(--type-label-font-size);
   font-weight: 600;
   color: var(--color-text-primary);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: var(--text-tracking-plus-6);
 }
 
 .typical-busyness-days {
@@ -1988,7 +1992,8 @@ html, body, #root {
   border-radius: 4px;
   background: none;
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
   font-family: inherit;
   cursor: pointer;
   transition: all 0.15s;
@@ -2013,6 +2018,7 @@ html, body, #root {
 
 .typical-bar-col {
   flex: 1;
+  width: 0; /* columns share the chart's width, so labels never widen the table cell */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2035,17 +2041,24 @@ html, body, #root {
 }
 
 .typical-bar-label {
-  font-size: 9px;
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
   color: var(--color-text-secondary);
   margin-top: 3px;
   white-space: nowrap;
+}
+
+/* Every third hour is labelled, as Google Maps' Popular Times does, so an 11px label fits at 320 */
+.typical-bar-label.is-skipped {
+  visibility: hidden;
 }
 
 .spot-card-crowd {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  font-size: 11px;
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
   color: var(--color-text-primary);
   margin-top: 4px;
 }
@@ -2147,7 +2160,8 @@ html, body, #root {
 }
 
 .hours-state {
-  font-size: 11px;
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
   font-weight: 500;
 }
 
@@ -2161,7 +2175,8 @@ html, body, #root {
 }
 
 .spot-card-hours-today {
-  font-size: 11px;
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
   color: var(--color-text-secondary);
 }
 
@@ -2201,7 +2216,8 @@ html, body, #root {
 
 .geocode-credit {
   padding: 6px 14px;
-  font-size: 10px;
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
   color: var(--color-text-secondary);
   border-top: 1px solid var(--color-border-divider);
 }
@@ -2212,8 +2228,9 @@ html, body, #root {
   border: 1px solid var(--color-border-divider);
   border-radius: var(--radius);
   background: var(--color-surface-card);
-  font-size: 12px;
-  line-height: 1.5;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
+  line-height: var(--type-body-s-line-height);
   color: var(--color-text-primary);
 }
 
@@ -2337,18 +2354,21 @@ html, body, #root {
 }
 
 .rate-spot-note {
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   color: var(--color-text-secondary);
 }
 
 .rate-spot-error {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   color: var(--color-status-negative-text);
 }
 
 .browse-rating-count {
-  font-size: 12px;
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
   color: var(--color-text-secondary);
 }
 

@@ -67,7 +67,7 @@ export default function TypicalBusyness({ spotId }: TypicalBusynessProps) {
                   style={{ height: `${pct}%`, background: info.color }}
                 />
               </div>
-              <span className="typical-bar-label">{hourLabel}</span>
+              <span className={`typical-bar-label${d.hourOfDay % 3 ? " is-skipped" : ""}`}>{hourLabel}</span>
             </div>
           );
         })}
