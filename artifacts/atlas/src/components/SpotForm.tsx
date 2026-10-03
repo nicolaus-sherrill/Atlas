@@ -5,6 +5,7 @@ import AddressAutocomplete from "@/components/AddressAutocomplete";
 import { reverseGeocode, type GeocodingResult } from "@/lib/geocode";
 import PlaceLinkCard from "@/components/PlaceLinkCard";
 import { usePlaceLink } from "@/hooks/use-place-link";
+import Icon from "./Icon";
 
 interface SpotFormProps {
   pendingLocation: { lat: number; lng: number } | null;
@@ -117,14 +118,14 @@ export default function SpotForm({ pendingLocation, geoData, onSubmit, onCancel,
 
         {!pendingLocation && (
           <div className="spot-form-hint">
-            <span>📍</span>
+            <Icon name="map-pin" weight="bold" size={16} />
             <p>Click anywhere on the map to set the location</p>
           </div>
         )}
 
         {pendingLocation && (
           <div className="spot-form-location">
-            <span>📍</span>
+            <Icon name="map-pin" weight="bold" size={16} />
             <span>{pendingLocation.lat.toFixed(5)}, {pendingLocation.lng.toFixed(5)}</span>
           </div>
         )}
@@ -171,7 +172,7 @@ export default function SpotForm({ pendingLocation, geoData, onSubmit, onCancel,
                 className={`category-option ${category === cat.value ? "active" : ""}`}
                 onClick={() => setCategory(cat.value)}
               >
-                <span>{cat.icon}</span>
+                <Icon name={cat.icon} weight="bold" size={16} />
                 <span>{cat.label}</span>
               </button>
             ))}

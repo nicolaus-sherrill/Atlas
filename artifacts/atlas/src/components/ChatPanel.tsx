@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import type { WorkSpot } from "@/lib/types";
+import Icon from "./Icon";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -220,7 +221,7 @@ export default function ChatPanel({ spots, onClose }: ChatPanelProps) {
         <div className="chat-messages">
           {messages.length === 0 && (
             <div className="chat-empty">
-              <div className="chat-empty-icon">🗺️</div>
+              <Icon name="map-trifold" weight="light" size={32} className="chat-empty-icon" />
               <h3>Plan your workday</h3>
               <p>Describe your schedule, preferences, and needs — I'll recommend the best Atlas spots for each part of your day.</p>
               <div className="chat-suggestions">

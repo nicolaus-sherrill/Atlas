@@ -11,7 +11,8 @@ if (import.meta.env.PROD) setWorkerUrl(maplibreWorkerUrl);
 import type { WorkSpot, Category } from "@/lib/types";
 import { CATEGORIES, calcScore, getSpotDisplayTags, SCORE_CATEGORIES, isOpenNow, getTodayHoursLabel } from "@/lib/types";
 import { getGoogleMapsUrl, getAppleMapsUrl } from "@/lib/export";
-import { fetchAllCrowdStatuses, submitCrowdReport, getBusynessInfo, timeAgo, BUSYNESS_LEVELS, type CrowdStatus } from "@/lib/crowd";
+import { iconSvg } from "@/lib/icons";
+import { fetchAllCrowdStatuses, submitCrowdReport, getBusynessInfo, timeAgo, BUSYNESS_LEVELS, crowdMarkHtml, type CrowdStatus } from "@/lib/crowd";
 
 function escapeHtml(str: string): string {
   const div = document.createElement("div");
@@ -19,64 +20,48 @@ function escapeHtml(str: string): string {
   return div.innerHTML;
 }
 
-const CATEGORY_COLORS: Record<Category, string> = {
-  cafe: "#C8B89A",
-  library: "#8A9E8C",
-  coworking: "#1A1A18",
-  park: "#6B8F71",
-};
-
-function createMarkerIcon(category: Category): L.DivIcon {
+// A teardrop pin per category: the pin colour comes from map.pin.<category>, the icon from map.pin.icon.
+// The square is turned 45 degrees, so its pointed corner lands s/2 + s/sqrt(2) below the box's top.
+function createMarkerIcon(category: Category, selected = false): L.DivIcon {
   const cat = CATEGORIES.find((c) => c.value === category);
-  const color = CATEGORY_COLORS[category];
+  const size = selected ? 36 : 28;
+  const tip = Math.round(size / 2 + size / Math.SQRT2);
   return L.divIcon({
     className: "atlas-marker",
-    html: `<div style="
-      background: ${color};
-      width: 36px;
-      height: 36px;
-      border-radius: 50% 50% 50% 0;
-      transform: rotate(-45deg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 2px solid #F5F3EF;
-      box-shadow: 0 2px 8px rgba(26,26,24,0.2);
-    ">
-      <span style="transform: rotate(45deg); font-size: 16px; line-height: 1;">${cat?.icon || "📍"}</span>
-    </div>`,
-    iconSize: [36, 36],
-    iconAnchor: [18, 36],
-    popupAnchor: [0, -36],
+    html: `<div class="atlas-pin ${category}${selected ? " selected" : ""}">${iconSvg(cat?.icon ?? "map-pin", "fill", selected ? 18 : 14)}</div>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, tip],
+    popupAnchor: [0, -tip],
   });
 }
 
 function createCrowdHtml(status: CrowdStatus | null, spotId: string): string {
   if (status) {
     const info = getBusynessInfo(status.level);
-    return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;padding:4px 8px;background:#F5F3EF;border-radius:6px;">
-      <span style="width:8px;height:8px;border-radius:50%;background:${info.color};display:inline-block;"></span>
+    return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;padding:4px 8px;background:var(--color-surface-raised);border-radius:6px;">
+      ${crowdMarkHtml(info.level)}
       <span style="font-weight:500;font-size:12px;color:var(--color-text-primary);">${escapeHtml(info.label)}</span>
       <span style="font-size:10px;color:var(--color-text-secondary);">${timeAgo(status.lastReportedAt)}</span>
     </div>
     <button data-crowd-report="${escapeHtml(spotId)}" style="
       display:block;width:100%;padding:5px 0;border:1px solid var(--color-border-control);border-radius:6px;background:var(--color-surface-card);
       color:var(--color-text-primary);font-size:11px;font-family:inherit;font-weight:500;cursor:pointer;margin-bottom:8px;
-    ">&#128101; Report crowd level</button>`;
+    "><span style="display:inline-flex;align-items:center;justify-content:center;gap:6px;">${iconSvg("users-three", "bold", 16)}Report crowd level</span></button>`;
   }
   return `<button data-crowd-report="${escapeHtml(spotId)}" style="
     display:block;width:100%;padding:5px 0;border:1px solid var(--color-border-control);border-radius:6px;background:var(--color-surface-card);
     color:var(--color-text-primary);font-size:11px;font-family:inherit;font-weight:500;cursor:pointer;margin-bottom:8px;
-  ">&#128101; Report crowd level</button>`;
+  "><span style="display:inline-flex;align-items:center;justify-content:center;gap:6px;">${iconSvg("users-three", "bold", 16)}Report crowd level</span></button>`;
 }
 
 function createCrowdPickerHtml(spotId: string): string {
+  // Words only: the picker is a control, so it must not read as a colour legend
   const options = BUSYNESS_LEVELS.map((b) =>
     `<button data-crowd-submit="${escapeHtml(spotId)}" data-crowd-level="${b.level}" style="
-      display:flex;align-items:center;gap:6px;width:100%;padding:5px 8px;border:1px solid #E5E1DA;
-      border-left:3px solid ${b.color};border-radius:6px;background:#fff;color:#1A1A18;
+      display:block;width:100%;padding:5px 8px;border:1px solid var(--color-border-control);
+      border-radius:6px;background:var(--color-surface-card);color:var(--color-text-primary);
       font-size:11px;font-family:inherit;cursor:pointer;text-align:left;
-    "><span style="width:6px;height:6px;border-radius:50%;background:${b.color};"></span>${escapeHtml(b.label)}</button>`
+    ">${escapeHtml(b.label)}</button>`
   ).join("");
   return `<div style="display:flex;flex-direction:column;gap:3px;margin-bottom:8px;">${options}</div>`;
 }
@@ -106,7 +91,7 @@ function createPopupContent(spot: WorkSpot, crowdStatus: CrowdStatus | null): st
 
   return `<div style="max-width:280px;padding:4px;">
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
-      <span style="font-size:18px;">${cat?.icon || "📍"}</span>
+      <span style="display:flex;color:var(--color-text-primary);">${iconSvg(cat?.icon ?? "map-pin", cat ? "regular" : "fill", 20)}</span>
       <div style="flex:1;">
         <div style="font-weight:600;font-size:15px;color:var(--color-text-primary);line-height:1.2;">${safeName}</div>
         <div style="font-size:11px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.5px;">${safeCategory} &middot; ${escapeHtml(spot.city)}</div>
@@ -157,6 +142,7 @@ interface MapViewProps {
 export default function MapView({ spots, selectedSpotId, onMapClick, onSpotSelect, pendingLocation }: MapViewProps) {
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
+  const selectedIdRef = useRef<string | null>(null);
   const pendingMarkerRef = useRef<L.Marker | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [crowdStatuses, setCrowdStatuses] = useState<Record<string, CrowdStatus>>({});
@@ -269,7 +255,7 @@ export default function MapView({ spots, selectedSpotId, onMapClick, onSpotSelec
       const crowdStatus = crowdStatuses[spot.id] || null;
       if (!marker) {
         marker = L.marker([spot.lat, spot.lng], {
-          icon: createMarkerIcon(spot.category),
+          icon: createMarkerIcon(spot.category, spot.id === selectedIdRef.current),
         }).addTo(map);
 
         marker.bindPopup(createPopupContent(spot, crowdStatus), {
@@ -284,13 +270,22 @@ export default function MapView({ spots, selectedSpotId, onMapClick, onSpotSelec
         markersRef.current.set(spot.id, marker);
       } else {
         marker.setLatLng([spot.lat, spot.lng]);
-        marker.setIcon(createMarkerIcon(spot.category));
+        marker.setIcon(createMarkerIcon(spot.category, spot.id === selectedIdRef.current));
         marker.setPopupContent(createPopupContent(spot, crowdStatus));
       }
     });
   }, [spots, onSpotSelect, crowdStatuses]);
 
   useEffect(() => {
+    // Redraw the previously selected pin at rest and the new one selected
+    const previous = selectedIdRef.current;
+    selectedIdRef.current = selectedSpotId ?? null;
+    for (const id of [previous, selectedSpotId]) {
+      if (!id) continue;
+      const spot = spots.find((s) => s.id === id);
+      const m = markersRef.current.get(id);
+      if (spot && m) m.setIcon(createMarkerIcon(spot.category, id === selectedSpotId));
+    }
     if (!selectedSpotId || !mapRef.current) return;
     const marker = markersRef.current.get(selectedSpotId);
     if (marker) {
@@ -313,24 +308,12 @@ export default function MapView({ spots, selectedSpotId, onMapClick, onSpotSelec
 
     if (pendingLocation) {
       const marker = L.marker([pendingLocation.lat, pendingLocation.lng], {
+        // A hollow pin with a plus: the spot being added, not yet on the map
         icon: L.divIcon({
           className: "atlas-marker-pending",
-          html: `<div style="
-            background: #C8B89A;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 3px solid #F5F3EF;
-            box-shadow: 0 0 0 3px #C8B89A, 0 4px 12px rgba(26,26,24,0.3);
-            animation: pulse 1.5s ease-in-out infinite;
-          ">
-            <span style="font-size: 20px;">📍</span>
-          </div>`,
-          iconSize: [40, 40],
-          iconAnchor: [20, 20],
+          html: `<div class="atlas-pin pending">${iconSvg("plus", "bold", 14)}</div>`,
+          iconSize: [28, 28],
+          iconAnchor: [14, 34],
         }),
       }).addTo(map);
       pendingMarkerRef.current = marker;

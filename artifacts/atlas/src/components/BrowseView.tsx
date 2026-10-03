@@ -6,7 +6,9 @@ import RateSpot from "./RateSpot";
 import SuggestEditModal from "./SuggestEditModal";
 import ReportProblemModal from "./ReportProblemModal";
 import ScoreDots from "./ScoreDots";
+import TypicalBusyness from "./TypicalBusyness";
 import MultiSelectDropdown from "./MultiSelectDropdown";
+import Icon from "./Icon";
 
 interface BrowseViewProps {
   spots: WorkSpot[];
@@ -135,7 +137,7 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
               className={`browse-chip ${activeCategory === cat.value ? "active" : ""}`}
               onClick={() => setActiveCategory(activeCategory === cat.value ? null : cat.value)}
             >
-              {cat.icon} {cat.label}
+              <Icon name={cat.icon} weight="bold" size={14} /> {cat.label}
             </button>
           ))}
         </div>
@@ -185,7 +187,7 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
                     <td className="col-name">{spot.name}</td>
                     <td className="col-city">{spot.city}</td>
                     <td className="col-category">
-                      <span className="browse-category-badge">{cat?.icon} {cat?.label}</span>
+                      <span className="browse-category-badge">{cat && <Icon name={cat.icon} weight="bold" size={16} />} {cat?.label}</span>
                     </td>
                     <td className="col-tags">
                       <div className="browse-tag-pills">
@@ -250,6 +252,7 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
                                 <span key={t} className="browse-tag-pill">{t}</span>
                               ))}
                             </div>
+                            <TypicalBusyness spotId={spot.id} />
                             <RateSpot spotId={spot.id} onRated={onRated} />
                           </div>
                           <div className="browse-detail-actions">

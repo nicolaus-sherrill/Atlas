@@ -1,10 +1,12 @@
+import type { IconName } from "./icon-names";
+
 export type Category = "cafe" | "library" | "coworking" | "park";
 
-export const CATEGORIES: { value: Category; label: string; icon: string }[] = [
-  { value: "cafe", label: "Cafe", icon: "☕" },
-  { value: "library", label: "Library", icon: "📚" },
-  { value: "coworking", label: "Coworking", icon: "💼" },
-  { value: "park", label: "Park", icon: "🌳" },
+export const CATEGORIES: { value: Category; label: string; icon: IconName }[] = [
+  { value: "cafe", label: "Cafe", icon: "coffee" },
+  { value: "library", label: "Library", icon: "books" },
+  { value: "coworking", label: "Coworking", icon: "briefcase" },
+  { value: "park", label: "Park", icon: "tree" },
 ];
 
 export type ScoreCategory = "wifi" | "outlets" | "food" | "atmosphere" | "hours" | "access";

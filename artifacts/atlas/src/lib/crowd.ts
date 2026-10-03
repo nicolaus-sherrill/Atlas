@@ -21,12 +21,18 @@ export interface SpotCrowdData {
   hourlyAverages: HourlyAverage[];
 }
 
+// Colour runs from neutral to red as a spot gets busier; height carries the level as well
 export const BUSYNESS_LEVELS = [
-  { level: 1, label: "Not busy", color: "#8A9E8C" },
-  { level: 2, label: "A little busy", color: "#C8B89A" },
-  { level: 3, label: "Busy", color: "#D4915E" },
-  { level: 4, label: "Very busy", color: "#C25E4A" },
+  { level: 1, label: "Not busy", color: "var(--color-data-sequential-1)" },
+  { level: 2, label: "A little busy", color: "var(--color-data-sequential-2)" },
+  { level: 3, label: "Busy", color: "var(--color-data-sequential-3)" },
+  { level: 4, label: "Very busy", color: "var(--color-data-sequential-4)" },
 ] as const;
+
+// A miniature of the chart's bar: its colour and height follow the level
+export function crowdMarkHtml(level: number): string {
+  return `<span class="crowd-mark level-${level}" aria-hidden="true"></span>`;
+}
 
 export function getBusynessInfo(level: number) {
   return BUSYNESS_LEVELS.find((b) => b.level === level) || BUSYNESS_LEVELS[0];

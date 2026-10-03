@@ -5,6 +5,7 @@ import HoursEditor from "@/components/HoursEditor";
 import { suggestEdit, type EditableFields } from "@/lib/contributions";
 import type { GeocodingResult } from "@/lib/geocode";
 import { CATEGORIES, TAGS, type TagId, type WorkSpot } from "@/lib/types";
+import Icon from "./Icon";
 
 interface SuggestEditModalProps {
   spot: WorkSpot;
@@ -109,7 +110,7 @@ export default function SuggestEditModal({ spot, onClose, onSent }: SuggestEditM
                   className={`category-option ${fields.category === cat.value ? "active" : ""}`}
                   onClick={() => set("category", cat.value)}
                 >
-                  <span>{cat.icon}</span>
+                  <Icon name={cat.icon} weight="bold" size={16} />
                   <span>{cat.label}</span>
                 </button>
               ))}

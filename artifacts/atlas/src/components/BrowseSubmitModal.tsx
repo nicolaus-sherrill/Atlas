@@ -6,6 +6,7 @@ import AddressAutocomplete from "@/components/AddressAutocomplete";
 import type { GeocodingResult } from "@/lib/geocode";
 import PlaceLinkCard from "@/components/PlaceLinkCard";
 import { usePlaceLink } from "@/hooks/use-place-link";
+import Icon from "./Icon";
 
 interface BrowseSubmitModalProps {
   onSubmit: (spot: Omit<WorkSpot, "id" | "submittedAt">) => void;
@@ -132,7 +133,7 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
                   className={`category-option ${category === cat.value ? "active" : ""}`}
                   onClick={() => setCategory(cat.value)}
                 >
-                  <span>{cat.icon}</span>
+                  <Icon name={cat.icon} weight="bold" size={16} />
                   <span>{cat.label}</span>
                 </button>
               ))}

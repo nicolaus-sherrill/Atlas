@@ -4,6 +4,8 @@ import { CATEGORIES, calcScore, getSpotDisplayTags, SCORE_CATEGORIES, isOpenNow,
 import { spotsToGeoJSON, spotsToKML, downloadFile } from "@/lib/export";
 import { searchAddress, type GeocodingResult } from "@/lib/geocode";
 import { fetchAllCrowdStatuses, getBusynessInfo, timeAgo, type CrowdStatus } from "@/lib/crowd";
+import CrowdMark from "./CrowdMark";
+import Icon from "./Icon";
 
 interface SidebarProps {
   spots: WorkSpot[];
@@ -129,7 +131,7 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
             className={`category-chip ${activeCategory === cat.value ? "active" : ""}`}
             onClick={() => setActiveCategory(activeCategory === cat.value ? null : cat.value)}
           >
-            <span>{cat.icon}</span> {cat.label}
+            <Icon name={cat.icon} weight="bold" size={14} /> {cat.label}
           </button>
         ))}
       </div>
@@ -193,7 +195,7 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
               onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) { e.preventDefault(); onSpotSelect(spot.id); } }}
             >
               <div className="spot-card-header">
-                <span className="spot-card-icon">{cat?.icon}</span>
+                {cat && <Icon name={cat.icon} size={20} className="spot-card-icon" />}
                 <div className="spot-card-info">
                   <span className="spot-card-name">{spot.name}</span>
                   <span className="spot-card-category">{cat?.label} &middot; {spot.city}</span>
@@ -223,7 +225,7 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
                 const info = getBusynessInfo(cs.level);
                 return (
                   <div className="spot-card-crowd">
-                    <span className="crowd-dot" style={{ background: info.color }} />
+                    <CrowdMark level={info.level} />
                     <span>{info.label}</span>
                     <span className="crowd-time">{timeAgo(cs.lastReportedAt)}</span>
                   </div>

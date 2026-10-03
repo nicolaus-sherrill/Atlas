@@ -1442,11 +1442,6 @@ html, body, #root {
   box-shadow: none;
 }
 
-@keyframes pulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.1); opacity: 0.8; }
-}
-
 .browse-header-actions {
   display: flex;
   gap: 8px;
@@ -1833,6 +1828,46 @@ html, body, #root {
   border: none !important;
 }
 
+/* Map pins: a teardrop per category, an inverse icon, a halo in the map's ring colour */
+.atlas-pin {
+  width: 100%;
+  height: 100%;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-map-pin-icon);
+  box-shadow: 0 0 0 2px var(--color-map-marker-ring), var(--elevation-floating);
+}
+
+.atlas-pin svg {
+  transform: rotate(45deg);
+}
+
+.atlas-pin.cafe { background: var(--color-map-pin-cafe); }
+.atlas-pin.library { background: var(--color-map-pin-library); }
+.atlas-pin.coworking { background: var(--color-map-pin-coworking); }
+.atlas-pin.park { background: var(--color-map-pin-park); }
+
+/* Selected: larger, with an ink ring outside the halo */
+.atlas-pin.selected {
+  box-shadow: 0 0 0 2px var(--color-map-marker-ring), 0 0 0 4px var(--color-map-marker), var(--elevation-floating);
+}
+
+/* Pending: hollow, outlined in ink, with a plus */
+.atlas-pin.pending {
+  background: var(--color-map-marker-ring);
+  color: var(--color-map-marker);
+  box-shadow: inset 0 0 0 2px var(--color-map-marker), var(--elevation-floating);
+  animation: pin-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pin-pulse {
+  0%, 100% { transform: rotate(-45deg) scale(1); }
+  50% { transform: rotate(-45deg) scale(1.1); }
+}
+
 .leaflet-control-zoom {
   border: 1px solid var(--color-border-control) !important;
   border-radius: var(--radius) !important;
@@ -1856,117 +1891,9 @@ html, body, #root {
 
 /* ========== CROWD REPORTING ========== */
 
-.crowd-indicator {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-}
-
-.crowd-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-  flex-shrink: 0;
-}
-
-.crowd-label {
-  font-weight: 500;
-  color: var(--color-text-primary);
-}
-
 .crowd-time {
   font-size: 11px;
   color: var(--color-text-secondary);
-}
-
-.crowd-indicator-compact {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-}
-
-.crowd-indicator-compact.no-data {
-  color: var(--color-text-secondary);
-  font-size: 11px;
-}
-
-.crowd-compact-label {
-  white-space: nowrap;
-  color: var(--color-text-primary);
-  font-weight: 500;
-}
-
-.crowd-report-wrapper {
-  display: inline-flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.crowd-report-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 6px 12px;
-  border: 1px solid var(--color-border-control);
-  border-radius: var(--radius);
-  background: var(--color-surface-card);
-  color: var(--color-text-primary);
-  font-size: 12px;
-  font-family: inherit;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.crowd-report-btn:hover {
-  border-color: var(--color-border-strong);
-}
-
-.crowd-icon {
-  font-size: 14px;
-}
-
-.crowd-level-picker {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.crowd-level-option {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  border: 1px solid var(--color-border-control);
-  border-left: 3px solid;
-  border-radius: var(--radius);
-  background: var(--color-surface-card);
-  color: var(--color-text-primary);
-  font-size: 12px;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all 0.15s;
-  text-align: left;
-}
-
-.crowd-level-option:hover {
-  border-color: var(--color-border-strong);
-}
-
-.crowd-report-success {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--color-status-positive-text);
-  font-weight: 500;
-}
-
-.crowd-check {
-  font-size: 14px;
 }
 
 .typical-busyness {
@@ -2829,4 +2756,25 @@ textarea,
 select,
 .leaflet-container {
   font-family: inherit;
+}
+
+/* Crowd level in lists and popups: a miniature of the busyness chart's bar */
+.crowd-mark {
+  display: inline-block;
+  width: var(--crowd-mark-width);
+  border-radius: var(--crowd-mark-radius) var(--crowd-mark-radius) 0 0;
+  flex-shrink: 0;
+  align-self: baseline;
+}
+
+.crowd-mark.level-1 { height: var(--crowd-mark-height-1); background: var(--color-data-sequential-1); }
+.crowd-mark.level-2 { height: var(--crowd-mark-height-2); background: var(--color-data-sequential-2); }
+.crowd-mark.level-3 { height: var(--crowd-mark-height-3); background: var(--color-data-sequential-3); }
+.crowd-mark.level-4 { height: var(--crowd-mark-height-4); background: var(--color-data-sequential-4); }
+
+/* Phosphor icons sit on the text's centre line and take its colour */
+.icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  vertical-align: -0.125em;
 }
