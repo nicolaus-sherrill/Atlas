@@ -204,7 +204,7 @@ export default function MapView({ spots, selectedSpotId, onMapClick, onSpotSelec
           if (parent) {
             const picker = submitBtn.parentElement?.parentElement;
             if (picker) {
-              picker.innerHTML = `<div style="font-size:var(--type-label-font-size);letter-spacing:var(--type-label-letter-spacing);color:#8A9E8C;font-weight:500;padding:4px 0;margin-bottom:6px;">&#10003; Report submitted</div>`;
+              picker.innerHTML = `<div style="font-size:var(--type-label-font-size);letter-spacing:var(--type-label-letter-spacing);color:var(--color-status-positive-text);font-weight:500;padding:4px 0;margin-bottom:6px;">&#10003; Report submitted</div>`;
             }
           }
           loadCrowdStatuses();
