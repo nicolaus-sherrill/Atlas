@@ -202,7 +202,7 @@ html, body, #root {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--elevation-floating);
   padding: 4px 0;
 }
 
@@ -619,14 +619,14 @@ html, body, #root {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 16px rgba(26, 26, 24, 0.18);
+  box-shadow: var(--elevation-floating);
   transition: transform 0.2s, box-shadow 0.2s;
   z-index: 1000;
 }
 
 .map-toggle-fab:hover {
   transform: scale(1.08);
-  box-shadow: 0 6px 24px rgba(26, 26, 24, 0.25);
+  box-shadow: var(--elevation-overlay);
 }
 
 .sidebar {
@@ -716,7 +716,7 @@ html, body, #root {
   max-height: 240px;
   overflow-y: auto;
   z-index: 100;
-  box-shadow: 0 4px 12px rgba(26, 26, 24, 0.1);
+  box-shadow: var(--elevation-floating);
 }
 
 .geocode-result {
@@ -904,7 +904,6 @@ html, body, #root {
 
 .spot-card:hover {
   border-color: var(--stone);
-  box-shadow: 0 2px 8px rgba(26, 26, 24, 0.06);
 }
 
 .spot-card.selected {
@@ -1098,7 +1097,7 @@ html, body, #root {
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 8px 32px rgba(26, 26, 24, 0.12);
+  box-shadow: var(--elevation-overlay);
 }
 
 .spot-form-header {
@@ -1409,7 +1408,7 @@ html, body, #root {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(26, 26, 24, 0.4);
+  background: var(--color-scrim);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -1425,7 +1424,7 @@ html, body, #root {
   border-radius: 12px;
   background: var(--bg);
   border: 1px solid var(--border);
-  box-shadow: 0 16px 48px rgba(26, 26, 24, 0.2);
+  box-shadow: var(--elevation-overlay);
 }
 
 .browse-modal .spot-form {
@@ -1480,7 +1479,7 @@ html, body, #root {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(26, 26, 24, 0.3);
+  background: var(--color-scrim);
   z-index: 2000;
   display: flex;
   justify-content: flex-end;
@@ -1790,7 +1789,7 @@ html, body, #root {
 
 .leaflet-popup-content-wrapper {
   border-radius: 12px !important;
-  box-shadow: 0 8px 32px rgba(26, 26, 24, 0.15) !important;
+  box-shadow: var(--elevation-overlay) !important;
   padding: 0 !important;
   border: 1px solid var(--border) !important;
 }
@@ -1800,7 +1799,7 @@ html, body, #root {
 }
 
 .leaflet-popup-tip {
-  box-shadow: 0 4px 12px rgba(26, 26, 24, 0.1) !important;
+  box-shadow: var(--elevation-floating) !important;
 }
 
 .atlas-marker {
@@ -1817,7 +1816,7 @@ html, body, #root {
   border: 1px solid var(--border) !important;
   border-radius: var(--radius) !important;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(26, 26, 24, 0.08) !important;
+  box-shadow: var(--elevation-floating) !important;
 }
 
 .leaflet-control-zoom a {

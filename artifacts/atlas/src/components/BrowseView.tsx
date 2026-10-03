@@ -79,8 +79,8 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
         <div className="browse-header-left">
           <div className="browse-brand">
             <svg width="32" height="32" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path fill="#1A1A18" d="M1.107 0h55.354v34.596H1.107zm60.297 0H67c16.016 0 29 12.984 29 29v65.893H61.404V0Z"/>
-              <circle cx="28.725" cy="67.275" r="28.725" fill="#1A1A18"/>
+              <path fill="currentColor" d="M1.107 0h55.354v34.596H1.107zm60.297 0H67c16.016 0 29 12.984 29 29v65.893H61.404V0Z"/>
+              <circle cx="28.725" cy="67.275" r="28.725" fill="currentColor"/>
             </svg>
             <h1>Atlas</h1>
           </div>
