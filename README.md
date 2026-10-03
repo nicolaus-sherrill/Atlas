@@ -86,9 +86,14 @@ in the repository.
 
 ```bash
 cd artifacts/atlas
-pnpm run deploy               # build and deploy the site and API to Cloudflare Pages
+pnpm run deploy --branch=main # build and deploy the site and API to atlas.atmo.studio
+pnpm run deploy               # the same, as a preview at <branch>.atlas-68g.pages.dev
 pnpm run deploy:keepalive     # only when the keep-alive changes
 ```
+
+The Pages project's production branch is `main`, while this repository's is `master`. Without
+`--branch=main`, Wrangler names the deployment after the current git branch, and it lands as a
+preview that atlas.atmo.studio never serves.
 
 Secrets are stored in Cloudflare, not in the repository: `SUPABASE_SECRET_KEY` on the Pages
 project, which the API uses only to save AI summaries. The Supabase URL, the publishable key and
