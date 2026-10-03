@@ -170,8 +170,12 @@ export default function MapView({ spots, selectedSpotId, onMapClick, onSpotSelec
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const map = L.map(containerRef.current, {
       zoomControl: false,
+      zoomAnimation: !reduceMotion,
+      fadeAnimation: !reduceMotion,
+      markerZoomAnimation: !reduceMotion,
     }).setView([30.27, -97.74], 12);
 
     L.control.zoom({ position: "bottomright" }).addTo(map);
@@ -288,7 +292,7 @@ export default function MapView({ spots, selectedSpotId, onMapClick, onSpotSelec
     if (marker) {
       const spot = spots.find((s) => s.id === selectedSpotId);
       if (spot) {
-        mapRef.current.setView([spot.lat, spot.lng], 15, { animate: true });
+        mapRef.current.setView([spot.lat, spot.lng], 15, { animate: !window.matchMedia("(prefers-reduced-motion: reduce)").matches });
         marker.openPopup();
       }
     }
@@ -326,7 +330,7 @@ export default function MapView({ spots, selectedSpotId, onMapClick, onSpotSelec
         }),
       }).addTo(map);
       pendingMarkerRef.current = marker;
-      map.setView([pendingLocation.lat, pendingLocation.lng], map.getZoom(), { animate: true });
+      map.setView([pendingLocation.lat, pendingLocation.lng], map.getZoom(), { animate: !window.matchMedia("(prefers-reduced-motion: reduce)").matches });
     }
   }, [pendingLocation]);
 

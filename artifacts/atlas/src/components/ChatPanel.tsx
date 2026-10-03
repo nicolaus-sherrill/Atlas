@@ -20,7 +20,9 @@ export default function ChatPanel({ spots, onClose }: ChatPanelProps) {
   const abortRef = useRef<AbortController | null>(null);
 
   const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+    });
   }, []);
 
   useEffect(() => {

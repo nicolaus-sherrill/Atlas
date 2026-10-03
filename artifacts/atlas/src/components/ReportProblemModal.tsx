@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import { useState } from "react";
 import { REPORT_REASON_LABELS, reportProblem, type ReportReason } from "@/lib/contributions";
 import type { WorkSpot } from "@/lib/types";
@@ -28,7 +29,7 @@ export default function ReportProblemModal({ spot, onClose, onSent }: ReportProb
     }
   };
 
-  return (
+  return createPortal(
     <div className="browse-modal-backdrop" onClick={onClose}>
       <div className="browse-modal" onClick={(e) => e.stopPropagation()}>
         <form className="spot-form" onSubmit={submit}>
@@ -72,6 +73,7 @@ export default function ReportProblemModal({ spot, onClose, onSent }: ReportProb
           </button>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

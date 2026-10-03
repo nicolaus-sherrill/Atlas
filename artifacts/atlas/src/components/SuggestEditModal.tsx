@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import { useMemo, useState } from "react";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import HoursEditor from "@/components/HoursEditor";
@@ -71,7 +72,7 @@ export default function SuggestEditModal({ spot, onClose, onSent }: SuggestEditM
     }
   };
 
-  return (
+  return createPortal(
     <div className="browse-modal-backdrop" onClick={onClose}>
       <div className="browse-modal" onClick={(e) => e.stopPropagation()}>
         <form className="spot-form" onSubmit={submit}>
@@ -175,6 +176,7 @@ export default function SuggestEditModal({ spot, onClose, onSent }: SuggestEditM
           </button>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

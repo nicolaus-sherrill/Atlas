@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import { useState } from "react";
 import type { WorkSpot, Category, TagId, CategoryScores, ScoreCategory } from "@/lib/types";
 import { CATEGORIES, TAGS, SCORE_CATEGORIES, EMPTY_SCORES } from "@/lib/types";
@@ -78,7 +79,7 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
     });
   };
 
-  return (
+  return createPortal(
     <div className="browse-modal-backdrop" onClick={onClose}>
       <div className="browse-modal" onClick={(e) => e.stopPropagation()}>
         <form className="spot-form" onSubmit={handleSubmit}>
@@ -197,6 +198,7 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
           </button>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

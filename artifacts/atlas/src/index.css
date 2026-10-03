@@ -15,6 +15,8 @@
   --border: #E5E1DA;
   --muted: rgba(26, 26, 24, 0.5);
   --radius: 10px;
+  /* Atmo focus/ring, light: green-900. Aliased to the token in step 4 */
+  --focus: #2c3625;
 }
 
 html, body, #root {
@@ -656,8 +658,9 @@ html, body, #root {
   transition: border-color 0.2s;
 }
 
-.sidebar-search input:focus {
-  border-color: var(--stone);
+.sidebar-search input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
 
 .sidebar-search input::placeholder {
@@ -1060,9 +1063,10 @@ html, body, #root {
   position: absolute;
   top: 16px;
   right: 16px;
-  z-index: 900;
+  /* Above Leaflet's controls (1000), and clear of the map button below it */
+  z-index: 1001;
   width: 340px;
-  max-height: calc(100% - 32px);
+  max-height: calc(100% - 104px);
   overflow-y: auto;
 }
 
@@ -1187,9 +1191,10 @@ html, body, #root {
   resize: vertical;
 }
 
-.form-group input:focus,
-.form-group textarea:focus {
-  border-color: var(--stone);
+.form-group input:focus-visible,
+.form-group textarea:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
 
 .category-select {
@@ -1705,7 +1710,8 @@ html, body, #root {
 }
 
 .chat-input-wrapper:focus-within {
-  border-color: var(--sage);
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
 
 .chat-input {
@@ -2701,4 +2707,37 @@ html, body, #root {
   bottom: 24px;
   transform: translateX(-50%);
   z-index: 3000;
+}
+
+/* ========== FOCUS, LAYERING, MOTION ========== */
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.browse-search:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Modals render into body, above the map button (1000) */
+.browse-modal-backdrop {
+  z-index: 2000;
+}
+
+/* Lift the zoom control clear of the map button */
+.leaflet-bottom.leaflet-right .leaflet-control-zoom {
+  margin-bottom: 72px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
