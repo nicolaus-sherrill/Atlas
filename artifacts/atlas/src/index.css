@@ -2380,7 +2380,8 @@ html, body, #root {
   padding: 32px 60px 60px;
   max-width: 1200px;
   margin: 0 auto;
-  font-size: 13px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
 }
 
 .admin-header {
@@ -2392,13 +2393,14 @@ html, body, #root {
 }
 
 .admin-header h1 {
-  font-size: 28px;
+  font-size: var(--type-subheading-s-font-size);
   font-weight: 700;
-  letter-spacing: -0.5px;
+  letter-spacing: var(--type-subheading-s-letter-spacing);
 }
 
 .admin-back {
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   color: var(--color-text-secondary);
   text-decoration: none;
 }
@@ -2447,7 +2449,8 @@ html, body, #root {
   background: var(--color-surface-card);
   color: var(--color-text-primary);
   font: inherit;
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
@@ -2502,7 +2505,8 @@ html, body, #root {
   border-radius: 999px;
   background: var(--color-surface-inset);
   color: var(--color-text-primary);
-  font-size: 11px;
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
   text-align: center;
 }
 
@@ -2528,7 +2532,8 @@ html, body, #root {
 }
 
 .admin-card-header h2 {
-  font-size: 15px;
+  font-size: var(--type-body-m-font-size);
+  letter-spacing: var(--type-body-m-letter-spacing);
   font-weight: 600;
 }
 
@@ -2570,7 +2575,8 @@ html, body, #root {
   border-radius: 999px;
   background: none;
   border: 1px solid var(--color-border-divider);
-  font-size: 11px;
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
 }
 
 .admin-chip-warn {
@@ -2596,11 +2602,11 @@ html, body, #root {
 
 .admin-diff thead th,
 .admin-table thead th {
-  font-size: 11px;
+  font-size: var(--type-label-font-size);
   font-weight: 600;
   color: var(--color-text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: var(--text-tracking-plus-6);
 }
 
 .admin-diff-new {
@@ -2634,7 +2640,8 @@ html, body, #root {
 }
 
 .admin-page code {
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
 }
 
 @media (max-width: 768px) {
@@ -2652,20 +2659,23 @@ html, body, #root {
 
 .modal-intro {
   margin: -4px 0 16px;
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
+  line-height: var(--type-body-s-line-height);
   color: var(--color-text-secondary);
 }
 
 .modal-hint {
   margin: 6px 0 0;
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   color: var(--color-text-secondary);
 }
 
 .modal-error {
   margin: 6px 0 8px;
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   color: var(--color-status-negative-text);
 }
 
@@ -2680,7 +2690,8 @@ html, body, #root {
   grid-template-columns: 36px auto 1fr auto 1fr;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
 }
 
 .hours-editor-day {
@@ -2692,10 +2703,10 @@ html, body, #root {
   align-items: center;
   gap: 4px;
   margin: 0;
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
   font-weight: 400;
   text-transform: none;
-  letter-spacing: 0;
+  letter-spacing: var(--type-body-s-letter-spacing);
 }
 
 .form-group .hours-editor-closed input {
@@ -2721,7 +2732,8 @@ html, body, #root {
   border: none;
   background: none;
   font: inherit;
-  font-size: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   color: var(--color-text-secondary);
   text-decoration: underline;
   cursor: pointer;
@@ -2731,7 +2743,8 @@ html, body, #root {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 13px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
   color: var(--color-text-secondary);
 }
 
@@ -2745,10 +2758,10 @@ html, body, #root {
 
 .report-reasons legend {
   margin-bottom: 6px;
-  font-size: 12px;
+  font-size: var(--type-label-font-size);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: var(--text-tracking-plus-6);
 }
 
 .form-group .report-reason {
@@ -2760,10 +2773,10 @@ html, body, #root {
   border: 1px solid var(--color-border-control);
   border-radius: 8px;
   background: var(--color-surface-card);
-  font-size: 13px;
+  font-size: var(--type-body-s-font-size);
   font-weight: 400;
   text-transform: none;
-  letter-spacing: 0;
+  letter-spacing: var(--type-body-s-letter-spacing);
   cursor: pointer;
 }
 
