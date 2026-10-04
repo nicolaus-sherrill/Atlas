@@ -33,7 +33,7 @@
     "wrangler": "^4.141.0"
   },
   "dependencies": {
-    "@atmo-studio/design-system": "github:Atmo-Studio/atmo-design-system#0e26e6b1e6501cba25ced035a7089fee6d4991f0",
+    "@atmo-studio/design-system": "github:Atmo-Studio/atmo-design-system#88115625291ab280c5c30fd647e6f6b1579367c7",
     "@maplibre/maplibre-gl-leaflet": "^0.1.4",
     "@phosphor-icons/core": "2.1.1",
     "@supabase/supabase-js": "^2.117.2",
