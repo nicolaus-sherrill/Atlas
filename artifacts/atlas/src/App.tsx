@@ -286,6 +286,8 @@ function App() {
               onSpotSelect={handleListSelect}
               onRated={reloadSpots}
               onNotice={setNotice}
+              crowdStatuses={crowdStatuses}
+              onCrowdReported={reloadCrowd}
               onDeleteSpot={isAdmin ? handleDeleteSpot : undefined}
               query={query}
               places={places}

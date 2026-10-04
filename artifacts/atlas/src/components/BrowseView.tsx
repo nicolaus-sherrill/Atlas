@@ -1,20 +1,21 @@
 import { useState, useMemo, Fragment } from "react";
 import type { WorkSpot, Category } from "@/lib/types";
 import { CATEGORIES, calcScore, getSpotDisplayTags, TAGS, isOpenNow, getTodayHoursLabel } from "@/lib/types";
-import SuggestEditModal from "./SuggestEditModal";
-import ReportProblemModal from "./ReportProblemModal";
 import SpotReveal from "./SpotReveal";
 import MultiSelectDropdown from "./MultiSelectDropdown";
 import Icon from "./Icon";
 import PlaceResults from "./PlaceResults";
 import type { GeocodingResult } from "@/lib/geocode";
 import { matchesQuery } from "@/lib/search";
+import type { CrowdStatus } from "@/lib/crowd";
 
 interface BrowseViewProps {
   spots: WorkSpot[];
   onSpotSelect: (id: string) => void;
   onRated: () => void;
   onNotice: (message: string) => void;
+  crowdStatuses: Record<string, CrowdStatus>;
+  onCrowdReported: () => void;
   // The shell's one search: it filters these spots, and places matching it list beneath them
   query: string;
   places: GeocodingResult[];
@@ -26,17 +27,11 @@ interface BrowseViewProps {
 
 const ALL_FILTER_TAGS = TAGS.map((t) => t.label);
 
-// The row shows this many tags; the reveal lists only the rest, so it never repeats the row
-const ROW_TAGS = 3;
-
-export default function BrowseView({ spots, onSpotSelect, onRated, onNotice, query, places, placesLoading, onPickPlace, onDeleteSpot }: BrowseViewProps) {
-  const [editingSpot, setEditingSpot] = useState<WorkSpot | null>(null);
-  const [reportingSpot, setReportingSpot] = useState<WorkSpot | null>(null);
+export default function BrowseView({ spots, onSpotSelect, onRated, onNotice, crowdStatuses, onCrowdReported, query, places, placesLoading, onPickPlace, onDeleteSpot }: BrowseViewProps) {
   const [activeCities, setActiveCities] = useState<Set<string>>(new Set());
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [activeTags, setActiveTags] = useState<Set<string>>(new Set());
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const cities = useMemo(() => {
     const set = new Set(spots.map((s) => s.city));
@@ -175,11 +170,11 @@ export default function BrowseView({ spots, onSpotSelect, onRated, onNotice, que
                       )}
                     </td>
                     <td className="col-tags">
-                      <div className="browse-tag-pills">
-                        {allTags.slice(0, ROW_TAGS).map((t) => (
+                      {/* Every tag, scrolling sideways inside the cell when they overflow it */}
+                      <div className="tag-scroller" tabIndex={0} aria-label={`${spot.name} tags`} onClick={(e) => e.stopPropagation()}>
+                        {allTags.map((t) => (
                           <span key={t} className="browse-tag-pill">{t}</span>
                         ))}
-                        {allTags.length > ROW_TAGS && <span className="browse-tag-pill more">+{allTags.length - ROW_TAGS}</span>}
                       </div>
                     </td>
                     <td className="col-score">
@@ -206,19 +201,19 @@ export default function BrowseView({ spots, onSpotSelect, onRated, onNotice, que
                         <SpotReveal
                           spot={spot}
                           allTags={allTags}
-                          hiddenTags={allTags.slice(ROW_TAGS)}
-                          confirmingDelete={confirmDeleteId === spot.id}
+                          crowdStatus={crowdStatuses[spot.id] ?? null}
                           onShowOnMap={() => onSpotSelect(spot.id)}
-                          onEdit={() => setEditingSpot(spot)}
-                          onReport={() => setReportingSpot(spot)}
                           onRated={onRated}
-                          onDeleteAsk={onDeleteSpot ? () => setConfirmDeleteId(spot.id) : undefined}
-                          onDeleteCancel={() => setConfirmDeleteId(null)}
-                          onDeleteConfirm={() => {
-                            onDeleteSpot?.(spot.id);
-                            setConfirmDeleteId(null);
-                            setExpandedId(null);
-                          }}
+                          onCrowdReported={onCrowdReported}
+                          onNotice={onNotice}
+                          onDelete={
+                            onDeleteSpot
+                              ? (id) => {
+                                  onDeleteSpot(id);
+                                  setExpandedId(null);
+                                }
+                              : undefined
+                          }
                         />
                       </td>
                     </tr>
@@ -248,28 +243,6 @@ export default function BrowseView({ spots, onSpotSelect, onRated, onNotice, que
         </a>
         .
       </footer>
-
-      {editingSpot && (
-        <SuggestEditModal
-          spot={editingSpot}
-          onClose={() => setEditingSpot(null)}
-          onSent={() => {
-            setEditingSpot(null);
-            onNotice("Thanks. Your edit is waiting for review.");
-          }}
-        />
-      )}
-
-      {reportingSpot && (
-        <ReportProblemModal
-          spot={reportingSpot}
-          onClose={() => setReportingSpot(null)}
-          onSent={() => {
-            setReportingSpot(null);
-            onNotice("Thanks. We'll look into it.");
-          }}
-        />
-      )}
 
     </div>
   );

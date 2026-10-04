@@ -47,7 +47,7 @@ export default function RateSpot({ spotId, onRated }: RateSpotProps) {
   if (!open) {
     return (
       <div className="rate-spot">
-        <button type="button" className="btn-outline btn-compact" onClick={(e) => { e.stopPropagation(); setOpen(true); setStatus("idle"); }}>
+        <button type="button" className="btn-solid" onClick={(e) => { e.stopPropagation(); setOpen(true); setStatus("idle"); }}>
           {hasRated ? "Change your rating" : "Rate this spot"}
         </button>
         {status === "saved" && <span className="rate-spot-note">Thanks. Your rating is in the average.</span>}

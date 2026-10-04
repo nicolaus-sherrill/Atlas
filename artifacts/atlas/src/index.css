@@ -281,6 +281,7 @@ html, body, #root {
 
 .col-tags {
   min-width: 160px;
+  max-width: 280px;
 }
 
 .browse-tag-pills {
@@ -390,136 +391,39 @@ html, body, #root {
   background: var(--color-surface-card);
 }
 
-/* ---------- The reveal under an open row ---------- */
+/* ---------- The reveal under an open row ----------
+   Built from the same parts as the map's details panel (components/spot-sections.tsx), so it takes
+   their styles; only the arrangement is its own: the place on the left, the scores on the right */
 
 .browse-table tbody .browse-detail-row > td {
   height: auto;
-  padding: 4px 12px 24px 60px;
+  padding: 0 12px 24px 60px;
 }
 
 .reveal {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(180px, 220px);
-  gap: 32px;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+  gap: 40px;
   cursor: default;
 }
 
-.reveal-summary {
-  margin: 0;
-  max-width: 60ch;
-  font-size: var(--type-body-m-font-size);
-  letter-spacing: var(--type-body-m-letter-spacing);
-  line-height: var(--type-body-m-line-height);
-  color: var(--color-text-primary);
-}
-
-.reveal-summary.is-summary {
-  font-style: italic;
-}
-
-.reveal-note {
-  margin: 8px 0 0;
-  max-width: 60ch;
-  color: var(--color-text-secondary);
-  line-height: var(--type-body-s-line-height);
-}
-
-.reveal-facts {
-  display: grid;
-  gap: 10px;
-  margin: 16px 0 0;
-}
-
-.reveal-facts > div {
-  display: grid;
-  grid-template-columns: 72px minmax(0, 1fr);
-  gap: 12px;
-  line-height: var(--type-body-s-line-height);
-}
-
-.reveal-facts dt {
-  padding-top: 2px;
-  font-size: var(--type-label-font-size);
-  letter-spacing: var(--text-tracking-plus-6);
-  text-transform: uppercase;
-  color: var(--color-text-secondary);
-}
-
-.reveal-facts dd {
-  margin: 0;
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.reveal-hours-line {
-  display: block;
-  font-feature-settings: var(--font-feature-settings-numeric);
-}
-
-.reveal-link {
-  color: var(--color-text-primary);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.reveal-heading {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  margin: 0 0 8px;
-  font-size: var(--type-label-font-size);
-  letter-spacing: var(--text-tracking-plus-6);
-  text-transform: uppercase;
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-secondary);
-}
-
-.reveal-heading span {
-  text-transform: none;
-  letter-spacing: var(--type-label-letter-spacing);
-  font-weight: 400;
-}
-
-.reveal-score-rows {
-  display: grid;
-  gap: 6px;
-  margin-bottom: 16px;
-}
-
-.reveal-score-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.reveal-scores .typical-busyness {
+.reveal-main > .spot-narrative + .details-crowd {
   margin-top: 16px;
 }
 
-/* Actions, by weight: one solid way onward, then quiet links, then the destructive one */
-.reveal-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
+.reveal-side > .details-section:first-child,
+.reveal-main > .details-section:first-child {
+  margin-top: 0;
 }
 
-.reveal-actions .btn-solid {
-  width: 100%;
-  margin-bottom: 4px;
+/* The reveal sits on the raised tint, so the crowd row steps onto the card surface to stay a block */
+.reveal .details-crowd {
+  background: var(--color-surface-card);
 }
 
-.reveal-quiet {
-  color: var(--color-text-secondary);
-}
-
-.reveal-delete {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
+/* Tags show here only once the row's tags column has dropped out */
+.reveal .reveal-tags {
+  display: none;
 }
 
 .btn-solid {
@@ -1237,6 +1141,140 @@ a.details-group-row:hover .details-group-link {
   width: 32px;
   height: 32px;
   color: var(--color-text-secondary);
+}
+
+/* What people say: outlined review cards in one row that scrolls sideways when they overflow */
+.spot-narrative .details-summary {
+  margin-top: 12px;
+}
+
+.review-scroller {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  padding-bottom: 4px;
+}
+
+.review-card {
+  flex: 0 0 min(320px, 85%);
+  margin: 0;
+  padding: 12px 14px;
+  border: var(--border-width-hairline) solid var(--color-text-secondary);
+  border-radius: var(--radius-lg);
+  scroll-snap-align: start;
+}
+
+.review-card blockquote {
+  margin: 0;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
+  line-height: var(--type-body-s-line-height);
+  color: var(--color-text-primary);
+}
+
+.review-card figcaption {
+  margin-top: 8px;
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
+  color: var(--color-text-secondary);
+}
+
+/* All the tags in one line that scrolls sideways; the right edge fades while more are hidden */
+.tag-scroller {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
+}
+
+.tag-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.tag-scroller > * {
+  flex-shrink: 0;
+}
+
+.tag-scroller:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+/* The overall score leads the scores, each category sits under it */
+.details-overall {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.details-overall-score {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: var(--radius-full);
+  background: var(--color-score-bg);
+  color: var(--color-score-text);
+  font-size: var(--type-body-l-font-size);
+  letter-spacing: var(--type-body-l-letter-spacing);
+  font-weight: var(--font-weight-medium);
+  font-feature-settings: var(--font-feature-settings-numeric);
+}
+
+.details-overall-label {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
+  font-weight: var(--font-weight-medium);
+}
+
+.details-overall-label .details-meta {
+  font-weight: 400;
+}
+
+.details-scores + .rate-spot {
+  margin-top: 4px;
+}
+
+.details-group-row-top {
+  align-items: start;
+  padding-block: 12px;
+}
+
+.details-group-row-top .icon {
+  margin-top: 2px;
+}
+
+.details-week {
+  display: flex;
+  flex-direction: column;
+  font-feature-settings: var(--font-feature-settings-numeric);
+}
+
+/* The foot: whatever leads it, then Report a problem, then the admin delete */
+.details-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border-divider);
+}
+
+.details-foot .details-report,
+.details-foot .details-delete {
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 
 /* ========== MAP CONTROLS ========== */
@@ -2613,14 +2651,7 @@ a.details-group-row:hover .details-group-link {
 }
 @container browse-table (max-width: 1116px) {
   .col-tags { display: none; }
-}
-
-/* The reveal lists the tags the row doesn't show: the overflow beside the tags column, all of
-   them once it's gone */
-.reveal-facts .reveal-tags-all { display: none; }
-@container browse-table (max-width: 1116px) {
-  .reveal-facts .reveal-tags-rest { display: none; }
-  .reveal-facts .reveal-tags-all { display: grid; }
+  .reveal .reveal-tags { display: block; }
 }
 @container browse-table (max-width: 754px) {
   .col-city { display: none; }
@@ -2643,15 +2674,10 @@ a.details-group-row:hover .details-group-link {
   .browse-table thead th.col-score,
   .browse-table tbody td.col-score { padding-right: 0; text-align: right; }
 }
-/* The reveal folds as the list narrows: actions drop under, then everything stacks */
-@container browse-table (max-width: 980px) {
-  .reveal { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
-  .reveal-actions { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 16px; }
-  .reveal-actions .btn-solid { width: auto; margin: 0; }
-}
-@container browse-table (max-width: 640px) {
+/* The reveal stacks when the list is too narrow for two columns */
+@container browse-table (max-width: 760px) {
   .browse-table tbody .browse-detail-row > td { padding-left: 12px; }
-  .reveal { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .reveal { grid-template-columns: minmax(0, 1fr); gap: 8px; }
 }
 
 /* ========== RESPONSIVE ========== */
