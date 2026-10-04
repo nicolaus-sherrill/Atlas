@@ -217,6 +217,13 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
           </div>
         )}
         <PlaceResults places={places} loading={placesLoading} onPick={onPickPlace} />
+        <p className="sidebar-licence">
+          Spot data is open under the{" "}
+          <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noreferrer">
+            Open Database License
+          </a>
+          .
+        </p>
       </div>
     </aside>
   );

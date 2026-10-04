@@ -20,6 +20,14 @@
   --shell-card-radius: var(--radius-2xl);
   --shell-gutter: var(--spacing-4);
 
+  /* The phone's bottom sheet */
+  --sheet-radius: var(--radius-2xl);
+  --sheet-peek: 112px;
+  --sheet-half: 52%;
+  --sheet-handle-width: 36px;
+  --sheet-handle-height: 4px;
+  --sheet-float-top: 132px;  /* the floating search and chips, which the full sheet scrolls beneath */
+
   /* Map controls */
   --map-control-size: 44px;
   --map-control-radius: var(--radius-sm);

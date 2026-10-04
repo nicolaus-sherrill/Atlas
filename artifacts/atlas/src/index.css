@@ -689,6 +689,18 @@ html, body, #root {
   color: var(--color-text-secondary);
 }
 
+.sidebar-licence {
+  padding: 16px 0 24px;
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
+  line-height: var(--type-label-line-height);
+  color: var(--color-text-secondary);
+}
+
+.sidebar-licence a {
+  color: inherit;
+}
+
 .place-results {
   padding: 16px 0 8px;
 }
@@ -1244,6 +1256,20 @@ a.details-group-row:hover .details-group-link {
 .map-control:focus-visible {
   position: relative;
   outline-offset: calc(var(--focus-width) * -1);
+}
+
+@media (max-width: 768px) and (hover: hover) {
+  /* through .app-shell, so it outranks the phone block further down */
+  .app-shell .map-controls {
+    --map-controls-stack: 212px;
+  }
+}
+
+/* Pinch does the zooming on a touch screen, so the zoom group stays off it (Decision 8) */
+@media (hover: none) and (pointer: coarse) {
+  .map-zoom {
+    display: none;
+  }
 }
 
 .map-control-solo {
@@ -2684,33 +2710,140 @@ a.details-group-row:hover .details-group-link {
     gap: 12px;
   }
 
-  /* Until the bottom sheet lands (commit 6), the map state keeps only the card head: a bar across
-     the top that still holds Table / Map */
-  .map-open .list-card {
+  /* The card is a bottom sheet. It rests at peek, half or full (data-detent on the shell), moves
+     between them on the layout role, and follows a finger while dragged (hooks/use-bottom-sheet.ts).
+     Rounded at the top while it floats, square at full height, where it holds every edge. */
+  .map-open .list-card,
+  .list-card {
+    inset-block-start: auto;
+    inset-block-end: 0;
     width: 100%;
-    inset-block-end: auto;
-    border-radius: 0 0 var(--shell-card-radius) var(--shell-card-radius);
+    height: var(--sheet-height);
+    border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+    box-shadow: var(--elevation-overlay);
+    padding-bottom: env(safe-area-inset-bottom);
+    transition:
+      height var(--motion-layout-duration) var(--motion-easing-enter),
+      border-radius var(--motion-layout-duration) var(--motion-easing-enter);
   }
 
-  .map-open .list-card-body {
+  .app-shell[data-detent="peek"] { --sheet-height: calc(var(--sheet-peek) + env(safe-area-inset-bottom)); }
+  .app-shell[data-detent="half"] { --sheet-height: var(--sheet-half); }
+  .app-shell[data-detent="full"] { --sheet-height: 100%; }
+  .app-shell.is-dragging { --sheet-height: var(--sheet-drag); }
+
+  .app-shell[data-detent="full"] .list-card {
+    border-radius: 0;
+    padding-top: calc(var(--sheet-float-top) + env(safe-area-inset-top));
+  }
+
+  .app-shell.is-dragging .list-card,
+  .app-shell.is-dragging .map-controls {
+    transition: none;
+  }
+
+  /* In dark, the sheet's edge is a hairline */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .list-card { box-shadow: 0 0 0 1px var(--color-border-divider); }
+  }
+  [data-theme="dark"] .list-card { box-shadow: 0 0 0 1px var(--color-border-divider); }
+
+  /* The grab zone: the handle and the strip around it. touch-action none hands the gesture to the
+     sheet instead of the page */
+  .sheet-grab {
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
+    touch-action: none;
+    cursor: grab;
+  }
+
+  .app-shell.is-dragging .sheet-grab {
+    cursor: grabbing;
+  }
+
+  .sheet-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 24px;
+    border: 0;
+    background: transparent;
+    cursor: inherit;
+  }
+
+  .sheet-handle span {
+    width: var(--sheet-handle-width);
+    height: var(--sheet-handle-height);
+    border-radius: var(--radius-full);
+    background: var(--color-border-control);
+  }
+
+  .app-shell[data-detent="full"] .sheet-handle span {
+    visibility: hidden;
+  }
+
+  /* No table and no Table / Map on a phone: the sheet is the list */
+  .list-card-head,
+  .pane-table {
     display: none;
   }
 
-  /* Typing opens the card again, so the matching spots and places have somewhere to show */
-  .map-open.has-query .list-card,
-  .map-open.has-details .list-card {
-    inset-block-end: 0;
-    border-radius: 0;
-  }
-
-  .map-open.has-query .list-card-body,
-  .map-open.has-details .list-card-body {
-    display: block;
-  }
-
-  .pane-table,
   .pane-map {
     width: 100%;
+  }
+
+  /* Search and the chips float over the map at the top, above the sheet */
+  .shell-search {
+    position: fixed;
+    top: calc(env(safe-area-inset-top) + 12px);
+    inset-inline: 12px;
+    z-index: 2;
+    height: 48px;
+    margin: 0;
+    background: var(--color-surface-canvas);
+    box-shadow: var(--elevation-floating);
+  }
+
+  .sidebar-categories {
+    position: fixed;
+    top: calc(env(safe-area-inset-top) + 68px);
+    inset-inline: 0;
+    z-index: 2;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 4px 12px 8px;
+    scrollbar-width: none;
+  }
+
+  .sidebar-categories .category-chip {
+    flex-shrink: 0;
+    box-shadow: var(--elevation-floating);
+    border-color: transparent;
+  }
+
+  /* In the sheet, the count comes first, right under the handle */
+  .sidebar-count {
+    order: -1;
+    padding-top: 4px;
+  }
+
+  /* Locate and the chat button ride above the sheet; at full they step aside. On a short screen
+     they stop under the floating search and chips rather than climb into them, and overlap the
+     sheet's edge instead. The stack is locate and the avatar, plus zoom where there's a mouse */
+  .map-controls {
+    --map-controls-stack: 108px;
+    inset-inline-end: 12px;
+    bottom: min(calc(var(--sheet-height) + 12px), calc(100% - var(--sheet-float-top) - env(safe-area-inset-top) - var(--map-controls-stack)));
+    transition:
+      bottom var(--motion-layout-duration) var(--motion-easing-enter),
+      opacity var(--motion-component-duration) var(--motion-easing-enter);
+  }
+
+  .app-shell[data-detent="full"] .map-controls {
+    opacity: 0;
+    pointer-events: none;
   }
 
   .spot-form-overlay {

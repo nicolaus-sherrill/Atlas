@@ -10,6 +10,7 @@ import SpotDetails from "@/components/SpotDetails";
 import { clearArea, type ClearArea } from "@/lib/camera";
 import { fetchAllCrowdStatuses, type CrowdStatus } from "@/lib/crowd";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { useBottomSheet, detentHeights, type Detent } from "@/hooks/use-bottom-sheet";
 import type L from "leaflet";
 import { usePlaceSearch } from "@/hooks/use-place-search";
 import type { GeocodingResult } from "@/lib/geocode";
@@ -43,6 +44,13 @@ function App() {
   // Details open in a second sheet at 1280 and wider (B), and in place of the list below that (A)
   const isWide = useMediaQuery("(min-width: 1280px)");
   const isPhone = useMediaQuery("(max-width: 768px)");
+  // On a phone the map is always showing and the list is a bottom sheet over it, so there is no
+  // table state: showMap is the map state on desktop and always true on a phone
+  const showMap = mapOpen || isPhone;
+  const [detent, setDetent] = useState<Detent>("half");
+  const shellRef = useRef<HTMLDivElement>(null);
+  const sheetRef = useRef<HTMLElement>(null);
+  const { grabProps, onHandleKeyDown } = useBottomSheet({ shellRef, sheetRef, detent, onDetentChange: setDetent });
   const [crowdStatuses, setCrowdStatuses] = useState<Record<string, CrowdStatus>>({});
   const reloadCrowd = useCallback(() => {
     fetchAllCrowdStatuses().then(setCrowdStatuses);
@@ -84,11 +92,16 @@ function App() {
     select(id, "marker");
   }, [select]);
 
+  // A pick or a search lifts a peeking sheet, so what it opened has room to show
+  useEffect(() => {
+    if (isPhone && (selection || query.trim())) setDetent((d) => (d === "peek" ? "half" : d));
+  }, [isPhone, selection, query]);
+
   // The last spot shown stays in the sheet while it slides away
   const detailsSpot = spots.find((s) => s.id === selectedSpotId) ?? null;
   const lastDetailsSpot = useRef<typeof detailsSpot>(null);
   if (detailsSpot) lastDetailsSpot.current = detailsSpot;
-  const detailsOpen = mapOpen && !!detailsSpot;
+  const detailsOpen = showMap && !!detailsSpot;
   const sheetOpen = detailsOpen && isWide;
 
   // Closing the details hands focus back to the spot's row, so the keyboard keeps its place. It
@@ -119,11 +132,17 @@ function App() {
   // camera can move while a card is still sliding; on a phone the card is measured.
   const getClearArea = useCallback((m: L.Map): ClearArea => {
     const size = m.getSize();
-    if (isPhone) return clearArea(m, [document.querySelector(".list-card")]);
+    if (isPhone) {
+      // Under the floating search and chips, above the sheet at its resting detent
+      const chips = document.querySelector(".sidebar-categories")?.getBoundingClientRect().bottom ?? 0;
+      const shell = shellRef.current;
+      const sheet = shell ? detentHeights(shell)[detent] : 0;
+      return { left: 0, top: chips, right: size.x, bottom: size.y - sheet };
+    }
     const card = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--shell-card-width")) || 380;
     const left = !mapOpen ? 0 : sheetOpen ? card * 2 : card;
     return { left, top: 0, right: size.x, bottom: size.y };
-  }, [isPhone, mapOpen, sheetOpen]);
+  }, [isPhone, mapOpen, sheetOpen, detent]);
 
   const handleAddClick = () => {
     if (!mapOpen) {
@@ -184,7 +203,7 @@ function App() {
   };
 
   return (
-    <div className={`app-shell ${mapOpen ? "map-open" : "map-closed"}${query.trim() ? " has-query" : ""}${detailsOpen ? " has-details" : ""}`}>
+    <div ref={shellRef} className={`app-shell ${showMap ? "map-open" : "map-closed"}`} data-detent={isPhone ? detent : undefined}>
       {/* The map is always mounted, under the list card, so switching views never rebuilds it */}
       <div className="shell-map">
         <MapView
@@ -234,7 +253,20 @@ function App() {
       )}
 
       {/* One card over the map: the table at full width, the list at 380px */}
-      <aside className="list-card" aria-label="Spots">
+      <aside ref={sheetRef} className="list-card" aria-label="Spots">
+        {/* On a phone the card is a bottom sheet: this is where it is dragged from */}
+        {isPhone && (
+          <div className="sheet-grab" {...grabProps}>
+            <button
+              type="button"
+              className="sheet-handle"
+              aria-label={`Resize the list, now ${detent === "peek" ? "lowered" : detent === "half" ? "halfway" : "full"}`}
+              onKeyDown={onHandleKeyDown}
+            >
+              <span aria-hidden="true" />
+            </button>
+          </div>
+        )}
         <header className="list-card-head">
           <div className="list-card-brand">
             <svg width="24" height="24" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -268,7 +300,7 @@ function App() {
 
         {/* Both bodies stay mounted, so each keeps its filters and scroll; the hidden one is inert */}
         <div className="list-card-body">
-          <div className="list-card-pane pane-table" inert={mapOpen}>
+          <div className="list-card-pane pane-table" inert={showMap}>
             <BrowseView
               spots={spots}
               onSpotSelect={handleListSelect}
@@ -284,7 +316,7 @@ function App() {
               onPickPlace={handlePickPlace}
             />
           </div>
-          <div className="list-card-pane pane-map" inert={!mapOpen}>
+          <div className="list-card-pane pane-map" inert={!showMap}>
             {/* A, below 1280: the details take the list's place, and the list keeps its scroll underneath */}
             <div className={`pane-layer pane-list${detailsOpen && !isWide ? " is-hidden" : ""}`} inert={detailsOpen && !isWide}>
             <Sidebar
@@ -319,7 +351,7 @@ function App() {
         </div>
       </aside>
 
-      <MapControls map={map} mapOpen={mapOpen} onChatOpen={() => setIsChatOpen(true)} onNotice={setNotice} />
+      <MapControls map={map} mapOpen={showMap} onChatOpen={() => setIsChatOpen(true)} onNotice={setNotice} />
 
       {notice && (
         <div className="app-notice" role="status" onClick={() => setNotice(null)}>
