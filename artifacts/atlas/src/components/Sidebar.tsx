@@ -60,7 +60,7 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
       </div>
 
       <div className="sidebar-actions">
-        <button className="btn-primary" onClick={onAddClick}>
+        <button className="btn-primary sidebar-add" onClick={onAddClick}>
           {isFormOpen ? "Cancel" : "+ Add a Spot"}
         </button>
         <button className="btn-secondary" onClick={() => setShowExport(!showExport)}>

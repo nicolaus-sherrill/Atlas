@@ -94,8 +94,8 @@ function App() {
 
   // A pick or a search lifts a peeking sheet, so what it opened has room to show
   useEffect(() => {
-    if (isPhone && (selection || query.trim())) setDetent((d) => (d === "peek" ? "half" : d));
-  }, [isPhone, selection, query]);
+    if (isPhone && (selection || query.trim() || isFormOpen)) setDetent((d) => (d === "peek" ? "half" : d));
+  }, [isPhone, selection, query, isFormOpen]);
 
   // The last spot shown stays in the sheet while it slides away
   const detailsSpot = spots.find((s) => s.id === selectedSpotId) ?? null;
@@ -103,6 +103,8 @@ function App() {
   if (detailsSpot) lastDetailsSpot.current = detailsSpot;
   const detailsOpen = showMap && !!detailsSpot;
   const sheetOpen = detailsOpen && isWide;
+  // The list steps aside for the details (A) and for the add form, which take its place in the card
+  const listCovered = (detailsOpen && !isWide) || isFormOpen;
 
   // Closing the details hands focus back to the spot's row, so the keyboard keeps its place. It
   // waits for the commit, when the list is no longer inert and can take focus.
@@ -217,19 +219,6 @@ function App() {
           cameraTarget={cameraTarget}
           onReady={setMap}
         />
-
-        {isFormOpen && (
-          <SpotForm
-            pendingLocation={pendingLocation}
-            geoData={pendingGeoData}
-            onSubmit={handleSubmit}
-            onCancel={handleFormCancel}
-            onLocationChange={(lat, lng) => {
-              setPendingLocation({ lat, lng });
-              setPendingGeoData(null);
-            }}
-          />
-        )}
       </div>
 
       {/* B, at 1280 and wider: the details slide out from under the list card as a second sheet */}
@@ -252,7 +241,7 @@ function App() {
         </aside>
       )}
 
-      {/* One card over the map: the table at full width, the list at 380px */}
+      {/* One card over the map: the table at full width, the list at 380px, and a bottom sheet on a phone */}
       <aside ref={sheetRef} className="list-card" aria-label="Spots">
         {/* On a phone the card is a bottom sheet: this is where it is dragged from */}
         {isPhone && (
@@ -275,14 +264,26 @@ function App() {
             </svg>
             <h1>Atlas</h1>
           </div>
-          <div className="segmented" role="group" aria-label="View">
-            <button type="button" data-shell-view="table" aria-pressed={!mapOpen} onClick={() => setMapOpen(false)}>
-              <Icon name="rows" weight="bold" size={16} />
-              Table
-            </button>
-            <button type="button" data-shell-view="map" aria-pressed={mapOpen} onClick={() => setMapOpen(true)}>
-              <Icon name="map-trifold" weight="bold" size={16} />
-              Map
+          <div className="list-card-actions">
+            <div className="segmented" role="group" aria-label="View">
+              <button type="button" data-shell-view="table" aria-pressed={!mapOpen} onClick={() => setMapOpen(false)}>
+                <Icon name="rows" weight="bold" size={16} />
+                Table
+              </button>
+              <button type="button" data-shell-view="map" aria-pressed={mapOpen} onClick={() => setMapOpen(true)}>
+                <Icon name="map-trifold" weight="bold" size={16} />
+                Map
+              </button>
+            </div>
+            <button
+              type="button"
+              className="btn-outline list-card-add"
+              aria-label="Add a spot"
+              aria-pressed={isFormOpen}
+              onClick={handleAddClick}
+            >
+              <Icon name="plus" weight="bold" size={16} />
+              <span className="list-card-add-label">Add a spot</span>
             </button>
           </div>
         </header>
@@ -317,21 +318,22 @@ function App() {
             />
           </div>
           <div className="list-card-pane pane-map" inert={!showMap}>
-            {/* A, below 1280: the details take the list's place, and the list keeps its scroll underneath */}
-            <div className={`pane-layer pane-list${detailsOpen && !isWide ? " is-hidden" : ""}`} inert={detailsOpen && !isWide}>
-            <Sidebar
-              spots={spots}
-              onSpotSelect={handleListSelect}
-              selectedSpotId={selectedSpotId}
-              onAddClick={handleAddClick}
-              isFormOpen={isFormOpen}
-              query={query}
-              places={places}
-              placesLoading={placesLoading}
-              onPickPlace={handlePickPlace}
-              onDeleteSpot={isAdmin ? handleDeleteSpot : undefined}
-              onChatOpen={() => setIsChatOpen(true)}
-            />
+            {/* The list, the details (A, below 1280) and the add form take turns here. The list is
+                only hidden while the others show, so its scroll is there when you come back */}
+            <div className={`pane-layer pane-list${listCovered ? " is-hidden" : ""}`} inert={listCovered}>
+              <Sidebar
+                spots={spots}
+                onSpotSelect={handleListSelect}
+                selectedSpotId={selectedSpotId}
+                onAddClick={handleAddClick}
+                isFormOpen={isFormOpen}
+                query={query}
+                places={places}
+                placesLoading={placesLoading}
+                onPickPlace={handlePickPlace}
+                onDeleteSpot={isAdmin ? handleDeleteSpot : undefined}
+                onChatOpen={() => setIsChatOpen(true)}
+              />
             </div>
             {!isWide && detailsSpot && (
               <div className="pane-layer details-scroll" key={detailsSpot.id}>
@@ -339,11 +341,25 @@ function App() {
                   spot={detailsSpot}
                   dismiss="back"
                   onDismiss={closeDetails}
-                crowdStatus={crowdStatuses[detailsSpot.id] ?? null}
-                onRated={reloadSpots}
-                onCrowdReported={reloadCrowd}
-                onNotice={setNotice}
-                onDelete={isAdmin ? handleDeleteSpot : undefined}
+                  crowdStatus={crowdStatuses[detailsSpot.id] ?? null}
+                  onRated={reloadSpots}
+                  onCrowdReported={reloadCrowd}
+                  onNotice={setNotice}
+                  onDelete={isAdmin ? handleDeleteSpot : undefined}
+                />
+              </div>
+            )}
+            {isFormOpen && (
+              <div className="pane-layer details-scroll">
+                <SpotForm
+                  pendingLocation={pendingLocation}
+                  geoData={pendingGeoData}
+                  onSubmit={handleSubmit}
+                  onCancel={handleFormCancel}
+                  onLocationChange={(lat, lng) => {
+                    setPendingLocation({ lat, lng });
+                    setPendingGeoData(null);
+                  }}
                 />
               </div>
             )}

@@ -107,19 +107,21 @@ export default function SpotForm({ pendingLocation, geoData, onSubmit, onCancel,
   };
 
   return (
-    <div className="spot-form-overlay">
-      <form className="spot-form" onSubmit={handleSubmit}>
-        <div className="spot-form-header">
-          <h2>Add a Spot</h2>
-          <button type="button" className="spot-form-close" onClick={onCancel}>
-            &times;
-          </button>
-        </div>
+    // The card's third body: the list steps aside for it, and the map stays live for placing the pin
+    <div className="spot-form-body">
+      <div className="details-top">
+        <button type="button" className="btn-ghost" onClick={onCancel}>
+          <Icon name="arrow-left" weight="bold" size={16} />
+          All spots
+        </button>
+      </div>
+      <form className="spot-form" onSubmit={handleSubmit} aria-labelledby="spot-form-title">
+        <h2 id="spot-form-title" className="spot-form-title">Add a spot</h2>
 
         {!pendingLocation && (
           <div className="spot-form-hint">
             <Icon name="map-pin" weight="bold" size={16} />
-            <p>Click anywhere on the map to set the location</p>
+            <p>Tap or click the map where the spot is, or pick its name or address below</p>
           </div>
         )}
 

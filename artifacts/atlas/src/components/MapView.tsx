@@ -186,7 +186,10 @@ export default function MapView({ spots, selection, centreEveryPick, getClearAre
         }),
       }).addTo(map);
       pendingMarkerRef.current = marker;
-      map.setView([pendingLocation.lat, pendingLocation.lng], map.getZoom(), { animate: !window.matchMedia("(prefers-reduced-motion: reduce)").matches });
+      // A tap on the map is already in view; a name or address picked in the form may not be
+      const target = L.latLng(pendingLocation.lat, pendingLocation.lng);
+      const area = getClearAreaRef.current(map);
+      if (!comfortablyInView(map, target, area)) moveCamera(map, target, Math.max(map.getZoom(), 15), area);
     }
   }, [pendingLocation]);
 

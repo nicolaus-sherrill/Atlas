@@ -610,6 +610,29 @@ html, body, #root {
   line-height: 1;
 }
 
+.list-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* In the map state the card is narrow, so Add a spot drops its label and keeps its name for
+   assistive tech */
+.map-open .list-card-add-label {
+  display: none;
+}
+
+.list-card-add[aria-pressed="true"] {
+  background: var(--color-selected-bg);
+  color: var(--color-selected-text);
+  border-color: transparent;
+}
+
+/* The sheet's own Add button is for phones, where the card head is hidden */
+.sidebar-add {
+  display: none;
+}
+
 /* Table / Map. The pressed segment is lifted onto the card's own surface */
 .segmented {
   display: inline-flex;
@@ -1774,22 +1797,16 @@ a.details-group-row:hover .details-group-link {
 
 /* ========== SPOT FORM ========== */
 
-.spot-form-overlay {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  /* Above Leaflet's controls (1000), and clear of the map button below it */
-  z-index: var(--layer-chat); /* above the map button, as before; the form moves into the card in commit 7 */
-  width: 340px;
-  max-height: calc(100% - 104px);
-  overflow-y: auto;
+.spot-form-body {
+  padding: 0 var(--shell-gutter) 24px;
 }
 
-.spot-form {
-  background: var(--color-surface-card);
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: var(--elevation-overlay);
+.spot-form-title {
+  margin: 0 0 16px;
+  font-size: var(--type-body-xl-font-size);
+  letter-spacing: var(--type-body-xl-letter-spacing);
+  line-height: 1.2;
+  font-weight: var(--font-weight-medium);
 }
 
 .spot-form-header {
@@ -2784,6 +2801,10 @@ a.details-group-row:hover .details-group-link {
     visibility: hidden;
   }
 
+  .sidebar-add {
+    display: inline-flex;
+  }
+
   /* No table and no Table / Map on a phone: the sheet is the list */
   .list-card-head,
   .pane-table {
@@ -2844,12 +2865,6 @@ a.details-group-row:hover .details-group-link {
   .app-shell[data-detent="full"] .map-controls {
     opacity: 0;
     pointer-events: none;
-  }
-
-  .spot-form-overlay {
-    width: calc(100% - 32px);
-    left: 16px;
-    right: 16px;
   }
 
   .chat-panel {
