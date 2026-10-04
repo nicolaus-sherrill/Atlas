@@ -2983,21 +2983,32 @@ a.details-group-row:hover .details-group-link {
 
 /* ========== APP NOTICE ========== */
 
+/* The toast: above every surface and the chat, below the bot check. Overlay elevation and lg 8,
+   no border; the inverse fill carries its edge. It enters on the component role */
 .app-notice {
   position: fixed;
   left: 50%;
-  bottom: 24px;
+  bottom: calc(24px + env(safe-area-inset-bottom));
   transform: translateX(-50%);
   z-index: var(--layer-toast);
   max-width: min(480px, calc(100vw - 32px));
   padding: 12px 16px;
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   background: var(--color-surface-inverse);
   color: var(--color-text-on-inverse);
+  box-shadow: var(--elevation-overlay);
   font-size: var(--type-body-s-font-size);
   letter-spacing: var(--type-body-s-letter-spacing);
   line-height: var(--type-body-s-line-height);
   cursor: pointer;
+  animation: notice-enter var(--motion-component-duration) var(--motion-easing-enter);
+}
+
+@keyframes notice-enter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
 }
 
 /* ========== PLACE SEARCH ========== */
