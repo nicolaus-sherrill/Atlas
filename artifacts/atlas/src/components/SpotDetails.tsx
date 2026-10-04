@@ -4,7 +4,7 @@ import { CATEGORIES, calcScore, getSpotDisplayTags, isOpenNow, getTodayHoursLabe
 import { getGoogleMapsUrl, getAppleMapsUrl } from "@/lib/export";
 import type { CrowdStatus } from "@/lib/crowd";
 import Icon from "./Icon";
-import { SpotAbout, SpotCrowd, SpotFoot, SpotNarrative, SpotScores, SpotTags } from "./spot-sections";
+import { SpotAbout, SpotCrowd, SpotFoot, SpotReviews, SpotScores, SpotSummary, SpotTags } from "./spot-sections";
 
 interface SpotDetailsProps {
   spot: WorkSpot;
@@ -71,7 +71,7 @@ export default function SpotDetails({ spot, crowdStatus, dismiss, onDismiss, onR
         )}
       </header>
 
-      <SpotNarrative spot={spot} />
+      <SpotSummary spot={spot} />
 
       <SpotCrowd spot={spot} crowdStatus={crowdStatus} onCrowdReported={onCrowdReported} onNotice={onNotice} />
 
@@ -89,6 +89,7 @@ export default function SpotDetails({ spot, crowdStatus, dismiss, onDismiss, onR
       <SpotAbout spot={spot} onNotice={onNotice} />
       <SpotScores spot={spot} onRated={onRated} />
       <SpotTags tags={getSpotDisplayTags(spot)} />
+      <SpotReviews spot={spot} />
       <SpotFoot spot={spot} onNotice={onNotice} onDelete={onDelete} />
     </article>
   );

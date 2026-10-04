@@ -14,7 +14,7 @@ import TypicalBusyness from "./TypicalBusyness";
 import SuggestEditModal from "./SuggestEditModal";
 import ReportProblemModal from "./ReportProblemModal";
 
-// ---------- What the place is like: the summary, then what people say ----------
+// ---------- What the place is like: the summary, and what people say ----------
 
 // People's notes about a spot, shown as reviews. Atlas keeps one today: the note from whoever added
 // the spot. More arrive when ratings can carry a note, and the row scrolls sideways to hold them.
@@ -22,28 +22,34 @@ function reviewsOf(spot: WorkSpot) {
   return spot.description ? [{ text: spot.description, by: "From the person who added it", date: spot.submittedAt }] : [];
 }
 
-export function SpotNarrative({ spot }: { spot: WorkSpot }) {
+// The AI summary, written from people's notes
+export function SpotSummary({ spot }: { spot: WorkSpot }) {
+  if (!spot.aiSummary) return null;
+  return <p className="details-summary is-summary">{spot.aiSummary}</p>;
+}
+
+// People's notes as outlined review cards, in one row that scrolls sideways when they overflow.
+// They sit low in the details, after the facts and the scores
+export function SpotReviews({ spot }: { spot: WorkSpot }) {
   const reviews = reviewsOf(spot);
-  // The AI summary is written from the note, so without one the note stands alone as a review
-  const summary = spot.aiSummary;
-  if (!summary && reviews.length === 0) return null;
+  if (reviews.length === 0) return null;
   return (
-    <div className="spot-narrative">
-      {summary && <p className="details-summary is-summary">{summary}</p>}
-      {reviews.length > 0 && (
-        <div className="review-scroller" role="list" aria-label="What people say" tabIndex={0}>
-          {reviews.map((r, i) => (
-            <figure key={i} className="review-card" role="listitem">
-              <blockquote>{r.text}</blockquote>
-              <figcaption>
-                {r.by}
-                {r.date && <> · {new Date(r.date).toLocaleDateString("en-US", { month: "short", year: "numeric" })}</>}
-              </figcaption>
-            </figure>
-          ))}
-        </div>
-      )}
-    </div>
+    <section className="details-section">
+      <div className="details-section-head">
+        <h3>What people say</h3>
+      </div>
+      <div className="review-scroller" role="list" aria-label="What people say" tabIndex={0}>
+        {reviews.map((r, i) => (
+          <figure key={i} className="review-card" role="listitem">
+            <blockquote>{r.text}</blockquote>
+            <figcaption>
+              {r.by}
+              {r.date && <> · {new Date(r.date).toLocaleDateString("en-US", { month: "short", year: "numeric" })}</>}
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -202,16 +208,16 @@ export function SpotScores({ spot, onRated }: { spot: WorkSpot; onRated: () => v
   );
 }
 
-// ---------- Tags: all of them, scrolling sideways when they overflow ----------
+// ---------- Tags: the full list ----------
 
-export function SpotTags({ tags, className = "" }: { tags: string[]; className?: string }) {
+export function SpotTags({ tags }: { tags: string[] }) {
   if (tags.length === 0) return null;
   return (
-    <section className={`details-section ${className}`}>
+    <section className="details-section">
       <div className="details-section-head">
         <h3>Tags</h3>
       </div>
-      <div className="tag-scroller" tabIndex={0} aria-label="Tags">
+      <div className="details-tags">
         {tags.map((t) => (
           <span key={t} className="details-tag">{t}</span>
         ))}

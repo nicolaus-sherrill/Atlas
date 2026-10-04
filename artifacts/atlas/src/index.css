@@ -281,7 +281,6 @@ html, body, #root {
 
 .col-tags {
   min-width: 160px;
-  max-width: 280px;
 }
 
 .browse-tag-pills {
@@ -401,29 +400,26 @@ html, body, #root {
 }
 
 .reveal {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
-  gap: 40px;
   cursor: default;
+  max-width: 1040px;
 }
 
-.reveal-main > .spot-narrative + .details-crowd {
-  margin-top: 16px;
+/* Two narrow columns; whatever the row is wider than that stays as space on the right */
+.reveal-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 520px) minmax(260px, 320px);
+  gap: 56px;
 }
 
-.reveal-side > .details-section:first-child,
-.reveal-main > .details-section:first-child {
-  margin-top: 0;
+.reveal-side > .details-section:first-child {
+  margin-top: 12px;
 }
 
-/* The reveal sits on the raised tint, so the crowd row steps onto the card surface to stay a block */
-.reveal .details-crowd {
+/* The reveal sits on the raised tint, so the crowd row and the tags step onto the card surface to
+   stay visible as blocks */
+.reveal .details-crowd,
+.reveal .details-tag {
   background: var(--color-surface-card);
-}
-
-/* Tags show here only once the row's tags column has dropped out */
-.reveal .reveal-tags {
-  display: none;
 }
 
 .btn-solid {
@@ -1144,10 +1140,6 @@ a.details-group-row:hover .details-group-link {
 }
 
 /* What people say: outlined review cards in one row that scrolls sideways when they overflow */
-.spot-narrative .details-summary {
-  margin-top: 12px;
-}
-
 .review-scroller {
   display: flex;
   gap: 12px;
@@ -1182,27 +1174,6 @@ a.details-group-row:hover .details-group-link {
   color: var(--color-text-secondary);
 }
 
-/* All the tags in one line that scrolls sideways; the right edge fades while more are hidden */
-.tag-scroller {
-  display: flex;
-  gap: 4px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
-}
-
-.tag-scroller::-webkit-scrollbar {
-  display: none;
-}
-
-.tag-scroller > * {
-  flex-shrink: 0;
-}
-
-.tag-scroller:focus-visible {
-  outline: var(--focus-width) solid var(--color-focus-ring);
-  outline-offset: var(--focus-offset);
-}
 
 /* The overall score leads the scores, each category sits under it */
 .details-overall {
@@ -2651,7 +2622,6 @@ a.details-group-row:hover .details-group-link {
 }
 @container browse-table (max-width: 1116px) {
   .col-tags { display: none; }
-  .reveal .reveal-tags { display: block; }
 }
 @container browse-table (max-width: 754px) {
   .col-city { display: none; }
@@ -2677,7 +2647,7 @@ a.details-group-row:hover .details-group-link {
 /* The reveal stacks when the list is too narrow for two columns */
 @container browse-table (max-width: 760px) {
   .browse-table tbody .browse-detail-row > td { padding-left: 12px; }
-  .reveal { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .reveal-columns { grid-template-columns: minmax(0, 1fr); gap: 0; }
 }
 
 /* ========== RESPONSIVE ========== */

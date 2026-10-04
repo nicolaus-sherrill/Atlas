@@ -27,6 +27,9 @@ interface BrowseViewProps {
 
 const ALL_FILTER_TAGS = TAGS.map((t) => t.label);
 
+// The row previews this many tags and counts the rest; the full list is in the open row's details
+const ROW_TAGS = 3;
+
 export default function BrowseView({ spots, onSpotSelect, onRated, onNotice, crowdStatuses, onCrowdReported, query, places, placesLoading, onPickPlace, onDeleteSpot }: BrowseViewProps) {
   const [activeCities, setActiveCities] = useState<Set<string>>(new Set());
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
@@ -170,11 +173,11 @@ export default function BrowseView({ spots, onSpotSelect, onRated, onNotice, cro
                       )}
                     </td>
                     <td className="col-tags">
-                      {/* Every tag, scrolling sideways inside the cell when they overflow it */}
-                      <div className="tag-scroller" tabIndex={0} aria-label={`${spot.name} tags`} onClick={(e) => e.stopPropagation()}>
-                        {allTags.map((t) => (
+                      <div className="browse-tag-pills">
+                        {allTags.slice(0, ROW_TAGS).map((t) => (
                           <span key={t} className="browse-tag-pill">{t}</span>
                         ))}
+                        {allTags.length > ROW_TAGS && <span className="browse-tag-pill more">+{allTags.length - ROW_TAGS}</span>}
                       </div>
                     </td>
                     <td className="col-score">
