@@ -56,6 +56,11 @@
   --bubble-agent-bg: var(--color-neutral-100);
   --bubble-text: var(--color-text-primary);
 
+  /* The text fields' edge (the search, the chat composer): a quiet hairline over the raised fill.
+     green-300 in light, green-700 in dark, about 1.6:1. The user's call 2026-10-04 (render 07, D):
+     it marks the field without reading as a border, and is decoration rather than a 3:1 boundary */
+  --field-edge: var(--color-green-300);
+
   /* Map camera: its own role, read by lib/camera.ts. Layout 600 is too fast and too sharp for a map.
      The Softer profile, the user's call 2026-10-03: calmer and more cinematic. The interface keeps
      today's curves. */
@@ -91,6 +96,7 @@
     --bubble-user-bg: var(--color-green-700);
     --bubble-agent-bg: var(--color-green-800);
     --bubble-text: var(--color-text-primary);
+    --field-edge: var(--color-green-700);
   }
 }
 [data-theme="dark"] {
@@ -100,4 +106,5 @@
   --bubble-user-bg: var(--color-green-700);
   --bubble-agent-bg: var(--color-green-800);
   --bubble-text: var(--color-text-primary);
+  --field-edge: var(--color-green-700);
 }
