@@ -10,7 +10,7 @@
   },
   "vars": {
     "SUPABASE_URL": "https://vjlxfznnocovxnaykhst.supabase.co",
-    // Publishable, safe to ship. The secret key is set separately with `wrangler pages secret put`.
+    // Publishable, safe to ship
     "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_4xypB-PCP0K4jrNLC9H_GQ_Md975aEg",
     "AI_MODEL": "@cf/google/gemma-4-26b-a4b-it"
   }

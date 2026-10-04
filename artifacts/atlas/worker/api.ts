@@ -13,7 +13,7 @@ export interface Env {
   AI: Ai;
   SUPABASE_URL: string;
   SUPABASE_PUBLISHABLE_KEY: string;
-  // Secret key, set with `wrangler secret put`. Used only to write AI summaries.
+  // Used only to write AI summaries
   SUPABASE_SECRET_KEY: string;
   AI_MODEL: string;
 }

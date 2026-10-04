@@ -86,9 +86,7 @@ Add a file to `supabase/migrations/`, add checks to `scripts/src/test-db-permiss
 `test-db`, then push with `npx supabase db push`.
 
 Before any `npx supabase config push`, run `npx supabase config diff`. The file mirrors the live
-settings, and pushing an unreviewed default can change live sign-in behaviour. The captcha secret
-is read from the `SUPABASE_AUTH_CAPTCHA_SECRET` environment variable at push time and never lives
-in the repository.
+settings, and pushing an unreviewed default can change live sign-in behaviour.
 
 ### Deploying
 
@@ -102,10 +100,6 @@ pnpm run deploy:keepalive     # only when the keep-alive changes
 The Pages project's production branch is `main`, while this repository's is `master`. Without
 `--branch=main`, Wrangler names the deployment after the current git branch, and it lands as a
 preview that atlas.atmo.studio never serves.
-
-Secrets are stored in Cloudflare, not in the repository: `SUPABASE_SECRET_KEY` on the Pages
-project, which the API uses only to save AI summaries. The Supabase URL, the publishable key and
-the Turnstile site key are public and live in `artifacts/atlas/.env` and `wrangler.jsonc`.
 
 ## Licences
 
