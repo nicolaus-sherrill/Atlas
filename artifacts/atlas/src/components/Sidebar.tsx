@@ -113,6 +113,7 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
               key={spot.id}
               role="button"
               tabIndex={0}
+              data-spot-id={spot.id}
               className={`spot-card ${selectedSpotId === spot.id ? "selected" : ""}`}
               onClick={() => onSpotSelect(spot.id)}
               onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) { e.preventDefault(); onSpotSelect(spot.id); } }}

@@ -553,7 +553,8 @@ html, body, #root {
   position: absolute;
   inset-block: 0;
   inset-inline-start: 0;
-  z-index: var(--layer-surface);
+  /* one above the details sheet, so the card covers the sheet's tucked edge */
+  z-index: calc(var(--layer-surface) + 1);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -753,6 +754,430 @@ html, body, #root {
 .place-results-status,
 .place-results-credit {
   padding-top: 8px;
+}
+
+/* ========== SPOT DETAILS ========== */
+
+/* B, at 1280 and wider: a second full-height sheet that slides out from under the list card. Its
+   left 32px stays tucked under the card, so it reads as a sheet slid out from underneath rather
+   than a card popped out. It enters on layout 600 and leaves on layout exit 420. */
+.details-sheet {
+  position: absolute;
+  inset-block: 0;
+  left: calc(var(--shell-card-width) - 2 * var(--shell-card-radius));
+  z-index: var(--layer-surface);
+  width: calc(var(--shell-card-width) + 2 * var(--shell-card-radius));
+  padding-inline-start: calc(2 * var(--shell-card-radius));
+  overflow: hidden;
+  background: var(--color-surface-canvas);
+  border-radius: var(--shell-card-radius);
+  box-shadow: var(--elevation-floating);
+  transform: translateX(-100%);
+  visibility: hidden;
+  transition:
+    transform var(--motion-layout-duration-exit) var(--motion-easing-exit),
+    visibility 0s linear var(--motion-layout-duration-exit);
+}
+
+.details-sheet.open {
+  transform: none;
+  visibility: visible;
+  transition:
+    transform var(--motion-layout-duration) var(--motion-easing-enter),
+    visibility 0s;
+}
+
+/* In dark the stack is drawn with a hairline: a shadow doesn't register on the dark map */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .details-sheet {
+    box-shadow: 0 0 0 1px var(--color-border-divider);
+  }
+}
+[data-theme="dark"] .details-sheet {
+  box-shadow: 0 0 0 1px var(--color-border-divider);
+}
+
+.details-scroll {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* A, below 1280: the list and the details are two layers of the card's map body, cross-faded on
+   the component role. The list is hidden, not removed, so its scroll is there when you come back */
+.pane-layer {
+  position: absolute;
+  inset: 0;
+  transition: opacity var(--motion-component-duration) var(--motion-easing-enter);
+}
+
+.pane-layer.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transition-duration: var(--motion-component-duration-exit);
+  transition-timing-function: var(--motion-easing-exit);
+}
+
+.pane-layer.details-scroll {
+  background: var(--color-surface-canvas);
+  animation: details-in var(--motion-component-duration) var(--motion-easing-enter);
+}
+
+@keyframes details-in {
+  from { opacity: 0; }
+}
+
+.spot-details {
+  padding: 0 var(--shell-gutter) 24px;
+  color: var(--color-text-primary);
+}
+
+.details-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  margin-inline: -8px;
+}
+
+.details-sheet .details-top {
+  justify-content: flex-end;
+}
+
+.details-name {
+  margin: 0 0 4px;
+  font-size: var(--type-body-xl-font-size);
+  letter-spacing: var(--type-body-xl-letter-spacing);
+  line-height: 1.2;
+  font-weight: var(--font-weight-medium);
+}
+
+.details-name:focus {
+  outline: none;
+}
+
+.details-sub,
+.details-hours {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
+  line-height: var(--type-label-line-height);
+}
+
+.details-hours {
+  margin-top: 8px;
+  color: var(--color-text-secondary);
+}
+
+.details-hours.open .hours-dot { background: var(--color-dot-open); }
+.details-hours.closed .hours-dot { box-shadow: inset 0 0 0 1.5px var(--color-dot-closed); }
+
+.details-hours-state {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.details-caps {
+  text-transform: uppercase;
+  letter-spacing: var(--text-tracking-plus-6);
+  color: var(--color-text-secondary);
+}
+
+.details-score {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-score-bg);
+  color: var(--color-score-text);
+  font-weight: var(--font-weight-medium);
+  font-feature-settings: var(--font-feature-settings-numeric);
+}
+
+.details-meta,
+.details-hint {
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
+  line-height: var(--type-label-line-height);
+  color: var(--color-text-secondary);
+}
+
+.details-summary {
+  margin: 12px 0 0;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
+  line-height: var(--type-body-s-line-height);
+  color: var(--color-text-secondary);
+}
+
+.details-summary.is-summary {
+  font-style: italic;
+}
+
+.details-crowd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-raised);
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
+}
+
+.details-crowd-now {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.details-crowd-label {
+  font-weight: var(--font-weight-medium);
+}
+
+.details-crowd-picker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  width: 100%;
+}
+
+.details-crowd-sent {
+  padding: 6px 0;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-status-positive-text);
+}
+
+.details-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.details-actions .btn-outline {
+  flex: 1;
+}
+
+.details-section {
+  margin-top: 24px;
+}
+
+.details-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 28px;
+  margin-bottom: 8px;
+}
+
+.details-section-head h3 {
+  margin: 0;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
+  font-weight: var(--font-weight-medium);
+}
+
+.details-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text-primary);
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.details-link-danger {
+  color: var(--color-action-destructive-text);
+}
+
+/* The About group: one hairline container in the text's colour, rows split by the same line */
+.details-group {
+  border: var(--border-width-hairline) solid var(--color-text-secondary);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.details-group-row {
+  display: grid;
+  grid-template-columns: 16px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  min-height: 44px;
+  padding: 6px 6px 6px 12px;
+  color: var(--color-text-primary);
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
+  line-height: var(--type-body-s-line-height);
+  text-decoration: none;
+}
+
+.details-group-row + .details-group-row {
+  border-top: var(--border-width-hairline) solid var(--color-text-secondary);
+}
+
+a.details-group-row {
+  padding-inline-end: 12px;
+}
+
+a.details-group-row:hover .details-group-link {
+  text-decoration: underline;
+}
+
+.details-group-link {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.details-scores {
+  display: grid;
+  row-gap: 6px;
+  margin-bottom: 16px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
+}
+
+.details-score-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.details-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.details-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-raised);
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
+}
+
+.details-report {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border-divider);
+  color: var(--color-text-secondary);
+}
+
+.details-report .details-link {
+  color: inherit;
+}
+
+.details-hint {
+  margin-inline-start: auto;
+}
+
+.details-delete {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
+}
+
+/* Buttons the shell shares: outline (sm 4), ghost, icon and destructive */
+.btn-outline,
+.btn-ghost,
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter);
+}
+
+.btn-ghost {
+  border-color: transparent;
+}
+
+.btn-danger {
+  border-color: var(--color-action-destructive-border);
+  color: var(--color-action-destructive-text);
+}
+
+.btn-outline:hover,
+.btn-ghost:hover {
+  background: var(--color-overlay-hover);
+}
+
+.btn-danger:hover {
+  background: var(--color-action-destructive-bg-hover);
+  color: var(--color-action-destructive-text-hover);
+}
+
+.btn-outline:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.btn-compact {
+  height: 32px;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter);
+}
+
+.icon-button:hover {
+  background: var(--color-overlay-hover);
+}
+
+.icon-button-small {
+  width: 32px;
+  height: 32px;
+  color: var(--color-text-secondary);
 }
 
 /* ========== MAP CONTROLS ========== */
@@ -2054,31 +2479,6 @@ html, body, #root {
 
 /* ========== LEAFLET OVERRIDES ========== */
 
-.leaflet-popup-content-wrapper {
-  background: var(--color-surface-card) !important;
-  color: var(--color-text-primary) !important;
-  border-radius: 12px !important;
-  box-shadow: var(--elevation-overlay) !important;
-  padding: 0 !important;
-}
-
-.leaflet-popup-content {
-  margin: 12px !important;
-}
-
-.leaflet-popup-tip {
-  box-shadow: var(--elevation-floating) !important;
-  background: var(--color-surface-card) !important;
-}
-
-.leaflet-container a.leaflet-popup-close-button {
-  color: var(--color-text-secondary);
-}
-
-.leaflet-container a.leaflet-popup-close-button:hover {
-  color: var(--color-text-primary);
-}
-
 .atlas-marker {
   background: transparent !important;
   border: none !important;
@@ -2297,12 +2697,14 @@ html, body, #root {
   }
 
   /* Typing opens the card again, so the matching spots and places have somewhere to show */
-  .map-open.has-query .list-card {
+  .map-open.has-query .list-card,
+  .map-open.has-details .list-card {
     inset-block-end: 0;
     border-radius: 0;
   }
 
-  .map-open.has-query .list-card-body {
+  .map-open.has-query .list-card-body,
+  .map-open.has-details .list-card-body {
     display: block;
   }
 

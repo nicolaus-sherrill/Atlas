@@ -22,6 +22,14 @@ import MapTrifoldBold from "@phosphor-icons/core/assets/bold/map-trifold-bold.sv
 import MagnifyingGlassBold from "@phosphor-icons/core/assets/bold/magnifying-glass-bold.svg?raw";
 import MinusBold from "@phosphor-icons/core/assets/bold/minus-bold.svg?raw";
 import CrosshairBold from "@phosphor-icons/core/assets/bold/crosshair-bold.svg?raw";
+import ArrowLeftBold from "@phosphor-icons/core/assets/bold/arrow-left-bold.svg?raw";
+import XBold from "@phosphor-icons/core/assets/bold/x-bold.svg?raw";
+import CopyBold from "@phosphor-icons/core/assets/bold/copy-bold.svg?raw";
+import GlobeBold from "@phosphor-icons/core/assets/bold/globe-bold.svg?raw";
+import PencilSimpleBold from "@phosphor-icons/core/assets/bold/pencil-simple-bold.svg?raw";
+import FlagBold from "@phosphor-icons/core/assets/bold/flag-bold.svg?raw";
+import TrashBold from "@phosphor-icons/core/assets/bold/trash-bold.svg?raw";
+import AppleLogoBold from "@phosphor-icons/core/assets/bold/apple-logo-bold.svg?raw";
 import RowsBold from "@phosphor-icons/core/assets/bold/rows-bold.svg?raw";
 
 import type { IconName, IconWeight } from "./icon-names";
@@ -48,6 +56,14 @@ const SVGS: Partial<Record<`${IconName}/${IconWeight}`, string>> = {
   "map-trifold/light": MapTrifoldLight,
   "map-trifold/bold": MapTrifoldBold,
   "rows/bold": RowsBold,
+  "arrow-left/bold": ArrowLeftBold,
+  "x/bold": XBold,
+  "copy/bold": CopyBold,
+  "globe/bold": GlobeBold,
+  "pencil-simple/bold": PencilSimpleBold,
+  "flag/bold": FlagBold,
+  "trash/bold": TrashBold,
+  "apple-logo/bold": AppleLogoBold,
   "minus/bold": MinusBold,
   "crosshair/bold": CrosshairBold,
   "magnifying-glass/bold": MagnifyingGlassBold,

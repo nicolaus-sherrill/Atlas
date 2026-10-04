@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import MapView from "@/components/MapView";
 import Sidebar from "@/components/Sidebar";
 import SpotForm from "@/components/SpotForm";
@@ -6,6 +6,10 @@ import BrowseView from "@/components/BrowseView";
 import ChatPanel from "@/components/ChatPanel";
 import Icon from "@/components/Icon";
 import MapControls from "@/components/MapControls";
+import SpotDetails from "@/components/SpotDetails";
+import { clearArea, type ClearArea } from "@/lib/camera";
+import { fetchAllCrowdStatuses, type CrowdStatus } from "@/lib/crowd";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import type L from "leaflet";
 import { usePlaceSearch } from "@/hooks/use-place-search";
 import type { GeocodingResult } from "@/lib/geocode";
@@ -30,7 +34,22 @@ function App() {
     reloadSpots();
   }, [reloadSpots]);
   const [mapOpen, setMapOpen] = useState(false);
-  const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
+  // The selected spot and where it was picked, which decides how the camera answers
+  const [selection, setSelection] = useState<{ id: string; source: "list" | "marker"; seq: number } | null>(null);
+  const selectedSpotId = selection?.id ?? null;
+  const select = useCallback((id: string | null, source: "list" | "marker" = "list") => {
+    setSelection((prev) => (id ? { id, source, seq: (prev?.seq ?? 0) + 1 } : null));
+  }, []);
+  // Details open in a second sheet at 1280 and wider (B), and in place of the list below that (A)
+  const isWide = useMediaQuery("(min-width: 1280px)");
+  const isPhone = useMediaQuery("(max-width: 768px)");
+  const [crowdStatuses, setCrowdStatuses] = useState<Record<string, CrowdStatus>>({});
+  const reloadCrowd = useCallback(() => {
+    fetchAllCrowdStatuses().then(setCrowdStatuses);
+  }, []);
+  useEffect(() => {
+    reloadCrowd();
+  }, [reloadCrowd]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [pendingLocation, setPendingLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [pendingGeoData, setPendingGeoData] = useState<{ address: string; city: string } | null>(null);
@@ -55,17 +74,56 @@ function App() {
     }
   }, [isFormOpen]);
 
-  const handleSpotSelect = useCallback((id: string | null) => {
-    setSelectedSpotId(id);
-    if (id && !mapOpen) {
-      setMapOpen(true);
-    }
-  }, [mapOpen]);
-
-  const handleBrowseSpotSelect = useCallback((id: string) => {
-    setSelectedSpotId(id);
+  // A row in the map list, or "View on map" from the table
+  const handleListSelect = useCallback((id: string) => {
+    select(id, "list");
     setMapOpen(true);
-  }, []);
+  }, [select]);
+
+  const handleMarkerSelect = useCallback((id: string) => {
+    select(id, "marker");
+  }, [select]);
+
+  // The last spot shown stays in the sheet while it slides away
+  const detailsSpot = spots.find((s) => s.id === selectedSpotId) ?? null;
+  const lastDetailsSpot = useRef<typeof detailsSpot>(null);
+  if (detailsSpot) lastDetailsSpot.current = detailsSpot;
+  const detailsOpen = mapOpen && !!detailsSpot;
+  const sheetOpen = detailsOpen && isWide;
+
+  // Closing the details hands focus back to the spot's row, so the keyboard keeps its place. It
+  // waits for the commit, when the list is no longer inert and can take focus.
+  const returnFocusTo = useRef<string | null>(null);
+  const closeDetails = useCallback(() => {
+    returnFocusTo.current = selectedSpotId;
+    select(null);
+  }, [select, selectedSpotId]);
+  useEffect(() => {
+    const id = returnFocusTo.current;
+    if (selectedSpotId || !id) return;
+    returnFocusTo.current = null;
+    (document.querySelector(`.pane-map [data-spot-id="${CSS.escape(id)}"]`) as HTMLElement | null)?.focus();
+  }, [selectedSpotId]);
+
+  useEffect(() => {
+    if (!detailsOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      // A modal over the details takes Escape for itself
+      if (e.key === "Escape" && !document.querySelector(".browse-modal-backdrop")) closeDetails();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [detailsOpen, closeDetails]);
+
+  // The part of the map the cards leave clear, at rest. On desktop it follows from the state, so the
+  // camera can move while a card is still sliding; on a phone the card is measured.
+  const getClearArea = useCallback((m: L.Map): ClearArea => {
+    const size = m.getSize();
+    if (isPhone) return clearArea(m, [document.querySelector(".list-card")]);
+    const card = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--shell-card-width")) || 380;
+    const left = !mapOpen ? 0 : sheetOpen ? card * 2 : card;
+    return { left, top: 0, right: size.x, bottom: size.y };
+  }, [isPhone, mapOpen, sheetOpen]);
 
   const handleAddClick = () => {
     if (!mapOpen) {
@@ -77,7 +135,7 @@ function App() {
       setPendingGeoData(null);
     } else {
       setIsFormOpen(true);
-      setSelectedSpotId(null);
+      select(null);
     }
   };
 
@@ -89,7 +147,7 @@ function App() {
       setIsFormOpen(false);
       setPendingLocation(null);
       setPendingGeoData(null);
-      setSelectedSpotId(newSpot.id);
+      select(newSpot.id);
       if (newSpot.description) {
         requestSummary(newSpot.id).then((wrote) => {
           if (wrote) reloadSpots();
@@ -113,13 +171,11 @@ function App() {
     try {
       await removeSpot(id);
       setSpots((prev) => prev.filter((s) => s.id !== id));
-      if (selectedSpotId === id) {
-        setSelectedSpotId(null);
-      }
+      if (selectedSpotId === id) select(null);
     } catch {
       setNotice("Couldn't remove that spot.");
     }
-  }, [selectedSpotId]);
+  }, [selectedSpotId, select]);
 
   const handleFormCancel = () => {
     setIsFormOpen(false);
@@ -128,14 +184,16 @@ function App() {
   };
 
   return (
-    <div className={`app-shell ${mapOpen ? "map-open" : "map-closed"}${query.trim() ? " has-query" : ""}`}>
+    <div className={`app-shell ${mapOpen ? "map-open" : "map-closed"}${query.trim() ? " has-query" : ""}${detailsOpen ? " has-details" : ""}`}>
       {/* The map is always mounted, under the list card, so switching views never rebuilds it */}
       <div className="shell-map">
         <MapView
           spots={spots}
-          selectedSpotId={selectedSpotId}
+          selection={selection}
+          centreEveryPick={!isWide}
+          getClearArea={getClearArea}
           onMapClick={handleMapClick}
-          onSpotSelect={handleSpotSelect}
+          onMarkerSelect={handleMarkerSelect}
           pendingLocation={pendingLocation}
           cameraTarget={cameraTarget}
           onReady={setMap}
@@ -154,6 +212,26 @@ function App() {
           />
         )}
       </div>
+
+      {/* B, at 1280 and wider: the details slide out from under the list card as a second sheet */}
+      {isWide && (
+        <aside className={`details-sheet${sheetOpen ? " open" : ""}`} aria-label="Spot details" inert={!sheetOpen}>
+          <div className="details-scroll">
+            {lastDetailsSpot.current && (
+              <SpotDetails
+                spot={lastDetailsSpot.current}
+                dismiss="close"
+                onDismiss={closeDetails}
+                crowdStatus={crowdStatuses[lastDetailsSpot.current.id] ?? null}
+                onRated={reloadSpots}
+                onCrowdReported={reloadCrowd}
+                onNotice={setNotice}
+                onDelete={isAdmin ? handleDeleteSpot : undefined}
+              />
+            )}
+          </div>
+        </aside>
+      )}
 
       {/* One card over the map: the table at full width, the list at 380px */}
       <aside className="list-card" aria-label="Spots">
@@ -193,7 +271,7 @@ function App() {
           <div className="list-card-pane pane-table" inert={mapOpen}>
             <BrowseView
               spots={spots}
-              onSpotSelect={handleBrowseSpotSelect}
+              onSpotSelect={handleListSelect}
               onAddClick={handleAddClick}
               onBrowseSubmit={handleSubmit}
               onRated={reloadSpots}
@@ -207,9 +285,11 @@ function App() {
             />
           </div>
           <div className="list-card-pane pane-map" inert={!mapOpen}>
+            {/* A, below 1280: the details take the list's place, and the list keeps its scroll underneath */}
+            <div className={`pane-layer pane-list${detailsOpen && !isWide ? " is-hidden" : ""}`} inert={detailsOpen && !isWide}>
             <Sidebar
               spots={spots}
-              onSpotSelect={handleSpotSelect}
+              onSpotSelect={handleListSelect}
               selectedSpotId={selectedSpotId}
               onAddClick={handleAddClick}
               isFormOpen={isFormOpen}
@@ -220,6 +300,21 @@ function App() {
               onDeleteSpot={isAdmin ? handleDeleteSpot : undefined}
               onChatOpen={() => setIsChatOpen(true)}
             />
+            </div>
+            {!isWide && detailsSpot && (
+              <div className="pane-layer details-scroll" key={detailsSpot.id}>
+                <SpotDetails
+                  spot={detailsSpot}
+                  dismiss="back"
+                  onDismiss={closeDetails}
+                crowdStatus={crowdStatuses[detailsSpot.id] ?? null}
+                onRated={reloadSpots}
+                onCrowdReported={reloadCrowd}
+                onNotice={setNotice}
+                onDelete={isAdmin ? handleDeleteSpot : undefined}
+                />
+              </div>
+            )}
           </div>
         </div>
       </aside>

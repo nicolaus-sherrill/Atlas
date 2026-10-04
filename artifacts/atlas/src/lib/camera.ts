@@ -102,6 +102,22 @@ export function comfortablyInView(map: L.Map, latlng: L.LatLng, area: ClearArea,
   return p.x >= area.left + margin && p.x <= area.right - margin && p.y >= area.top + margin && p.y <= area.bottom - margin;
 }
 
+// Glides only as far as it takes to bring latlng margin px inside the clear area. Does nothing
+// when it is already there.
+export function nudgeIntoView(map: L.Map, latlng: L.LatLngExpression, area: ClearArea, margin = 48) {
+  const p = map.latLngToContainerPoint(latlng);
+  let dx = 0, dy = 0;
+  if (p.x < area.left + margin) dx = p.x - (area.left + margin);
+  else if (p.x > area.right - margin) dx = p.x - (area.right - margin);
+  if (p.y < area.top + margin) dy = p.y - (area.top + margin);
+  else if (p.y > area.bottom - margin) dy = p.y - (area.bottom - margin);
+  if (!dx && !dy) return;
+  const zoom = map.getZoom();
+  const centre = map.unproject(map.project(map.getCenter(), zoom).add([dx, dy]), zoom);
+  if (reducedMotion()) map.setView(centre, zoom, { animate: false });
+  else glide(map, centre, zoom, readRole());
+}
+
 // Moves the camera so latlng sits in the middle of the clear area. A move that leaves the view or
 // changes zoom by a level or more flies; anything shorter glides.
 export function moveCamera(map: L.Map, latlng: L.LatLngExpression, zoom: number, area: ClearArea) {
