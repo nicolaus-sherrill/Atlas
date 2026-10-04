@@ -17,9 +17,11 @@ interface SidebarProps {
   places: GeocodingResult[];
   placesLoading: boolean;
   onPickPlace: (place: GeocodingResult) => void;
+  // The theme switch, which sits quietly in the licence line at the foot of the list
+  themeToggle: React.ReactNode;
 }
 
-export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClick, query, places, placesLoading, onPickPlace }: SidebarProps) {
+export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClick, query, places, placesLoading, onPickPlace, themeToggle }: SidebarProps) {
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [showExport, setShowExport] = useState(false);
   const filtered = spots.filter((spot) => {
@@ -134,13 +136,16 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
           </div>
         )}
         <PlaceResults places={places} loading={placesLoading} onPick={onPickPlace} />
-        <p className="sidebar-licence">
-          Spot data is open under the{" "}
-          <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noreferrer">
-            Open Database License
-          </a>
-          .
-        </p>
+        <div className="sidebar-licence">
+          <p>
+            Spot data is open under the{" "}
+            <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noreferrer">
+              Open Database License
+            </a>
+            .
+          </p>
+          {themeToggle}
+        </div>
       </div>
     </aside>
   );

@@ -12,7 +12,6 @@ import type { WorkSpot, Category } from "@/lib/types";
 import { CATEGORIES } from "@/lib/types";
 import { iconSvg } from "@/lib/icons";
 import { moveCamera, nudgeIntoView, comfortablyInView, type ClearArea } from "@/lib/camera";
-import { useMediaQuery } from "@/hooks/use-media-query";
 
 // OpenFreeMap's own styles, served as they are with no recolour: Positron for light, Dark for dark
 const BASEMAP = {
@@ -50,17 +49,15 @@ interface MapViewProps {
   cameraTarget: { lat: number; lng: number; seq: number } | null;
   // Hands the map to the app's own controls once it exists
   onReady?: (map: L.Map) => void;
+  // The page's resolved theme, which picks the basemap
+  theme: "light" | "dark";
 }
 
-export default function MapView({ spots, selection, centreEveryPick, getClearArea, onMarkerSelect, cameraTarget, onReady }: MapViewProps) {
+export default function MapView({ spots, selection, centreEveryPick, getClearArea, onMarkerSelect, cameraTarget, onReady, theme }: MapViewProps) {
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
   const selectedIdRef = useRef<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  // The basemap follows the page's theme: a forced data-theme on the root wins, then the system's
-  const prefersDark = useMediaQuery("(prefers-color-scheme: dark)");
-  const forced = document.documentElement.dataset.theme;
-  const theme: "light" | "dark" = forced === "dark" || forced === "light" ? forced : prefersDark ? "dark" : "light";
   const themeRef = useRef(theme);
   themeRef.current = theme;
   const basemapRef = useRef<ReturnType<typeof maplibreGL> | null>(null);

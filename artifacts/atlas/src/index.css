@@ -634,8 +634,23 @@ html, body, #root {
   color: var(--color-text-secondary);
 }
 
+/* The licence line and, at its end, the quiet theme switch */
+.sidebar-licence,
+.browse-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.sidebar-licence p,
+.browse-footer p {
+  margin: 0;
+}
+
 .sidebar-licence {
-  padding: 16px 0 24px;
+  padding: 16px var(--shell-gutter) 24px;
   font-size: var(--type-label-font-size);
   letter-spacing: var(--type-label-letter-spacing);
   line-height: var(--type-label-line-height);
@@ -1743,6 +1758,27 @@ a.details-group-row:hover .details-group-link {
   color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: var(--text-tracking-plus-6);
+}
+
+/* The theme switch: label-size, secondary, no box. It takes a 32px target without looking like a button */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
+  cursor: pointer;
+  transition: color var(--motion-feedback-duration) var(--motion-easing-enter);
+}
+
+.theme-toggle:hover {
+  color: var(--color-text-primary);
 }
 
 /* Text fields; checkboxes and radios keep their own size */

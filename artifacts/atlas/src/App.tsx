@@ -10,6 +10,8 @@ import SpotDetails from "@/components/SpotDetails";
 import { clearArea, type ClearArea } from "@/lib/camera";
 import { fetchAllCrowdStatuses, type CrowdStatus } from "@/lib/crowd";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { useTheme } from "@/hooks/use-theme";
+import ThemeToggle from "@/components/ThemeToggle";
 import { useBottomSheet, detentHeights, type Detent } from "@/hooks/use-bottom-sheet";
 import type L from "leaflet";
 import { usePlaceSearch } from "@/hooks/use-place-search";
@@ -44,6 +46,8 @@ function App() {
   // Details open in a second sheet at 1280 and wider (B), and in place of the list below that (A)
   const isWide = useMediaQuery("(min-width: 1280px)");
   const isPhone = useMediaQuery("(max-width: 768px)");
+  const { choice: themeChoice, resolved: theme, cycle: cycleTheme } = useTheme();
+  const themeToggle = <ThemeToggle choice={themeChoice} onCycle={cycleTheme} />;
   // On a phone the map is always showing and the list is a bottom sheet over it, so there is no
   // table state: showMap is the map state on desktop and always true on a phone
   const showMap = mapOpen || isPhone;
@@ -198,6 +202,7 @@ function App() {
           onMarkerSelect={handleMarkerSelect}
           cameraTarget={cameraTarget}
           onReady={setMap}
+          theme={theme}
         />
       </div>
 
@@ -293,6 +298,7 @@ function App() {
               places={places}
               placesLoading={placesLoading}
               onPickPlace={handlePickPlace}
+              themeToggle={themeToggle}
             />
           </div>
           <div className="list-card-pane pane-map" inert={!showMap}>
@@ -308,6 +314,7 @@ function App() {
                 places={places}
                 placesLoading={placesLoading}
                 onPickPlace={handlePickPlace}
+                themeToggle={themeToggle}
               />
             </div>
             {!isWide && detailsSpot && (

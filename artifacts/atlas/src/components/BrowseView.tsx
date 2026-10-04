@@ -21,6 +21,8 @@ interface BrowseViewProps {
   places: GeocodingResult[];
   placesLoading: boolean;
   onPickPlace: (place: GeocodingResult) => void;
+  // The theme switch, which sits quietly in the footer line
+  themeToggle: React.ReactNode;
   // Only passed for admins; everyone else gets no delete control
   onDeleteSpot?: (id: string) => void;
 }
@@ -30,7 +32,7 @@ const ALL_FILTER_TAGS = TAGS.map((t) => t.label);
 // The row previews this many tags and counts the rest; the full list is in the open row's details
 const ROW_TAGS = 3;
 
-export default function BrowseView({ spots, onSpotSelect, onRated, onNotice, crowdStatuses, onCrowdReported, query, places, placesLoading, onPickPlace, onDeleteSpot }: BrowseViewProps) {
+export default function BrowseView({ spots, onSpotSelect, onRated, onNotice, crowdStatuses, onCrowdReported, query, places, placesLoading, onPickPlace, themeToggle, onDeleteSpot }: BrowseViewProps) {
   const [activeCities, setActiveCities] = useState<Set<string>>(new Set());
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [activeTags, setActiveTags] = useState<Set<string>>(new Set());
@@ -236,15 +238,18 @@ export default function BrowseView({ spots, onSpotSelect, onRated, onNotice, cro
       </div>
 
       <footer className="browse-footer">
-        Atlas's spot data is open under the{" "}
-        <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noreferrer">
-          Open Database License
-        </a>
-        . Place details include data ©{" "}
-        <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">
-          OpenStreetMap contributors
-        </a>
-        .
+        <p>
+          Atlas's spot data is open under the{" "}
+          <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noreferrer">
+            Open Database License
+          </a>
+          . Place details include data ©{" "}
+          <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">
+            OpenStreetMap contributors
+          </a>
+          .
+        </p>
+        {themeToggle}
       </footer>
 
     </div>
