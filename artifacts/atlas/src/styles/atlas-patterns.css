@@ -19,6 +19,16 @@
   --shell-card-width: 380px;
   --shell-card-radius: var(--radius-2xl);
   --shell-gutter: var(--spacing-4);
+
+  /* Map camera: its own role, read by lib/camera.ts. Layout 600 is too fast and too sharp for a map.
+     The Softer profile, the user's call 2026-10-03: calmer and more cinematic. The interface keeps
+     today's curves. */
+  --motion-map-camera-speed: 0.7;            /* flyTo speed; 1.2 is MapLibre's default */
+  --motion-map-camera-curve: 1.2;            /* flyTo zoom-out arc, flattened from Leaflet's 1.42 */
+  --motion-map-camera-duration-min: 1200ms;  /* flyTo clamp */
+  --motion-map-camera-duration-max: 2500ms;
+  --motion-map-camera-pan-duration: 1100ms;  /* a short glide, and the nudge that clears a hidden marker */
+  --motion-map-camera-easing: cubic-bezier(0.37, 0, 0.63, 1);  /* sine ease-in-out */
 }
 
 /* Contain Leaflet's z-indexes within the map */

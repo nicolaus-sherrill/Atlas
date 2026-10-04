@@ -12,6 +12,7 @@ import type { WorkSpot, Category } from "@/lib/types";
 import { CATEGORIES, calcScore, getSpotDisplayTags, SCORE_CATEGORIES, isOpenNow, getTodayHoursLabel } from "@/lib/types";
 import { getGoogleMapsUrl, getAppleMapsUrl } from "@/lib/export";
 import { iconSvg } from "@/lib/icons";
+import { moveCamera, clearArea } from "@/lib/camera";
 import { fetchAllCrowdStatuses, submitCrowdReport, getBusynessInfo, timeAgo, BUSYNESS_LEVELS, crowdMarkHtml, type CrowdStatus } from "@/lib/crowd";
 
 function escapeHtml(str: string): string {
@@ -137,9 +138,11 @@ interface MapViewProps {
   onMapClick: (lat: number, lng: number) => void;
   onSpotSelect: (id: string | null) => void;
   pendingLocation: { lat: number; lng: number } | null;
+  // A place picked from the search; the camera moves there when seq changes
+  cameraTarget: { lat: number; lng: number; seq: number } | null;
 }
 
-export default function MapView({ spots, selectedSpotId, onMapClick, onSpotSelect, pendingLocation }: MapViewProps) {
+export default function MapView({ spots, selectedSpotId, onMapClick, onSpotSelect, pendingLocation, cameraTarget }: MapViewProps) {
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
   const selectedIdRef = useRef<string | null>(null);
@@ -320,6 +323,24 @@ export default function MapView({ spots, selectedSpotId, onMapClick, onSpotSelec
       map.setView([pendingLocation.lat, pendingLocation.lng], map.getZoom(), { animate: !window.matchMedia("(prefers-reduced-motion: reduce)").matches });
     }
   }, [pendingLocation]);
+
+  // Move to a picked place, centred in the map the list card leaves clear. If the card is still
+  // narrowing from the table, wait for it to settle so the clear area is measured at rest.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !cameraTarget) return;
+    let cancelled = false;
+    const card = document.querySelector(".list-card");
+    const settling = card ? card.getAnimations().map((a) => a.finished) : [];
+    Promise.race([Promise.allSettled(settling), new Promise((r) => setTimeout(r, 700))]).then(() => {
+      if (cancelled) return;
+      const zoom = map.getZoom() < 13 ? 15 : map.getZoom();
+      moveCamera(map, [cameraTarget.lat, cameraTarget.lng], zoom, clearArea(map, [card]));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [cameraTarget]);
 
   useEffect(() => {
     const el = containerRef.current;

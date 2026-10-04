@@ -1,11 +1,13 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import type { WorkSpot, Category } from "@/lib/types";
 import { CATEGORIES, calcScore, getSpotDisplayTags, SCORE_CATEGORIES, isOpenNow, getTodayHoursLabel } from "@/lib/types";
 import { spotsToGeoJSON, spotsToKML, downloadFile } from "@/lib/export";
-import { searchAddress, type GeocodingResult } from "@/lib/geocode";
+import type { GeocodingResult } from "@/lib/geocode";
+import { matchesQuery } from "@/lib/search";
 import { fetchAllCrowdStatuses, getBusynessInfo, timeAgo, type CrowdStatus } from "@/lib/crowd";
 import CrowdMark from "./CrowdMark";
 import Icon from "./Icon";
+import PlaceResults from "./PlaceResults";
 
 interface SidebarProps {
   spots: WorkSpot[];
@@ -13,14 +15,17 @@ interface SidebarProps {
   selectedSpotId: string | null;
   onAddClick: () => void;
   isFormOpen: boolean;
-  onGeocode: (lat: number, lng: number, address: string, city: string) => void;
+  // The shell's one search: it filters these spots, and places matching it list beneath them
+  query: string;
+  places: GeocodingResult[];
+  placesLoading: boolean;
+  onPickPlace: (place: GeocodingResult) => void;
   // Only passed for admins; everyone else gets no delete control
   onDeleteSpot?: (id: string) => void;
   onChatOpen: () => void;
 }
 
-export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClick, isFormOpen, onGeocode, onDeleteSpot, onChatOpen }: SidebarProps) {
-  const [search, setSearch] = useState("");
+export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClick, isFormOpen, query, places, placesLoading, onPickPlace, onDeleteSpot, onChatOpen }: SidebarProps) {
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [showExport, setShowExport] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -29,84 +34,13 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
   useEffect(() => {
     fetchAllCrowdStatuses().then(setCrowdStatuses);
   }, []);
-  const [geocodeResults, setGeocodeResults] = useState<GeocodingResult[]>([]);
-  const [geocodeLoading, setGeocodeLoading] = useState(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
-
-  const handleSearchChange = useCallback((value: string) => {
-    setSearch(value);
-    setGeocodeResults([]);
-
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (abortRef.current) abortRef.current.abort();
-
-    if (!value.trim() || value.trim().length < 3) {
-      setGeocodeLoading(false);
-      return;
-    }
-
-    setGeocodeLoading(true);
-    debounceRef.current = setTimeout(async () => {
-      const controller = new AbortController();
-      abortRef.current = controller;
-      try {
-        const results = await searchAddress(value.trim(), controller.signal);
-        if (!controller.signal.aborted) {
-          setGeocodeResults(results);
-          setGeocodeLoading(false);
-        }
-      } catch {
-        if (!controller.signal.aborted) {
-          setGeocodeLoading(false);
-        }
-      }
-    }, 350);
-  }, []);
-
-  const handleSelectResult = useCallback((result: GeocodingResult) => {
-    setSearch("");
-    setGeocodeResults([]);
-    onGeocode(result.lat, result.lng, result.displayName, result.city);
-  }, [onGeocode]);
-
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      if (abortRef.current) abortRef.current.abort();
-    };
-  }, []);
-
   const filtered = spots.filter((spot) => {
     const matchesCategory = !activeCategory || spot.category === activeCategory;
-    return matchesCategory;
+    return matchesCategory && matchesQuery(spot, query);
   });
 
   return (
     <aside className="sidebar">
-      <div className="sidebar-search">
-        <input
-          type="search"
-          placeholder="Search an address..."
-          value={search}
-          onChange={(e) => handleSearchChange(e.target.value)}
-        />
-        {geocodeLoading && <div className="geocode-loading">Searching...</div>}
-        {geocodeResults.length > 0 && (
-          <div className="geocode-dropdown">
-            {geocodeResults.map((r, i) => (
-              <button
-                key={i}
-                className="geocode-result"
-                onClick={() => handleSelectResult(r)}
-              >
-                {r.displayName}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
       <div className="sidebar-categories">
         <button
           className={`category-chip ${activeCategory === null ? "active" : ""}`}
@@ -281,6 +215,7 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
             <p>Try a different search or add a new spot!</p>
           </div>
         )}
+        <PlaceResults places={places} loading={placesLoading} onPick={onPickPlace} />
       </div>
     </aside>
   );

@@ -5,6 +5,8 @@ import SpotForm from "@/components/SpotForm";
 import BrowseView from "@/components/BrowseView";
 import ChatPanel from "@/components/ChatPanel";
 import Icon from "@/components/Icon";
+import { usePlaceSearch } from "@/hooks/use-place-search";
+import type { GeocodingResult } from "@/lib/geocode";
 import { fetchSpots, addSpot, removeSpot, requestSummary, DuplicatePlaceError } from "@/lib/store";
 import { useIsAdmin } from "@/lib/admin";
 import type { WorkSpot } from "@/lib/types";
@@ -31,6 +33,17 @@ function App() {
   const [pendingLocation, setPendingLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [pendingGeoData, setPendingGeoData] = useState<{ address: string; city: string } | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const { places, loading: placesLoading } = usePlaceSearch(query);
+  // Where the camera goes next; seq makes picking the same place twice still move it
+  const [cameraTarget, setCameraTarget] = useState<{ lat: number; lng: number; seq: number } | null>(null);
+
+  // A place from the search pans the map there, opening the map if the table was showing
+  const handlePickPlace = useCallback((place: GeocodingResult) => {
+    setQuery("");
+    setMapOpen(true);
+    setCameraTarget((prev) => ({ lat: place.lat, lng: place.lng, seq: (prev?.seq ?? 0) + 1 }));
+  }, []);
 
   const handleMapClick = useCallback((lat: number, lng: number) => {
     if (isFormOpen) {
@@ -93,15 +106,6 @@ function App() {
     }
   };
 
-  const handleGeocode = useCallback((lat: number, lng: number, address: string, city: string) => {
-    setPendingLocation({ lat, lng });
-    setPendingGeoData({ address, city });
-    if (!isFormOpen) {
-      setIsFormOpen(true);
-      setSelectedSpotId(null);
-    }
-  }, [isFormOpen]);
-
   const handleDeleteSpot = useCallback(async (id: string) => {
     try {
       await removeSpot(id);
@@ -121,7 +125,7 @@ function App() {
   };
 
   return (
-    <div className={`app-shell ${mapOpen ? "map-open" : "map-closed"}`}>
+    <div className={`app-shell ${mapOpen ? "map-open" : "map-closed"}${query.trim() ? " has-query" : ""}`}>
       {/* The map is always mounted, under the list card, so switching views never rebuilds it */}
       <div className="shell-map">
         <MapView
@@ -130,6 +134,7 @@ function App() {
           onMapClick={handleMapClick}
           onSpotSelect={handleSpotSelect}
           pendingLocation={pendingLocation}
+          cameraTarget={cameraTarget}
         />
 
         {isFormOpen && (
@@ -168,6 +173,17 @@ function App() {
           </div>
         </header>
 
+        <div className="shell-search" role="search">
+          <Icon name="magnifying-glass" weight="bold" size={16} />
+          <input
+            type="search"
+            placeholder="Search spots or places"
+            aria-label="Search spots or places"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
+
         {/* Both bodies stay mounted, so each keeps its filters and scroll; the hidden one is inert */}
         <div className="list-card-body">
           <div className="list-card-pane pane-table" inert={mapOpen}>
@@ -180,6 +196,10 @@ function App() {
               onNotice={setNotice}
               onChatOpen={() => setIsChatOpen(true)}
               onDeleteSpot={isAdmin ? handleDeleteSpot : undefined}
+              query={query}
+              places={places}
+              placesLoading={placesLoading}
+              onPickPlace={handlePickPlace}
             />
           </div>
           <div className="list-card-pane pane-map" inert={!mapOpen}>
@@ -189,7 +209,10 @@ function App() {
               selectedSpotId={selectedSpotId}
               onAddClick={handleAddClick}
               isFormOpen={isFormOpen}
-              onGeocode={handleGeocode}
+              query={query}
+              places={places}
+              placesLoading={placesLoading}
+              onPickPlace={handlePickPlace}
               onDeleteSpot={isAdmin ? handleDeleteSpot : undefined}
               onChatOpen={() => setIsChatOpen(true)}
             />

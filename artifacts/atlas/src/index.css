@@ -90,37 +90,6 @@ html, body, #root {
   color: var(--color-selected-text);
 }
 
-.browse-filters {
-  padding: 0 var(--shell-gutter) 16px;
-}
-
-.browse-search {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid var(--color-border-control);
-  border-radius: var(--radius);
-  background: var(--color-surface-card);
-  color: var(--color-text-secondary);
-}
-
-.browse-search input {
-  border: none;
-  background: transparent;
-  width: 100%;
-  font-size: var(--type-body-s-font-size);
-  letter-spacing: var(--type-body-s-letter-spacing);
-  font-family: inherit;
-  color: var(--color-text-primary);
-  outline: none;
-}
-
-.browse-search input::placeholder {
-  color: var(--color-text-secondary);
-}
-
 .browse-chips-section {
   padding: 0 var(--shell-gutter) 20px;
   display: flex;
@@ -683,6 +652,109 @@ html, body, #root {
   outline-offset: var(--focus-offset);
 }
 
+/* The one search, always in place at the top of the card. It filters the spots, and places
+   matching it list beneath them */
+.shell-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  margin: 0 var(--shell-gutter) 12px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
+  color: var(--color-text-primary);
+  flex-shrink: 0;
+}
+
+.shell-search:focus-within {
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.shell-search input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
+  outline: none;
+}
+
+.shell-search input::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.place-results {
+  padding: 16px 0 8px;
+}
+
+.place-results-heading {
+  padding: 0 0 8px;
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--text-tracking-plus-6);
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border-strong);
+}
+
+.place-result {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 0;
+  border: 0;
+  border-bottom: 1px solid var(--color-border-divider);
+  background: transparent;
+  color: var(--color-text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter);
+}
+
+.place-result:hover {
+  background: var(--color-surface-raised);
+}
+
+.place-result .icon {
+  margin-top: 2px;
+  color: var(--color-text-secondary);
+}
+
+.place-result-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.place-result-name {
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
+  line-height: var(--type-body-s-line-height);
+  font-weight: 500;
+}
+
+.place-result-meta,
+.place-results-status,
+.place-results-credit {
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
+  line-height: var(--type-label-line-height);
+  color: var(--color-text-secondary);
+}
+
+.place-results-status,
+.place-results-credit {
+  padding-top: 8px;
+}
+
 /* Two bodies of one card. Each is laid out at its own width, so neither reflows while the card
    resizes: the card clips the table as it narrows. They cross-fade on the component role */
 .list-card-body {
@@ -721,34 +793,6 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-}
-
-.sidebar-search {
-  padding: 0 var(--shell-gutter) 12px;
-  position: relative;
-}
-
-.sidebar-search input {
-  width: 100%;
-  padding: 10px 14px;
-  border: 1px solid var(--color-border-control);
-  border-radius: var(--radius);
-  font-size: var(--type-body-s-font-size);
-  letter-spacing: var(--type-body-s-letter-spacing);
-  font-family: inherit;
-  background: var(--color-surface-card);
-  color: var(--color-text-primary);
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.sidebar-search input:focus-visible {
-  outline: var(--focus-width) solid var(--color-focus-ring);
-  outline-offset: var(--focus-offset);
-}
-
-.sidebar-search input::placeholder {
-  color: var(--color-text-secondary);
 }
 
 .address-autocomplete {
@@ -2113,7 +2157,8 @@ html, body, #root {
 @container browse-table (max-width: 676px) {
   .col-city { display: none; }
 }
-@container browse-table (max-width: 576px) {
+/* The table needs 580px with the map column; 4px of slack keeps it from scrolling */
+@container browse-table (max-width: 584px) {
   .col-map { display: none; }
 }
 @container browse-table (max-width: 411px) {
@@ -2151,6 +2196,16 @@ html, body, #root {
 
   .map-open .list-card-body {
     display: none;
+  }
+
+  /* Typing opens the card again, so the matching spots and places have somewhere to show */
+  .map-open.has-query .list-card {
+    inset-block-end: 0;
+    border-radius: 0;
+  }
+
+  .map-open.has-query .list-card-body {
+    display: block;
   }
 
   .pane-table,
@@ -2851,12 +2906,6 @@ html, body, #root {
   outline: var(--focus-width) solid var(--color-focus-ring);
   outline-offset: var(--focus-offset);
 }
-
-.browse-search:focus-within {
-  outline: var(--focus-width) solid var(--color-focus-ring);
-  outline-offset: var(--focus-offset);
-}
-
 
 @media (prefers-reduced-motion: reduce) {
   *,

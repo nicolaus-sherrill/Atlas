@@ -9,6 +9,9 @@ import ScoreDots from "./ScoreDots";
 import TypicalBusyness from "./TypicalBusyness";
 import MultiSelectDropdown from "./MultiSelectDropdown";
 import Icon from "./Icon";
+import PlaceResults from "./PlaceResults";
+import type { GeocodingResult } from "@/lib/geocode";
+import { matchesQuery } from "@/lib/search";
 
 interface BrowseViewProps {
   spots: WorkSpot[];
@@ -18,16 +21,20 @@ interface BrowseViewProps {
   onRated: () => void;
   onNotice: (message: string) => void;
   onChatOpen: () => void;
+  // The shell's one search: it filters these spots, and places matching it list beneath them
+  query: string;
+  places: GeocodingResult[];
+  placesLoading: boolean;
+  onPickPlace: (place: GeocodingResult) => void;
   // Only passed for admins; everyone else gets no delete control
   onDeleteSpot?: (id: string) => void;
 }
 
 const ALL_FILTER_TAGS = TAGS.map((t) => t.label);
 
-export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSubmit, onRated, onNotice, onChatOpen, onDeleteSpot }: BrowseViewProps) {
+export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSubmit, onRated, onNotice, onChatOpen, query, places, placesLoading, onPickPlace, onDeleteSpot }: BrowseViewProps) {
   const [editingSpot, setEditingSpot] = useState<WorkSpot | null>(null);
   const [reportingSpot, setReportingSpot] = useState<WorkSpot | null>(null);
-  const [search, setSearch] = useState("");
   const [activeCities, setActiveCities] = useState<Set<string>>(new Set());
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [activeTags, setActiveTags] = useState<Set<string>>(new Set());
@@ -42,20 +49,14 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
 
   const filtered = useMemo(() => {
     return spots.filter((spot) => {
-      const q = search.toLowerCase();
-      const matchesSearch =
-        !search ||
-        spot.name.toLowerCase().includes(q) ||
-        spot.address.toLowerCase().includes(q) ||
-        spot.city.toLowerCase().includes(q) ||
-        spot.description.toLowerCase().includes(q);
+      const matchesSearch = matchesQuery(spot, query);
       const matchesCity = activeCities.size === 0 || activeCities.has(spot.city);
       const matchesCategory = !activeCategory || spot.category === activeCategory;
       const spotTagLabels = getSpotDisplayTags(spot);
       const matchesTags = activeTags.size === 0 || Array.from(activeTags).every((t) => spotTagLabels.includes(t));
       return matchesSearch && matchesCity && matchesCategory && matchesTags;
     });
-  }, [spots, search, activeCities, activeCategory, activeTags]);
+  }, [spots, query, activeCities, activeCategory, activeTags]);
 
   const toggleCity = (city: string) => {
     setActiveCities((prev) => {
@@ -93,21 +94,6 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
           </button>
         </div>
       </header>
-
-      <div className="browse-filters">
-        <div className="browse-search">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="8"/>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input
-            type="search"
-            placeholder="Search spots..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-      </div>
 
       <div className="browse-chips-section">
         <MultiSelectDropdown
@@ -345,6 +331,7 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
             <p>Try adjusting your search or filters.</p>
           </div>
         )}
+        <PlaceResults places={places} loading={placesLoading} onPick={onPickPlace} />
       </div>
 
       <footer className="browse-footer">

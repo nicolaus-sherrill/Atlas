@@ -105,14 +105,16 @@ const cache = new Map<string, GeocodingResult[]>();
 
 async function photonSearch(params: URLSearchParams, isPlace: boolean, signal?: AbortSignal): Promise<GeocodingResult[]> {
   const url = `${PHOTON}/api/?${params}`;
-  const cached = cache.get(url);
+  // The same query can be read as places or as plain addresses, so the reading is part of the key
+  const key = `${isPlace ? "place" : "address"} ${url}`;
+  const cached = cache.get(key);
   if (cached) return cached;
 
   const res = await fetch(url, { signal });
   if (!res.ok) return [];
   const data: { features?: PhotonFeature[] } = await res.json();
   const results = (data.features ?? []).map((f) => toResult(f, isPlace)).filter((r) => r.displayName);
-  cache.set(url, results);
+  cache.set(key, results);
   return results;
 }
 
@@ -149,6 +151,12 @@ export async function searchPlaces(query: string, signal?: AbortSignal, near = D
   params.set("limit", "10");
   for (const tag of PLACE_TAGS) params.append("osm_tag", tag);
   return nearbyFirst(await photonSearch(params, true, signal), near).slice(0, 6);
+}
+
+// The shell's one search field: any place or address, with a named place keeping its name
+export async function searchMap(query: string, signal?: AbortSignal, near = DEFAULT_BIAS): Promise<GeocodingResult[]> {
+  if (!query || query.trim().length < 3) return [];
+  return nearbyFirst(await photonSearch(baseParams(query, near), true, signal), near);
 }
 
 export async function searchAddress(query: string, signal?: AbortSignal, near?: { lat: number; lng: number }): Promise<GeocodingResult[]> {
