@@ -332,5 +332,5 @@ export default function MapView({ spots, selectedSpotId, onMapClick, onSpotSelec
   }, []);
 
   // The basemap is light in both themes until its dark recolour, so the map, its markers and popups stay in Atlas Light
-  return <div ref={containerRef} data-theme="light" style={{ width: "100%", height: "100%" }} />;
+  return <div ref={containerRef} className="atlas-map" data-theme="light" style={{ width: "100%", height: "100%" }} />;
 }

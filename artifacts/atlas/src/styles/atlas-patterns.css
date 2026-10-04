@@ -1,0 +1,23 @@
+/* Atlas Patterns: values only a map product needs, layered on the design system's Atlas tokens.
+   Planned in workbench/atmo-design-system/g2-plan/PLAN.md §3. */
+
+:root {
+  /* Layers. The map container isolates its own stacking, so Leaflet's panes (tiles 200, overlay 400,
+     shadow 500, markers 600, tooltip 650, popup 700, controls 800/1000) stay inside it and the app
+     counts from 0 instead of outbidding them. */
+  --layer-map: 0;
+  --layer-surface: 10;   /* list card, sheet */
+  --layer-control: 20;   /* map buttons, mobile search and chips */
+  --layer-chat: 30;      /* chat card or sheet */
+  --layer-popover: 40;   /* dropdowns */
+  --layer-scrim: 50;
+  --layer-modal: 60;     /* suggest an edit, report a problem, submit a place */
+  --layer-toast: 70;
+  --layer-system: 80;    /* Turnstile */
+}
+
+/* Contain Leaflet's z-indexes within the map */
+.atlas-map {
+  isolation: isolate;
+  z-index: var(--layer-map);
+}

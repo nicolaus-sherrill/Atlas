@@ -1,5 +1,6 @@
 /* Atmo design system, Atlas brand: light on :root, dark by system preference */
 @import "@atmo-studio/design-system/css/atlas.css";
+@import "./styles/atlas-patterns.css";
 
 /* Satoshi Variable, self-hosted under Fontshare's licence. The files are not in git (the
    licence forbids putting them on a public server); see README "Fonts" */
@@ -190,7 +191,7 @@ html, body, #root {
   position: absolute;
   top: calc(100% + 4px);
   left: 0;
-  z-index: 100;
+  z-index: var(--layer-popover);
   min-width: 180px;
   max-height: 260px;
   overflow-y: auto;
@@ -598,7 +599,7 @@ html, body, #root {
   overflow: hidden;
   transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  z-index: 10;
+  z-index: var(--layer-surface);
 }
 
 .map-closed .panel-left {
@@ -646,7 +647,7 @@ html, body, #root {
   justify-content: center;
   box-shadow: var(--elevation-floating);
   transition: transform 0.2s, box-shadow 0.2s;
-  z-index: 1000;
+  z-index: var(--layer-control);
 }
 
 .map-toggle-fab:hover {
@@ -742,7 +743,7 @@ html, body, #root {
   border-radius: 0 0 var(--radius) var(--radius);
   max-height: 240px;
   overflow-y: auto;
-  z-index: 100;
+  z-index: var(--layer-popover);
   box-shadow: var(--elevation-floating);
 }
 
@@ -1131,7 +1132,7 @@ html, body, #root {
   top: 16px;
   right: 16px;
   /* Above Leaflet's controls (1000), and clear of the map button below it */
-  z-index: 1001;
+  z-index: var(--layer-chat); /* above the map button, as before; the form moves into the card in commit 7 */
   width: 340px;
   max-height: calc(100% - 104px);
   overflow-y: auto;
@@ -1466,7 +1467,7 @@ html, body, #root {
   right: 0;
   bottom: 0;
   background: var(--color-scrim);
-  z-index: 1000;
+  z-index: var(--layer-modal);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1534,7 +1535,7 @@ html, body, #root {
   right: 0;
   bottom: 0;
   background: var(--color-scrim);
-  z-index: 2000;
+  z-index: var(--layer-chat);
   display: flex;
   justify-content: flex-end;
 }
@@ -2188,7 +2189,7 @@ html, body, #root {
   left: 50%;
   bottom: 24px;
   transform: translateX(-50%);
-  z-index: 2000;
+  z-index: var(--layer-toast);
   max-width: min(480px, calc(100vw - 32px));
   padding: 12px 16px;
   border-radius: var(--radius);
@@ -2807,7 +2808,7 @@ html, body, #root {
   left: 50%;
   bottom: 24px;
   transform: translateX(-50%);
-  z-index: 3000;
+  z-index: var(--layer-system);
 }
 
 /* ========== FOCUS, LAYERING, MOTION ========== */
@@ -2820,11 +2821,6 @@ html, body, #root {
 .browse-search:focus-within {
   outline: var(--focus-width) solid var(--color-focus-ring);
   outline-offset: var(--focus-offset);
-}
-
-/* Modals render into body, above the map button (1000) */
-.browse-modal-backdrop {
-  z-index: 2000;
 }
 
 /* Lift the zoom control clear of the map button */
