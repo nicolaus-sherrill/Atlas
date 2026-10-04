@@ -84,17 +84,6 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
 
   return (
     <aside className="sidebar">
-      <div className="sidebar-header">
-        <div className="sidebar-brand">
-          <svg width="28" height="28" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path fill="currentColor" d="M1.107 0h55.354v34.596H1.107zm60.297 0H67c16.016 0 29 12.984 29 29v65.893H61.404V0Z"/>
-            <circle cx="28.725" cy="67.275" r="28.725" fill="currentColor"/>
-          </svg>
-          <h1>Atlas</h1>
-        </div>
-        <p className="sidebar-tagline">Find your next great work spot</p>
-      </div>
-
       <div className="sidebar-search">
         <input
           type="search"

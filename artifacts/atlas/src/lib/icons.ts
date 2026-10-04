@@ -18,6 +18,8 @@ import MapPinFill from "@phosphor-icons/core/assets/fill/map-pin-fill.svg?raw";
 import PlusBold from "@phosphor-icons/core/assets/bold/plus-bold.svg?raw";
 import UsersThreeBold from "@phosphor-icons/core/assets/bold/users-three-bold.svg?raw";
 import MapTrifoldLight from "@phosphor-icons/core/assets/light/map-trifold-light.svg?raw";
+import MapTrifoldBold from "@phosphor-icons/core/assets/bold/map-trifold-bold.svg?raw";
+import RowsBold from "@phosphor-icons/core/assets/bold/rows-bold.svg?raw";
 
 import type { IconName, IconWeight } from "./icon-names";
 
@@ -41,6 +43,8 @@ const SVGS: Partial<Record<`${IconName}/${IconWeight}`, string>> = {
   "plus/bold": PlusBold,
   "users-three/bold": UsersThreeBold,
   "map-trifold/light": MapTrifoldLight,
+  "map-trifold/bold": MapTrifoldBold,
+  "rows/bold": RowsBold,
 };
 
 export function iconSvg(name: IconName, weight: IconWeight = "regular", size = 16): string {

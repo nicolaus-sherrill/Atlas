@@ -55,27 +55,11 @@ html, body, #root {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 40px 60px 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 8px var(--shell-gutter) 20px;
 }
 
 .browse-header-left {
   flex: 1;
-}
-
-.browse-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-
-.browse-brand h1 {
-  font-size: var(--type-subheading-s-font-size);
-  font-weight: 700;
-  letter-spacing: var(--type-subheading-s-letter-spacing);
-  color: var(--color-text-primary);
 }
 
 .browse-tagline {
@@ -107,9 +91,7 @@ html, body, #root {
 }
 
 .browse-filters {
-  padding: 0 60px 16px;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 0 var(--shell-gutter) 16px;
 }
 
 .browse-search {
@@ -140,9 +122,7 @@ html, body, #root {
 }
 
 .browse-chips-section {
-  padding: 0 60px 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 0 var(--shell-gutter) 20px;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -255,9 +235,7 @@ html, body, #root {
 }
 
 .browse-table-wrapper {
-  padding: 0 60px 60px;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 0 var(--shell-gutter) 60px;
 }
 
 .browse-table {
@@ -584,114 +562,169 @@ html, body, #root {
   margin-top: 4px;
 }
 
-/* ========== APP SHELL — SLIDING MAP LAYOUT ========== */
+/* ========== APP SHELL: A MAP THAT IS ALWAYS THERE, ONE CARD OVER IT ========== */
 
 .app-shell {
-  display: flex;
   height: 100%;
   width: 100%;
   position: relative;
   overflow: hidden;
 }
 
-.panel-left {
-  height: 100%;
-  overflow: hidden;
-  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
+.shell-map {
+  position: absolute;
+  inset: 0;
+}
+
+/* The table state is the card at full width, holding every edge, so it is square and flat. The map
+   state is the card at 380px: it lets go of the right edge, so it rounds those corners and floats.
+   Width and corners move on the layout role, entering on the way out to the map, exiting on the way
+   back. Under reduced motion the change is instant (the blanket rule at the foot of this file). */
+.list-card {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
   z-index: var(--layer-surface);
-}
-
-.map-closed .panel-left {
-  width: 100%;
-  min-width: 100%;
-}
-
-.map-open .panel-left {
-  width: 380px;
-  min-width: 380px;
-}
-
-.panel-right {
-  height: 100%;
-  position: relative;
-  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
+  background: var(--color-surface-canvas);
+  width: 100%;
+  border-radius: 0;
+  box-shadow: none;
+  transition:
+    width var(--motion-layout-duration-exit) var(--motion-easing-exit),
+    border-radius var(--motion-layout-duration-exit) var(--motion-easing-exit),
+    box-shadow var(--motion-layout-duration-exit) var(--motion-easing-exit);
 }
 
-.map-closed .panel-right {
-  width: 0;
-  min-width: 0;
-  opacity: 0;
-  pointer-events: none;
+.map-open .list-card {
+  width: var(--shell-card-width);
+  border-start-end-radius: var(--shell-card-radius);
+  border-end-end-radius: var(--shell-card-radius);
+  box-shadow: var(--elevation-floating);
+  transition-duration: var(--motion-layout-duration);
+  transition-timing-function: var(--motion-easing-enter);
 }
 
-.map-open .panel-right {
-  flex: 1;
-  opacity: 1;
+/* In dark, the card's edge is a hairline: a shadow doesn't read on a dark map */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .map-open .list-card {
+    box-shadow: 0 0 0 1px var(--color-border-divider);
+  }
+}
+[data-theme="dark"] .map-open .list-card {
+  box-shadow: 0 0 0 1px var(--color-border-divider);
 }
 
-.map-toggle-fab {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  border: none;
-  background: var(--color-surface-inverse);
-  color: var(--color-text-on-inverse);
-  cursor: pointer;
+.list-card-head {
   display: flex;
   align-items: center;
-  justify-content: center;
-  box-shadow: var(--elevation-floating);
-  transition: transform 0.2s, box-shadow 0.2s;
-  z-index: var(--layer-control);
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px var(--shell-gutter) 12px;
+  flex-shrink: 0;
 }
 
-.map-toggle-fab:hover {
-  transform: scale(1.08);
-  box-shadow: var(--elevation-overlay);
+.list-card-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-primary);
+}
+
+.list-card-brand h1 {
+  font-size: var(--type-body-xl-font-size);
+  font-weight: 700;
+  letter-spacing: var(--type-body-xl-letter-spacing);
+  line-height: 1;
+}
+
+/* Table / Map. The pressed segment is lifted onto the card's own surface */
+.segmented {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
+}
+
+.segmented button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-feedback-duration) var(--motion-easing-enter),
+    color var(--motion-feedback-duration) var(--motion-easing-enter);
+}
+
+.segmented button:hover {
+  color: var(--color-text-primary);
+}
+
+.segmented button[aria-pressed="true"] {
+  background: var(--color-surface-card);
+  color: var(--color-text-primary);
+  font-weight: 500;
+  box-shadow: var(--elevation-floating);
+}
+
+.segmented button:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+/* Two bodies of one card. Each is laid out at its own width, so neither reflows while the card
+   resizes: the card clips the table as it narrows. They cross-fade on the component role */
+.list-card-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.list-card-pane {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  transition: opacity var(--motion-component-duration) var(--motion-easing-enter);
+}
+
+.pane-table {
+  width: 100vw;
+}
+
+.pane-map {
+  width: var(--shell-card-width);
+}
+
+.map-open .pane-table,
+.map-closed .pane-map {
+  opacity: 0;
+  pointer-events: none;
+  transition-duration: var(--motion-component-duration-exit);
+  transition-timing-function: var(--motion-easing-exit);
 }
 
 .sidebar {
   width: 100%;
   height: 100%;
   background: var(--color-surface-canvas);
-  border-right: 1px solid var(--color-border-divider);
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
-.sidebar-header {
-  padding: 24px 24px 16px;
-}
-
-.sidebar-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.sidebar-brand h1 {
-  font-size: var(--type-body-xl-font-size);
-  font-weight: 700;
-  letter-spacing: var(--type-body-xl-letter-spacing);
-  color: var(--color-text-primary);
-}
-
-.sidebar-tagline {
-  font-size: var(--type-body-s-font-size);
-  letter-spacing: var(--type-body-s-letter-spacing);
-  color: var(--color-text-secondary);
-  margin-top: 4px;
-  font-weight: 400;
-}
-
 .sidebar-search {
-  padding: 0 24px 12px;
+  padding: 0 var(--shell-gutter) 12px;
   position: relative;
 }
 
@@ -2104,21 +2137,25 @@ html, body, #root {
 @media (max-width: 768px) {
   .browse-header {
     flex-direction: column;
-    padding: 24px 20px 16px;
+    padding: 8px var(--shell-gutter) 16px;
     gap: 12px;
   }
 
-  .browse-filters,
-  .browse-chips-section,
-  .browse-table-wrapper {
-    padding-left: 20px;
-    padding-right: 20px;
+  /* Until the bottom sheet lands (commit 6), the map state keeps only the card head: a bar across
+     the top that still holds Table / Map */
+  .map-open .list-card {
+    width: 100%;
+    inset-block-end: auto;
+    border-radius: 0 0 var(--shell-card-radius) var(--shell-card-radius);
   }
 
-  .map-open .panel-left {
-    width: 0;
-    min-width: 0;
-    overflow: hidden;
+  .map-open .list-card-body {
+    display: none;
+  }
+
+  .pane-table,
+  .pane-map {
+    width: 100%;
   }
 
   .spot-form-overlay {
@@ -2310,10 +2347,7 @@ html, body, #root {
 }
 
 .browse-footer {
-  max-width: 1200px;
-  margin: 0 auto;
-  /* bottom clears the map button (24px + 48px) */
-  padding: 24px 60px 96px;
+  padding: 24px var(--shell-gutter) 60px;
   font-size: var(--type-body-s-font-size);
   letter-spacing: var(--type-body-s-letter-spacing);
   line-height: var(--type-body-s-line-height);
@@ -2823,10 +2857,6 @@ html, body, #root {
   outline-offset: var(--focus-offset);
 }
 
-/* Lift the zoom control clear of the map button */
-.leaflet-bottom.leaflet-right .leaflet-control-zoom {
-  margin-bottom: 72px;
-}
 
 @media (prefers-reduced-motion: reduce) {
   *,

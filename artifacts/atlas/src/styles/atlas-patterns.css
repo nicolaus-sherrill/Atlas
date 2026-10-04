@@ -14,6 +14,11 @@
   --layer-modal: 60;     /* suggest an edit, report a problem, submit a place */
   --layer-toast: 70;
   --layer-system: 80;    /* Turnstile */
+
+  /* Shell */
+  --shell-card-width: 380px;
+  --shell-card-radius: var(--radius-2xl);
+  --shell-gutter: var(--spacing-4);
 }
 
 /* Contain Leaflet's z-indexes within the map */

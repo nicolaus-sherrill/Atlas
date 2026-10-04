@@ -4,6 +4,7 @@ import Sidebar from "@/components/Sidebar";
 import SpotForm from "@/components/SpotForm";
 import BrowseView from "@/components/BrowseView";
 import ChatPanel from "@/components/ChatPanel";
+import Icon from "@/components/Icon";
 import { fetchSpots, addSpot, removeSpot, requestSummary, DuplicatePlaceError } from "@/lib/store";
 import { useIsAdmin } from "@/lib/admin";
 import type { WorkSpot } from "@/lib/types";
@@ -30,10 +31,6 @@ function App() {
   const [pendingLocation, setPendingLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [pendingGeoData, setPendingGeoData] = useState<{ address: string; city: string } | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
-
-  const toggleMap = useCallback(() => {
-    setMapOpen((prev) => !prev);
-  }, []);
 
   const handleMapClick = useCallback((lat: number, lng: number) => {
     if (isFormOpen) {
@@ -125,33 +122,8 @@ function App() {
 
   return (
     <div className={`app-shell ${mapOpen ? "map-open" : "map-closed"}`}>
-      <div className="panel-left">
-        {mapOpen ? (
-          <Sidebar
-            spots={spots}
-            onSpotSelect={handleSpotSelect}
-            selectedSpotId={selectedSpotId}
-            onAddClick={handleAddClick}
-            isFormOpen={isFormOpen}
-            onGeocode={handleGeocode}
-            onDeleteSpot={isAdmin ? handleDeleteSpot : undefined}
-            onChatOpen={() => setIsChatOpen(true)}
-          />
-        ) : (
-          <BrowseView
-            spots={spots}
-            onSpotSelect={handleBrowseSpotSelect}
-            onAddClick={handleAddClick}
-            onBrowseSubmit={handleSubmit}
-            onRated={reloadSpots}
-            onNotice={setNotice}
-            onChatOpen={() => setIsChatOpen(true)}
-            onDeleteSpot={isAdmin ? handleDeleteSpot : undefined}
-          />
-        )}
-      </div>
-
-      <div className="panel-right">
+      {/* The map is always mounted, under the list card, so switching views never rebuilds it */}
+      <div className="shell-map">
         <MapView
           spots={spots}
           selectedSpotId={selectedSpotId}
@@ -174,21 +146,56 @@ function App() {
         )}
       </div>
 
-      <button
-        className="map-toggle-fab"
-        // Over the open map, which stays light in both themes, the button takes the map's theme
-        data-theme={mapOpen ? "light" : undefined}
-        onClick={toggleMap}
-        aria-label={mapOpen ? "Hide map" : "Show map"}
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          {mapOpen ? (
-            <polyline points="15 18 9 12 15 6" />
-          ) : (
-            <polyline points="9 18 15 12 9 6" />
-          )}
-        </svg>
-      </button>
+      {/* One card over the map: the table at full width, the list at 380px */}
+      <aside className="list-card" aria-label="Spots">
+        <header className="list-card-head">
+          <div className="list-card-brand">
+            <svg width="24" height="24" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path fill="currentColor" d="M1.107 0h55.354v34.596H1.107zm60.297 0H67c16.016 0 29 12.984 29 29v65.893H61.404V0Z"/>
+              <circle cx="28.725" cy="67.275" r="28.725" fill="currentColor"/>
+            </svg>
+            <h1>Atlas</h1>
+          </div>
+          <div className="segmented" role="group" aria-label="View">
+            <button type="button" data-shell-view="table" aria-pressed={!mapOpen} onClick={() => setMapOpen(false)}>
+              <Icon name="rows" weight="bold" size={16} />
+              Table
+            </button>
+            <button type="button" data-shell-view="map" aria-pressed={mapOpen} onClick={() => setMapOpen(true)}>
+              <Icon name="map-trifold" weight="bold" size={16} />
+              Map
+            </button>
+          </div>
+        </header>
+
+        {/* Both bodies stay mounted, so each keeps its filters and scroll; the hidden one is inert */}
+        <div className="list-card-body">
+          <div className="list-card-pane pane-table" inert={mapOpen}>
+            <BrowseView
+              spots={spots}
+              onSpotSelect={handleBrowseSpotSelect}
+              onAddClick={handleAddClick}
+              onBrowseSubmit={handleSubmit}
+              onRated={reloadSpots}
+              onNotice={setNotice}
+              onChatOpen={() => setIsChatOpen(true)}
+              onDeleteSpot={isAdmin ? handleDeleteSpot : undefined}
+            />
+          </div>
+          <div className="list-card-pane pane-map" inert={!mapOpen}>
+            <Sidebar
+              spots={spots}
+              onSpotSelect={handleSpotSelect}
+              selectedSpotId={selectedSpotId}
+              onAddClick={handleAddClick}
+              isFormOpen={isFormOpen}
+              onGeocode={handleGeocode}
+              onDeleteSpot={isAdmin ? handleDeleteSpot : undefined}
+              onChatOpen={() => setIsChatOpen(true)}
+            />
+          </div>
+        </div>
+      </aside>
 
       {notice && (
         <div className="app-notice" role="status" onClick={() => setNotice(null)}>
