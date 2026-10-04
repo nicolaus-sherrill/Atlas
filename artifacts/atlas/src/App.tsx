@@ -46,8 +46,8 @@ function App() {
   // Details open in a second sheet at 1280 and wider (B), and in place of the list below that (A)
   const isWide = useMediaQuery("(min-width: 1280px)");
   const isPhone = useMediaQuery("(max-width: 768px)");
-  const { choice: themeChoice, resolved: theme, cycle: cycleTheme } = useTheme();
-  const themeToggle = <ThemeToggle choice={themeChoice} onCycle={cycleTheme} />;
+  const { theme, toggle: toggleTheme } = useTheme();
+  const themeToggle = <ThemeToggle theme={theme} onToggle={toggleTheme} />;
   // On a phone the map is always showing and the list is a bottom sheet over it, so there is no
   // table state: showMap is the map state on desktop and always true on a phone
   const showMap = mapOpen || isPhone;

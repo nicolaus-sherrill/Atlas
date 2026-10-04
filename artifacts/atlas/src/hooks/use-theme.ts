@@ -1,43 +1,39 @@
 import { useCallback, useEffect, useState } from "react";
 import { useMediaQuery } from "./use-media-query";
 
-// The theme: follow the system, or hold light or dark. A held choice is remembered in this browser
-// (index.html applies it before the first paint) and set as data-theme on the root, which every
-// themed rule in Atlas and the design system answers to.
-export type ThemeChoice = "system" | "light" | "dark";
+// The theme: light or dark. It starts from the system's setting; once the visitor flips the switch,
+// their choice holds, is remembered in this browser (index.html applies it before the first paint),
+// and is set as data-theme on the root, which every themed rule in Atlas and the design system
+// answers to.
+export type Theme = "light" | "dark";
 
 const KEY = "atlas-theme";
 
-function readChoice(): ThemeChoice {
+function readHeld(): Theme | null {
   try {
     const v = localStorage.getItem(KEY);
-    return v === "light" || v === "dark" ? v : "system";
+    return v === "light" || v === "dark" ? v : null;
   } catch {
-    return "system";
+    return null;
   }
 }
 
 export function useTheme() {
-  const [choice, setChoice] = useState<ThemeChoice>(readChoice);
+  const [held, setHeld] = useState<Theme | null>(readHeld);
   const prefersDark = useMediaQuery("(prefers-color-scheme: dark)");
-  const resolved: "light" | "dark" = choice === "system" ? (prefersDark ? "dark" : "light") : choice;
+  const theme: Theme = held ?? (prefersDark ? "dark" : "light");
 
   useEffect(() => {
-    const root = document.documentElement;
-    if (choice === "system") delete root.dataset.theme;
-    else root.dataset.theme = choice;
+    if (!held) return;
+    document.documentElement.dataset.theme = held;
     try {
-      if (choice === "system") localStorage.removeItem(KEY);
-      else localStorage.setItem(KEY, choice);
+      localStorage.setItem(KEY, held);
     } catch {
       // storage can be unavailable (a private window); the choice still holds for this visit
     }
-  }, [choice]);
+  }, [held]);
 
-  // One control steps through them: system, then light, then dark
-  const cycle = useCallback(() => {
-    setChoice((c) => (c === "system" ? "light" : c === "light" ? "dark" : "system"));
-  }, []);
+  const toggle = useCallback(() => setHeld(theme === "dark" ? "light" : "dark"), [theme]);
 
-  return { choice, resolved, cycle };
+  return { theme, toggle };
 }

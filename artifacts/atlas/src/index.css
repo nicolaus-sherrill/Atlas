@@ -1760,25 +1760,56 @@ a.details-group-row:hover .details-group-link {
   letter-spacing: var(--text-tracking-plus-6);
 }
 
-/* The theme switch: label-size, secondary, no box. It takes a 32px target without looking like a button */
+/* The theme switch: a small track, sun on the left and moon on the right, with the thumb under the
+   current theme. 44 by 24, quiet in the footer line, and it slides on the feedback role */
 .theme-toggle {
-  display: inline-flex;
+  position: relative;
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
   align-items: center;
-  gap: 6px;
-  min-height: 32px;
-  padding: 0 4px;
+  width: 44px;
+  height: 24px;
+  padding: 2px;
   border: 0;
-  border-radius: var(--radius-sm);
-  background: none;
-  color: var(--color-text-secondary);
-  font-size: var(--type-label-font-size);
-  letter-spacing: var(--type-label-letter-spacing);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-raised);
+  box-shadow: inset 0 0 0 1px var(--field-edge);
   cursor: pointer;
-  transition: color var(--motion-feedback-duration) var(--motion-easing-enter);
 }
 
-.theme-toggle:hover {
+.theme-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-card);
+  box-shadow: var(--elevation-floating);
+  transition: transform var(--motion-feedback-duration) var(--motion-easing-enter);
+}
+
+.theme-toggle[aria-checked="true"] .theme-toggle-thumb {
+  transform: translateX(20px);
+}
+
+.theme-toggle-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+}
+
+/* The icon under the thumb is the current theme, in the primary colour */
+.theme-toggle[aria-checked="false"] .theme-toggle-icon:nth-of-type(2),
+.theme-toggle[aria-checked="true"] .theme-toggle-icon:nth-of-type(3) {
   color: var(--color-text-primary);
+}
+
+.theme-toggle:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-offset);
 }
 
 /* Text fields; checkboxes and radios keep their own size */

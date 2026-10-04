@@ -38,7 +38,6 @@ import CircleNotchBold from "@phosphor-icons/core/assets/bold/circle-notch-bold.
 import ClockBold from "@phosphor-icons/core/assets/bold/clock-bold.svg?raw";
 import SunBold from "@phosphor-icons/core/assets/bold/sun-bold.svg?raw";
 import MoonBold from "@phosphor-icons/core/assets/bold/moon-bold.svg?raw";
-import CircleHalfBold from "@phosphor-icons/core/assets/bold/circle-half-bold.svg?raw";
 import RowsBold from "@phosphor-icons/core/assets/bold/rows-bold.svg?raw";
 
 import type { IconName, IconWeight } from "./icon-names";
@@ -67,7 +66,6 @@ const SVGS: Partial<Record<`${IconName}/${IconWeight}`, string>> = {
   "rows/bold": RowsBold,
   "sun/bold": SunBold,
   "moon/bold": MoonBold,
-  "circle-half/bold": CircleHalfBold,
   "clock/bold": ClockBold,
   "note-pencil/bold": NotePencilBold,
   "arrow-up/bold": ArrowUpBold,

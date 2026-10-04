@@ -1,27 +1,23 @@
 import Icon from "./Icon";
-import type { ThemeChoice } from "@/hooks/use-theme";
+import type { Theme } from "@/hooks/use-theme";
 
 interface ThemeToggleProps {
-  choice: ThemeChoice;
-  onCycle: () => void;
+  theme: Theme;
+  onToggle: () => void;
 }
 
-const LABEL: Record<ThemeChoice, string> = { system: "System", light: "Light", dark: "Dark" };
-const ICON = { system: "circle-half", light: "sun", dark: "moon" } as const;
-
-// A quiet switch in the footer line: an icon and the current theme in label text, stepping through
-// System, Light and Dark. It stays out of the way of the map and the list on purpose.
-export default function ThemeToggle({ choice, onCycle }: ThemeToggleProps) {
-  const next = choice === "system" ? "light" : choice === "light" ? "dark" : "system";
+// A small switch, sun on the left and moon on the right; the thumb sits under the current theme.
+// It is a switch to assistive tech too: "Dark theme", on or off.
+export default function ThemeToggle({ theme, onToggle }: ThemeToggleProps) {
   return (
-    <button
-      type="button"
-      className="theme-toggle"
-      onClick={onCycle}
-      aria-label={`Theme: ${LABEL[choice]}. Switch to ${LABEL[next]}`}
-    >
-      <Icon name={ICON[choice]} weight="bold" size={16} />
-      <span>{LABEL[choice]}</span>
+    <button type="button" role="switch" aria-checked={theme === "dark"} aria-label="Dark theme" className="theme-toggle" onClick={onToggle}>
+      <span className="theme-toggle-thumb" aria-hidden="true" />
+      <span className="theme-toggle-icon" aria-hidden="true">
+        <Icon name="sun" weight="bold" size={12} />
+      </span>
+      <span className="theme-toggle-icon" aria-hidden="true">
+        <Icon name="moon" weight="bold" size={12} />
+      </span>
     </button>
   );
 }
