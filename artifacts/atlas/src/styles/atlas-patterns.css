@@ -14,6 +14,7 @@
   --layer-modal: 60;     /* suggest an edit, report a problem, submit a place */
   --layer-toast: 70;
   --layer-system: 80;    /* Turnstile */
+  --layer-sheet-float: 2; /* the phone's floating search and chips, inside the sheet's own stacking */
 
   /* Shell */
   --shell-card-width: 380px;
@@ -64,6 +65,11 @@
   --motion-map-camera-duration-max: 2500ms;
   --motion-map-camera-pan-duration: 1100ms;  /* a short glide, and the nudge that clears a hidden marker */
   --motion-map-camera-easing: cubic-bezier(0.37, 0, 0.63, 1);  /* sine ease-in-out */
+
+  /* Loops: the two animations that repeat. They have no role in the motion system, so reduced
+     motion turns each off by name in index.css */
+  --motion-loop-pulse: 1.5s;  /* the pending pin while a spot is being placed */
+  --motion-loop-spin: 1s;     /* the chat's working spinner */
 }
 
 /* Contain Leaflet's z-indexes within the map */

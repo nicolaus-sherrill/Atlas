@@ -26,11 +26,6 @@
   box-sizing: border-box;
 }
 
-:root {
-  /* Off the radius chart; moves to radius tokens with step 7 */
-  --radius: 10px;
-}
-
 html, body, #root {
   height: 100%;
   width: 100%;
@@ -73,7 +68,7 @@ html, body, #root {
 .btn-submit-place {
   padding: 10px 20px;
   border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   background: var(--color-surface-card);
   color: var(--color-text-primary);
   font-size: var(--type-body-s-font-size);
@@ -81,7 +76,7 @@ html, body, #root {
   font-family: inherit;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), border-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
   flex-shrink: 0;
 }
 
@@ -113,7 +108,7 @@ html, body, #root {
 
 .dropdown-trigger {
   padding: 5px 12px;
-  border-radius: 16px;
+  border-radius: var(--radius-full);
   border: 1px solid var(--color-border-control);
   background: var(--color-surface-card);
   color: var(--color-text-primary);
@@ -122,7 +117,7 @@ html, body, #root {
   font-family: inherit;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), border-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
   white-space: nowrap;
 }
 
@@ -145,8 +140,8 @@ html, body, #root {
   max-height: 260px;
   overflow-y: auto;
   background: var(--color-surface-card);
-  border-radius: var(--radius);
-  box-shadow: var(--elevation-floating);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elevation-overlay);
   padding: 4px 0;
 }
 
@@ -159,7 +154,7 @@ html, body, #root {
   letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter);
 }
 
 .dropdown-item:hover {
@@ -180,7 +175,7 @@ html, body, #root {
 
 .browse-chip {
   padding: 5px 12px;
-  border-radius: 16px;
+  border-radius: var(--radius-full);
   border: 1px solid var(--color-border-control);
   background: var(--color-surface-card);
   color: var(--color-text-primary);
@@ -189,7 +184,7 @@ html, body, #root {
   font-family: inherit;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), border-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
   white-space: nowrap;
 }
 
@@ -227,7 +222,7 @@ html, body, #root {
 
 .browse-table tbody tr.browse-row {
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter);
 }
 
 .browse-table tbody tr.browse-row:hover {
@@ -293,7 +288,7 @@ html, body, #root {
 .browse-tag-pill {
   display: inline-block;
   padding: 2px 8px;
-  border-radius: 10px;
+  border-radius: var(--radius-full);
   background: none;
   border: 1px solid var(--color-border-divider);
   font-size: var(--type-label-font-size);
@@ -318,7 +313,7 @@ html, body, #root {
   font-size: var(--type-body-s-font-size);
   letter-spacing: var(--type-body-s-letter-spacing);
   padding: 3px 10px;
-  border-radius: 6px;
+  border-radius: var(--radius-full);
 }
 
 .score-dots {
@@ -358,8 +353,8 @@ html, body, #root {
   letter-spacing: var(--type-body-s-letter-spacing);
   cursor: pointer;
   padding: 4px 8px;
-  border-radius: 4px;
-  transition: all 0.2s;
+  border-radius: var(--radius-sm);
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), border-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
 }
 
 .browse-map-link:hover {
@@ -425,7 +420,7 @@ html, body, #root {
 .browse-detail-map-btn {
   padding: 8px 16px;
   border: 1px solid var(--color-action-primary-bg);
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   background: var(--color-action-primary-bg);
   color: var(--color-action-primary-text);
   font-size: var(--type-body-s-font-size);
@@ -433,7 +428,7 @@ html, body, #root {
   font-family: inherit;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), border-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
 }
 
 .browse-detail-map-btn:hover {
@@ -454,14 +449,14 @@ html, body, #root {
   gap: 4px;
   padding: 6px 12px;
   border: 1px solid var(--color-border-control);
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--color-text-secondary);
   font-size: var(--type-body-s-font-size);
   letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), border-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
 }
 
 .browse-delete-btn:hover {
@@ -481,14 +476,14 @@ html, body, #root {
 .browse-delete-yes {
   padding: 4px 10px;
   border: 1px solid var(--color-action-destructive-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--color-action-destructive-text);
   font-size: var(--type-body-s-font-size);
   letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
   cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
 }
 
 .browse-delete-yes:active {
@@ -505,14 +500,14 @@ html, body, #root {
 .browse-delete-no {
   padding: 4px 10px;
   border: 1px solid var(--color-border-control);
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--color-text-primary);
   font-size: var(--type-body-s-font-size);
   letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), border-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
 }
 
 .browse-delete-no:hover {
@@ -560,7 +555,7 @@ html, body, #root {
   overflow: hidden;
   background: var(--color-surface-canvas);
   width: 100%;
-  border-radius: 0;
+  border-radius: var(--radius-none);
   box-shadow: none;
   transition:
     width var(--motion-layout-duration-exit) var(--motion-easing-exit),
@@ -1410,11 +1405,11 @@ a.details-group-row:hover .details-group-link {
   right: 0;
   background: var(--color-surface-card);
   border-top: none;
-  border-radius: 0 0 var(--radius) var(--radius);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   max-height: 240px;
   overflow-y: auto;
   z-index: var(--layer-popover);
-  box-shadow: var(--elevation-floating);
+  box-shadow: var(--elevation-overlay);
 }
 
 .geocode-result {
@@ -1433,7 +1428,7 @@ a.details-group-row:hover .details-group-link {
   color: var(--color-text-primary);
   font-family: inherit;
   line-height: var(--type-body-s-line-height);
-  transition: background 0.15s;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter);
 }
 
 .geocode-result:last-child {
@@ -1453,7 +1448,7 @@ a.details-group-row:hover .details-group-link {
 
 .category-chip {
   padding: 6px 12px;
-  border-radius: 20px;
+  border-radius: var(--radius-full);
   border: 1px solid var(--color-border-control);
   background: var(--color-surface-card);
   color: var(--color-text-primary);
@@ -1465,7 +1460,7 @@ a.details-group-row:hover .details-group-link {
   display: flex;
   align-items: center;
   gap: 4px;
-  transition: all 0.2s;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), border-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
 }
 
 .category-chip:hover {
@@ -1488,7 +1483,7 @@ a.details-group-row:hover .details-group-link {
   flex: 1;
   padding: 10px 16px;
   border: none;
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   background: var(--color-action-primary-bg);
   color: var(--color-action-primary-text);
   font-size: var(--type-body-s-font-size);
@@ -1496,7 +1491,7 @@ a.details-group-row:hover .details-group-link {
   font-family: inherit;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), border-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
 }
 
 .btn-primary:hover {
@@ -1506,7 +1501,7 @@ a.details-group-row:hover .details-group-link {
 .btn-secondary {
   padding: 10px 16px;
   border: 1px solid var(--color-border-control);
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   background: var(--color-surface-card);
   color: var(--color-text-primary);
   font-size: var(--type-body-s-font-size);
@@ -1514,7 +1509,7 @@ a.details-group-row:hover .details-group-link {
   font-family: inherit;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), border-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
 }
 
 .btn-secondary:hover {
@@ -1526,7 +1521,7 @@ a.details-group-row:hover .details-group-link {
   padding: 12px 14px;
   background: var(--color-surface-card);
   border: 1px solid var(--color-border-divider);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
 }
 
 .export-panel p {
@@ -1545,7 +1540,7 @@ a.details-group-row:hover .details-group-link {
   flex: 1;
   padding: 8px;
   border: 1px solid var(--color-border-control);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--color-surface-card);
   color: var(--color-text-primary);
   font-size: var(--type-body-s-font-size);
@@ -1553,7 +1548,7 @@ a.details-group-row:hover .details-group-link {
   font-family: inherit;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), border-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
 }
 
 .export-buttons button:hover {
@@ -1585,7 +1580,7 @@ a.details-group-row:hover .details-group-link {
 
 .sidebar-list::-webkit-scrollbar-thumb {
   background: var(--color-border-control);
-  border-radius: 2px;
+  border-radius: var(--radius-xs);
 }
 
 .spot-card {
@@ -1594,10 +1589,10 @@ a.details-group-row:hover .details-group-link {
   text-align: left;
   padding: 14px;
   border: 1px solid var(--color-border-divider);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   background: var(--color-surface-card);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), border-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
   margin-bottom: 8px;
   display: block;
   font-family: inherit;
@@ -1655,7 +1650,7 @@ a.details-group-row:hover .details-group-link {
   color: var(--color-action-primary-text);
   background: var(--color-action-primary-bg);
   padding: 2px 8px;
-  border-radius: 6px;
+  border-radius: var(--radius-full);
   flex-shrink: 0;
 }
 
@@ -1686,7 +1681,7 @@ a.details-group-row:hover .details-group-link {
 .spot-card-tag {
   display: inline-block;
   padding: 2px 7px;
-  border-radius: 8px;
+  border-radius: var(--radius-full);
   background: none;
   border: 1px solid var(--color-border-divider);
   font-size: var(--type-label-font-size);
@@ -1704,12 +1699,12 @@ a.details-group-row:hover .details-group-link {
   width: 24px;
   height: 24px;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--color-text-secondary);
   cursor: pointer;
   opacity: 0.35;
-  transition: all 0.2s;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), border-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
   padding: 0;
 }
 
@@ -1736,7 +1731,7 @@ a.details-group-row:hover .details-group-link {
   margin-top: 6px;
   padding: 6px 8px;
   background: var(--color-status-negative-surface);
-    border-radius: var(--radius);
+    border-radius: var(--radius-lg);
   font-size: var(--type-label-font-size);
   letter-spacing: var(--type-label-letter-spacing);
   color: var(--color-text-primary);
@@ -1745,14 +1740,14 @@ a.details-group-row:hover .details-group-link {
 .spot-card-delete-yes {
   padding: 3px 8px;
   border: 1px solid var(--color-action-destructive-border);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--color-action-destructive-text);
   font-size: var(--type-label-font-size);
   letter-spacing: var(--type-label-letter-spacing);
   font-family: inherit;
   cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
 }
 
 .spot-card-delete-yes:active {
@@ -1769,14 +1764,14 @@ a.details-group-row:hover .details-group-link {
 .spot-card-delete-no {
   padding: 3px 8px;
   border: 1px solid var(--color-border-control);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--color-text-primary);
   font-size: var(--type-label-font-size);
   letter-spacing: var(--type-label-letter-spacing);
   font-family: inherit;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), border-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
 }
 
 .spot-card-delete-no:hover {
@@ -1830,11 +1825,11 @@ a.details-group-row:hover .details-group-link {
   font-size: var(--type-body-l-font-size);
   color: var(--color-text-secondary);
   cursor: pointer;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), border-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
 }
 
 .spot-form-close:hover {
@@ -1848,7 +1843,7 @@ a.details-group-row:hover .details-group-link {
   gap: 8px;
   padding: 12px;
   background: var(--color-surface-raised);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   margin-bottom: 16px;
 }
 
@@ -1864,7 +1859,7 @@ a.details-group-row:hover .details-group-link {
   gap: 8px;
   padding: 10px 12px;
   background: var(--color-surface-raised);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   margin-bottom: 16px;
   font-size: var(--type-body-s-font-size);
   letter-spacing: var(--type-body-s-letter-spacing);
@@ -1885,7 +1880,7 @@ a.details-group-row:hover .details-group-link {
 .city-display {
   padding: 10px 12px;
   border: 1px solid var(--color-border-divider);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-size: var(--type-body-s-font-size);
   letter-spacing: var(--type-body-s-letter-spacing);
   background: var(--color-surface-raised);
@@ -1910,14 +1905,14 @@ a.details-group-row:hover .details-group-link {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--color-border-control);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-size: var(--type-body-s-font-size);
   letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
   background: var(--color-surface-card);
   color: var(--color-text-primary);
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color var(--motion-feedback-duration) var(--motion-easing-enter);
   resize: vertical;
 }
 
@@ -1936,7 +1931,7 @@ a.details-group-row:hover .details-group-link {
 .category-option {
   padding: 8px 10px;
   border: 1px solid var(--color-border-control);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--color-surface-card);
   color: var(--color-text-primary);
   font-size: var(--type-body-s-font-size);
@@ -1946,7 +1941,7 @@ a.details-group-row:hover .details-group-link {
   display: flex;
   align-items: center;
   gap: 6px;
-  transition: all 0.2s;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), border-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
 }
 
 .category-option:hover {
@@ -1963,7 +1958,7 @@ a.details-group-row:hover .details-group-link {
   width: 100%;
   padding: 12px;
   border: none;
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   background: var(--color-action-primary-bg);
   color: var(--color-action-primary-text);
   font-size: var(--type-body-s-font-size);
@@ -1971,7 +1966,7 @@ a.details-group-row:hover .details-group-link {
   font-family: inherit;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), border-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
   margin-top: 4px;
 }
 
@@ -2059,7 +2054,7 @@ a.details-group-row:hover .details-group-link {
 }
 .tag-chip {
   padding: 6px 14px;
-  border-radius: 20px;
+  border-radius: var(--radius-full);
   border: 1px solid var(--color-border-control);
   background: var(--color-surface-card);
   color: var(--color-text-secondary);
@@ -2067,7 +2062,7 @@ a.details-group-row:hover .details-group-link {
   letter-spacing: var(--type-body-s-letter-spacing);
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), border-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
   white-space: nowrap;
 }
 
@@ -2143,14 +2138,32 @@ a.details-group-row:hover .details-group-link {
   max-width: 480px;
   max-height: calc(100vh - 48px);
   overflow-y: auto;
-  border-radius: 12px;
+  border-radius: var(--radius-2xl);
   background: var(--color-surface-card);
   box-shadow: var(--elevation-overlay);
+  animation: chat-enter var(--motion-component-duration) var(--motion-easing-enter);
+}
+
+/* On a phone a modal is a full-width sheet from the bottom, rounded at the top */
+@media (max-width: 768px) {
+  .browse-modal-backdrop {
+    align-items: flex-end;
+    padding: calc(env(safe-area-inset-top) + 12px) 0 0;
+  }
+
+  .browse-modal {
+    max-width: none;
+    max-height: 100%;
+    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    animation-name: chat-sheet-enter;
+    animation-duration: var(--motion-layout-duration);
+  }
 }
 
 .browse-modal .spot-form {
   border: none;
-  border-radius: 0;
+  border-radius: var(--radius-none);
   box-shadow: none;
 }
 
@@ -2444,16 +2457,20 @@ a.details-group-row:hover .details-group-link {
 }
 
 .chat-steps-busy {
-  animation: spin 1s linear infinite;
+  animation: spin var(--motion-loop-spin) linear infinite;
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-/* Under reduced motion the spinner holds still; the words say it's working */
+/* Loops have no role to zero, so reduced motion stops each one by name. The spinner holds still
+   and the words say it's working; the pending pin stays put, outlined, with its plus */
 @media (prefers-reduced-motion: reduce) {
-  .chat-steps-busy { animation: none; }
+  .chat-steps-busy,
+  .atlas-pin.pending {
+    animation: none;
+  }
 }
 
 .chat-foot {
@@ -2595,7 +2612,7 @@ a.details-group-row:hover .details-group-link {
 .atlas-pin {
   width: 100%;
   height: 100%;
-  border-radius: 50% 50% 50% 0;
+  border-radius: var(--radius-full) var(--radius-full) var(--radius-full) var(--radius-none);
   transform: rotate(-45deg);
   display: flex;
   align-items: center;
@@ -2623,7 +2640,7 @@ a.details-group-row:hover .details-group-link {
   background: var(--color-map-marker-ring);
   color: var(--color-map-marker);
   box-shadow: inset 0 0 0 2px var(--color-map-marker), var(--elevation-floating);
-  animation: pin-pulse 1.5s ease-in-out infinite;
+  animation: pin-pulse var(--motion-loop-pulse) ease-in-out infinite;
 }
 
 @keyframes pin-pulse {
@@ -2644,7 +2661,7 @@ a.details-group-row:hover .details-group-link {
   padding: 12px;
   background: var(--color-surface-card);
   border: 1px solid var(--color-border-divider);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
 }
 
 .typical-busyness-header {
@@ -2672,14 +2689,14 @@ a.details-group-row:hover .details-group-link {
 .typical-day-btn {
   padding: 2px 6px;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: none;
   color: var(--color-text-secondary);
   font-size: var(--type-label-font-size);
   letter-spacing: var(--type-label-letter-spacing);
   font-family: inherit;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), border-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
 }
 
 .typical-day-btn:hover {
@@ -2718,9 +2735,9 @@ a.details-group-row:hover .details-group-link {
 
 .typical-bar-fill {
   width: 100%;
-  border-radius: 2px 2px 0 0;
+  border-radius: var(--radius-xs) var(--radius-xs) 0 0;
   min-height: 2px;
-  transition: height 0.3s ease;
+  transition: height var(--motion-component-duration) var(--motion-easing-enter);
 }
 
 .typical-bar-label {
@@ -2809,7 +2826,7 @@ a.details-group-row:hover .details-group-link {
   .app-shell.is-dragging { --sheet-height: var(--sheet-drag); }
 
   .app-shell[data-detent="full"] .list-card {
-    border-radius: 0;
+    border-radius: var(--radius-none);
     padding-top: calc(var(--sheet-float-top) + env(safe-area-inset-top));
   }
 
@@ -2879,7 +2896,7 @@ a.details-group-row:hover .details-group-link {
     position: fixed;
     top: calc(env(safe-area-inset-top) + 12px);
     inset-inline: 12px;
-    z-index: 2;
+    z-index: var(--layer-sheet-float);
     height: 48px;
     margin: 0;
     background: var(--color-surface-canvas);
@@ -2890,7 +2907,7 @@ a.details-group-row:hover .details-group-link {
     position: fixed;
     top: calc(env(safe-area-inset-top) + 68px);
     inset-inline: 0;
-    z-index: 2;
+    z-index: var(--layer-sheet-float);
     flex-wrap: nowrap;
     overflow-x: auto;
     padding: 4px 12px 8px;
@@ -2926,9 +2943,6 @@ a.details-group-row:hover .details-group-link {
     pointer-events: none;
   }
 
-  .chat-panel {
-    width: 100%;
-  }
 
   .browse-header-actions {
     flex-direction: column;
@@ -3038,7 +3052,7 @@ a.details-group-row:hover .details-group-link {
   margin-top: 8px;
   padding: 10px 12px;
   border: 1px solid var(--color-border-divider);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   background: var(--color-surface-card);
   font-size: var(--type-body-s-font-size);
   letter-spacing: var(--type-body-s-letter-spacing);
@@ -3105,14 +3119,14 @@ a.details-group-row:hover .details-group-link {
   align-items: center;
   padding: 8px 16px;
   border: 1px solid var(--color-border-control);
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   background: var(--color-surface-card);
   color: var(--color-text-primary);
   font-size: var(--type-body-s-font-size);
   letter-spacing: var(--type-body-s-letter-spacing);
   font-weight: 500;
   text-decoration: none;
-  transition: border-color 0.2s;
+  transition: border-color var(--motion-feedback-duration) var(--motion-easing-enter);
 }
 
 .browse-detail-link-btn:hover {
@@ -3153,7 +3167,7 @@ a.details-group-row:hover .details-group-link {
   gap: 12px;
   padding: 16px;
   border: 1px solid var(--color-border-control);
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   background: var(--color-surface-card);
   max-width: 360px;
 }
@@ -3226,7 +3240,7 @@ a.details-group-row:hover .details-group-link {
   max-width: 420px;
   padding: 20px;
   border: 1px solid var(--color-border-divider);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   background: var(--color-surface-card);
   line-height: 1.5;
 }
@@ -3248,14 +3262,14 @@ a.details-group-row:hover .details-group-link {
 .admin-signin input {
   padding: 10px 12px;
   border: 1px solid var(--color-border-control);
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   font: inherit;
 }
 
 .admin-btn {
   padding: 6px 12px;
   border: 1px solid var(--color-border-control);
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   background: var(--color-surface-card);
   color: var(--color-text-primary);
   font: inherit;
@@ -3295,7 +3309,7 @@ a.details-group-row:hover .details-group-link {
   gap: 6px;
   padding: 8px 14px;
   border: 1px solid var(--color-border-control);
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: var(--color-surface-card);
   color: var(--color-text-primary);
   font: inherit;
@@ -3312,7 +3326,7 @@ a.details-group-row:hover .details-group-link {
 .admin-count {
   min-width: 18px;
   padding: 0 6px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: var(--color-surface-inset);
   color: var(--color-text-primary);
   font-size: var(--type-label-font-size);
@@ -3329,7 +3343,7 @@ a.details-group-row:hover .details-group-link {
 .admin-card {
   padding: 16px;
   border: 1px solid var(--color-border-divider);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   background: var(--color-surface-card);
 }
 
@@ -3382,7 +3396,7 @@ a.details-group-row:hover .details-group-link {
   display: inline-block;
   margin: 0 4px 4px 0;
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: none;
   border: 1px solid var(--color-border-divider);
   font-size: var(--type-label-font-size);
@@ -3426,7 +3440,7 @@ a.details-group-row:hover .details-group-link {
 .admin-table-wrap {
   overflow-x: auto;
   border: 1px solid var(--color-border-divider);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   background: var(--color-surface-card);
 }
 
@@ -3581,7 +3595,7 @@ a.details-group-row:hover .details-group-link {
   margin: 0;
   padding: 10px 12px;
   border: 1px solid var(--color-border-control);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--color-surface-card);
   font-size: var(--type-body-s-font-size);
   font-weight: 400;
@@ -3624,17 +3638,6 @@ a.details-group-row:hover .details-group-link {
 :focus-visible {
   outline: var(--focus-width) solid var(--color-focus-ring);
   outline-offset: var(--focus-offset);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
 }
 
 /* The map's credit line takes the theme: a solid canvas strip, no translucency behind the text */
