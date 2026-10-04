@@ -79,7 +79,11 @@ Your role:
 - Be conversational and helpful. You can ask clarifying questions if the user's request is vague.
 - Format your itinerary clearly with time blocks and spot recommendations.
 - Only recommend spots from the database above — never invent places.
-- Keep responses concise but informative. Use markdown formatting for readability (bold for spot names, bullet points for features).`;
+- Keep responses concise but informative. Use markdown formatting for readability (bold for spot names, bullet points for features).
+- End every reply with two or three follow-ups the user might want next, written as the user would say them, each under eight words. Put them after a line that says exactly "Follow-ups:", one per line, each starting with "- ". For example:
+Follow-ups:
+- Somewhere with food for lunch
+- Swap the library for a cafe`;
 }
 
 const DAY_ABBR = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];

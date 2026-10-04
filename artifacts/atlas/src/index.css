@@ -2155,6 +2155,18 @@ a.details-group-row:hover .details-group-link {
   text-underline-offset: 2px;
 }
 
+.chat-follow-ups {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.chat-follow-ups .chat-arrow-row {
+  min-height: 36px;
+  border-top: 0;
+}
+
 /* The thread */
 .chat-thread {
   flex: 1;

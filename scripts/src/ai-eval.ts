@@ -10,6 +10,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { buildPlannerSystemPrompt, buildSummaryPrompt, toPlannerSpot as toSpotData } from "../../artifacts/atlas/worker/prompts";
 import { SEED_DATA } from "../../artifacts/atlas/src/lib/seed-data";
+import { splitFollowUps } from "../../artifacts/atlas/src/lib/follow-ups";
 import {
   SCORE_CATEGORY_LABELS,
   calcScore,
@@ -218,6 +219,7 @@ const CASES: Case[] = [
       const named = mentionedSpots(o, seeds);
       return [
         { name: "non-empty", pass: o.trim().length > 0 },
+        { name: "ends with 2-3 follow-ups", pass: splitFollowUps(o).followUps.length >= 2 },
         { name: "no invented places", pass: invented.length === 0, detail: invented.join("; ") },
         { name: "recommends 2+ spots", pass: named.length >= 2, detail: named.map((s) => s.name).join("; ") },
         { name: "every named spot is open 9-5 somewhere", pass: named.every((s) => openAt(s, 10 * 60) || openAt(s, 15 * 60)) },
@@ -237,6 +239,7 @@ const CASES: Case[] = [
       const closed = named.filter((s) => !openAt(s, 21 * 60 + 30));
       return [
         { name: "non-empty", pass: o.trim().length > 0 },
+        { name: "ends with 2-3 follow-ups", pass: splitFollowUps(o).followUps.length >= 2 },
         { name: "no invented places", pass: unknownBoldNames(o, seeds).length === 0, detail: unknownBoldNames(o, seeds).join("; ") },
         { name: "every named spot is open at 9:30pm", pass: closed.length === 0, detail: closed.map((s) => s.name).join("; ") },
       ];
@@ -252,6 +255,7 @@ const CASES: Case[] = [
     }),
     check: (o) => [
       { name: "non-empty", pass: o.trim().length > 0 },
+        { name: "ends with 2-3 follow-ups", pass: splitFollowUps(o).followUps.length >= 2 },
       { name: "no invented places", pass: unknownBoldNames(o, seeds).length === 0, detail: unknownBoldNames(o, seeds).join("; ") },
       { name: "says Atlas has nothing in Dallas", pass: /(no|don't|do not|doesn't|isn't|aren't|not)\b[^.]*\b(dallas|spots|listings)/i.test(o) },
     ],
@@ -266,6 +270,7 @@ const CASES: Case[] = [
     }),
     check: (o) => [
       { name: "non-empty", pass: o.trim().length > 0 },
+        { name: "ends with 2-3 follow-ups", pass: splitFollowUps(o).followUps.length >= 2 },
       { name: "doesn't recommend Starbucks", pass: !/\*\*[^*]*starbucks[^*]*\*\*/i.test(o) },
     ],
   },
@@ -279,6 +284,7 @@ const CASES: Case[] = [
     }),
     check: (o) => [
       { name: "non-empty", pass: o.trim().length > 0 },
+        { name: "ends with 2-3 follow-ups", pass: splitFollowUps(o).followUps.length >= 2 },
       { name: "asks a clarifying question", pass: o.includes("?") },
     ],
   },
@@ -294,6 +300,7 @@ const CASES: Case[] = [
       }),
       check: (o: string) => [
         { name: "non-empty", pass: o.trim().length > 0 },
+        { name: "ends with 2-3 follow-ups", pass: splitFollowUps(o).followUps.length >= 2 },
         { name: "no invented places", pass: unknownBoldNames(o, big).length === 0, detail: unknownBoldNames(o, big).join("; ") },
         { name: "recommends 2+ spots", pass: mentionedSpots(o, big).length >= 2 },
       ],

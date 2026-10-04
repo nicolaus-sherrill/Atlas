@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, Fragment } from "react";
 import type { WorkSpot } from "@/lib/types";
 import { CATEGORIES, calcScore, isOpenNow, getTodayHoursLabel } from "@/lib/types";
 import Icon from "./Icon";
+import { splitFollowUps } from "@/lib/follow-ups";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -216,6 +217,9 @@ export default function ChatPanel({ spots, onSpotSelect, onClose }: ChatPanelPro
                   <AgentReplies
                     items={run.items}
                     waiting={waiting && run.items.some(({ index }) => index === messages.length - 1)}
+                    // Follow-ups only under the latest reply, once it has finished
+                    showFollowUps={r === runs.length - 1 && !isStreaming}
+                    onFollowUp={(text) => sendMessage(text)}
                     spots={spots}
                     onSpotSelect={onSpotSelect}
                   />
@@ -276,17 +280,20 @@ function spotsNamedIn(text: string, spots: WorkSpot[], alreadyShown: Set<string>
 interface AgentRepliesProps {
   items: { message: ChatMessage; index: number }[];
   waiting: boolean;
+  showFollowUps: boolean;
+  onFollowUp: (text: string) => void;
   spots: WorkSpot[];
   onSpotSelect: (id: string) => void;
 }
 
 // One agent turn: each paragraph block is a bubble, and the first carries the point beside the
 // avatar. A spot named in a block gets a row under it.
-function AgentReplies({ items, waiting, spots, onSpotSelect }: AgentRepliesProps) {
+function AgentReplies({ items, waiting, showFollowUps, onFollowUp, spots, onSpotSelect }: AgentRepliesProps) {
   const shown = new Set<string>();
+  const followUps = splitFollowUps(items[items.length - 1].message.content).followUps;
   const blocks = items.flatMap(({ message, index }) =>
-    message.content
-      .split(/\n\s*\n/)
+    splitFollowUps(message.content)
+      .body.split(/\n\s*\n/)
       .map((text) => text.trim())
       .filter(Boolean)
       .map((text, b) => ({ key: `${index}-${b}`, text })),
@@ -315,6 +322,17 @@ function AgentReplies({ items, waiting, spots, onSpotSelect }: AgentRepliesProps
           ))}
         </div>
       ))}
+      {/* → rows under the group, outside the bubbles: what the planner suggests asking next */}
+      {showFollowUps && followUps.length > 0 && (
+        <div className="chat-follow-ups">
+          {followUps.map((text) => (
+            <button key={text} type="button" className="chat-arrow-row" onClick={() => onFollowUp(text)}>
+              <Icon name="arrow-right" weight="bold" size={16} />
+              {text}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
