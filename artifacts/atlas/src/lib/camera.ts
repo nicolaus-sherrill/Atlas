@@ -103,13 +103,14 @@ export function comfortablyInView(map: L.Map, latlng: L.LatLng, area: ClearArea,
 }
 
 // Glides only as far as it takes to bring latlng margin px inside the clear area. Does nothing
-// when it is already there.
-export function nudgeIntoView(map: L.Map, latlng: L.LatLngExpression, area: ClearArea, margin = 48) {
+// when it is already there. A wide marker passes a larger side margin, and a tall one a larger top
+// margin, so the whole marker clears the cards and not just its point.
+export function nudgeIntoView(map: L.Map, latlng: L.LatLngExpression, area: ClearArea, margin = 48, side = margin, top = margin) {
   const p = map.latLngToContainerPoint(latlng);
   let dx = 0, dy = 0;
-  if (p.x < area.left + margin) dx = p.x - (area.left + margin);
-  else if (p.x > area.right - margin) dx = p.x - (area.right - margin);
-  if (p.y < area.top + margin) dy = p.y - (area.top + margin);
+  if (p.x < area.left + side) dx = p.x - (area.left + side);
+  else if (p.x > area.right - side) dx = p.x - (area.right - side);
+  if (p.y < area.top + top) dy = p.y - (area.top + top);
   else if (p.y > area.bottom - margin) dy = p.y - (area.bottom - margin);
   if (!dx && !dy) return;
   const zoom = map.getZoom();

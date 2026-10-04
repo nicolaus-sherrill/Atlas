@@ -8,8 +8,8 @@ import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&ur
 
 // The production bundle has to ship MapLibre's worker itself; the dev server resolves it on its own.
 if (import.meta.env.PROD) setWorkerUrl(maplibreWorkerUrl);
-import type { WorkSpot, Category } from "@/lib/types";
-import { CATEGORIES } from "@/lib/types";
+import type { WorkSpot } from "@/lib/types";
+import { CATEGORIES, calcScore } from "@/lib/types";
 import { iconSvg } from "@/lib/icons";
 import { moveCamera, nudgeIntoView, comfortablyInView, type ClearArea } from "@/lib/camera";
 
@@ -19,19 +19,32 @@ const BASEMAP = {
   dark: "https://tiles.openfreemap.org/styles/dark",
 };
 
-// A teardrop pin per category: the pin colour comes from map.pin.<category>, the icon from map.pin.icon.
-// The square is turned 45 degrees, so its pointed corner lands s/2 + s/sqrt(2) below the box's top.
-// Today's pins stay in Atlas Light on either basemap: their green-50 halo is what keeps the dark
-// coworking pin visible on the dark map (Decision 6). Step 8 replaces them with inverting markers.
-function createMarkerIcon(category: Category, selected = false): L.DivIcon {
-  const cat = CATEGORIES.find((c) => c.value === category);
-  const size = selected ? 36 : 28;
-  const tip = Math.round(size / 2 + size / Math.SQRT2);
+function escapeHtml(text: string): string {
+  return text.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+}
+
+// The tip, hung from the pill's bottom edge and never inside it: an outer triangle in the stroke
+// colour that continues the pill's stroke, and an inner one in the fill, inset by the stroke's
+// width, that opens it. The stroke meets the pill's outline at two corners. Its point is the spot.
+const TIP = `<svg class="pin-tip" viewBox="0 0 14 8" aria-hidden="true"><polygon class="pin-tip-o" points="0,0 14,0 7,7"/><polygon class="pin-tip-i" points="2.83,0 11.17,0 7,4.17"/></svg>`;
+
+// The score pill (Decision 5, direction 4). At rest: the category's colour, its icon and the score.
+// Selected: the card's surface with the category as the stroke, the icon in the neutral ink, then
+// the name, then the score in the list's chip. Hover shows the name above. Colours come from the
+// --pin-* Patterns tokens, which follow the theme.
+function createMarkerIcon(spot: WorkSpot, selected = false): L.DivIcon {
+  const cat = CATEGORIES.find((c) => c.value === spot.category);
+  const score = calcScore(spot.scores, spot.tags).toFixed(1);
+  const icon = iconSvg(cat?.icon ?? "map-pin", "fill", selected ? 16 : 12);
+  const name = escapeHtml(spot.name);
+  const body = selected
+    ? `${icon}<span class="pin-name">${name}</span><span class="pin-chip">${score}</span>`
+    : `${icon}<span>${score}</span>`;
   return L.divIcon({
     className: "atlas-marker",
-    html: `<div class="atlas-pin ${category}${selected ? " selected" : ""}" data-theme="light">${iconSvg(cat?.icon ?? "map-pin", "fill", selected ? 18 : 14)}</div>`,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, tip],
+    // No size: the pin sizes itself, and CSS lifts it so the tip's point sits on the spot
+    iconSize: undefined,
+    html: `<div class="pin pin-${spot.category}${selected ? " is-selected" : ""}"><span class="pin-label">${name}</span><span class="pin-pill">${body}${TIP}</span></div>`,
   });
 }
 
@@ -106,7 +119,13 @@ export default function MapView({ spots, selection, centreEveryPick, getClearAre
       let marker = markersRef.current.get(spot.id);
       if (!marker) {
         marker = L.marker([spot.lat, spot.lng], {
-          icon: createMarkerIcon(spot.category, spot.id === selectedIdRef.current),
+          icon: createMarkerIcon(spot, spot.id === selectedIdRef.current),
+          // the name for assistive tech and the browser's own tooltip, and keyboard focus
+          title: spot.name,
+          alt: spot.name,
+          keyboard: true,
+          riseOnHover: true,
+          zIndexOffset: spot.id === selectedIdRef.current ? 1000 : 0,
         }).addTo(map);
 
         marker.on("click", () => onMarkerSelectRef.current(spot.id));
@@ -114,7 +133,7 @@ export default function MapView({ spots, selection, centreEveryPick, getClearAre
         markersRef.current.set(spot.id, marker);
       } else {
         marker.setLatLng([spot.lat, spot.lng]);
-        marker.setIcon(createMarkerIcon(spot.category, spot.id === selectedIdRef.current));
+        marker.setIcon(createMarkerIcon(spot, spot.id === selectedIdRef.current));
       }
     });
   }, [spots]);
@@ -129,7 +148,11 @@ export default function MapView({ spots, selection, centreEveryPick, getClearAre
       if (!id) continue;
       const spot = spots.find((s) => s.id === id);
       const m = markersRef.current.get(id);
-      if (spot && m) m.setIcon(createMarkerIcon(spot.category, id === selectedId));
+      if (spot && m) {
+        m.setIcon(createMarkerIcon(spot, id === selectedId));
+        // the selected pill sits over its neighbours
+        m.setZIndexOffset(id === selectedId ? 1000 : 0);
+      }
     }
   }, [selectedId, spots]);
 
@@ -147,7 +170,12 @@ export default function MapView({ spots, selection, centreEveryPick, getClearAre
     const frame = requestAnimationFrame(() => {
       const area = getClearAreaRef.current(map);
       if (selection.source === "marker") {
-        nudgeIntoView(map, target, area);
+        // The selected pill is wider and taller than the margin, and hangs above and to both sides
+        // of its point, so clear its measured box with 16px to spare
+        const pin = markersRef.current.get(spot.id)?.getElement()?.querySelector<HTMLElement>(".pin");
+        const side = pin ? Math.max(48, pin.offsetWidth / 2 + 16) : 48;
+        const top = pin ? Math.max(48, pin.offsetHeight + 16) : 48;
+        nudgeIntoView(map, target, area, 48, side, top);
         return;
       }
       const zoomedOut = map.getZoom() < 13;

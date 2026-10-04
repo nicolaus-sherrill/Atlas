@@ -2547,31 +2547,133 @@ a.details-group-row:hover .details-group-link {
   border: none !important;
 }
 
-/* Map pins: a teardrop per category, an inverse icon, a halo in the map's ring colour */
-.atlas-pin {
-  width: 100%;
-  height: 100%;
-  border-radius: var(--radius-full) var(--radius-full) var(--radius-full) var(--radius-none);
-  transform: rotate(-45deg);
+/* ========== MAP PINS: THE SCORE PILL (step 8, Decision 5) ==========
+   Leaflet places the marker element on the spot with no size; the pin inside lifts itself by its
+   own width and height so the tip's point lands on the spot. Colours are the --pin-* Patterns */
+.pin {
+  --fill: var(--pin-cafe);
+  position: absolute;
+  left: 0;
+  top: 0;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 7px;
+  transform: translate(-50%, -100%);
+  transform-origin: 50% 100%;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.14)) drop-shadow(0 3px 6px rgb(0 0 0 / 0.12));
+  transition: transform var(--motion-feedback-duration) var(--motion-easing-enter);
+}
+
+.pin-cafe { --fill: var(--pin-cafe); }
+.pin-library { --fill: var(--pin-library); }
+.pin-coworking { --fill: var(--pin-coworking); }
+.pin-park { --fill: var(--pin-park); }
+
+.pin-pill {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 7px 0 5px;
+  border-radius: var(--radius-full);
+  background: var(--fill);
+  color: var(--pin-text);
+  box-shadow: 0 0 0 2px var(--pin-stroke);
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
+  font-weight: var(--font-weight-medium);
+  font-feature-settings: var(--font-feature-settings-numeric);
+  white-space: nowrap;
+}
+
+.pin-pill .icon {
+  vertical-align: 0;
+}
+
+/* The tip hangs from the pill's bottom edge: the outer triangle continues the stroke, the inner
+   one, in the fill, opens it */
+.pin-tip {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 14px;
+  height: 8px;
+  margin-left: -7px;
+  overflow: visible;
+}
+
+.pin-tip-o { fill: var(--pin-stroke); }
+.pin-tip-i { fill: var(--fill); }
+
+/* Selected: the card's surface, the category as the stroke, the icon in the neutral ink, then the
+   name and the score in the list's chip */
+.pin.is-selected .pin-pill {
+  gap: 6px;
+  height: 30px;
+  padding: 0 4px 0 9px;
+  background: var(--pin-paper);
+  color: var(--pin-ink);
+  box-shadow: 0 0 0 2px var(--fill);
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
+}
+
+.pin.is-selected .pin-tip-o { fill: var(--fill); }
+.pin.is-selected .pin-tip-i { fill: var(--pin-paper); }
+
+.pin-chip {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-map-pin-icon);
-  box-shadow: 0 0 0 2px var(--color-map-marker-ring), var(--elevation-floating);
+  min-width: 30px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-score-bg);
+  color: var(--color-score-text);
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
 }
 
-.atlas-pin svg {
-  transform: rotate(45deg);
+/* Hover and keyboard focus show the name above and lift the pin a little; the map never moves */
+.pin-label {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--pin-paper);
+  color: var(--pin-ink);
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--motion-feedback-duration) var(--motion-easing-enter);
 }
 
-.atlas-pin.cafe { background: var(--color-map-pin-cafe); }
-.atlas-pin.library { background: var(--color-map-pin-library); }
-.atlas-pin.coworking { background: var(--color-map-pin-coworking); }
-.atlas-pin.park { background: var(--color-map-pin-park); }
+.atlas-marker:hover .pin,
+.atlas-marker:focus-visible .pin {
+  transform: translate(-50%, -100%) scale(1.08);
+}
 
-/* Selected: larger, with an ink ring outside the halo */
-.atlas-pin.selected {
-  box-shadow: 0 0 0 2px var(--color-map-marker-ring), 0 0 0 4px var(--color-map-marker), var(--elevation-floating);
+.atlas-marker:hover .pin:not(.is-selected) .pin-label,
+.atlas-marker:focus-visible .pin:not(.is-selected) .pin-label {
+  opacity: 1;
+}
+
+.atlas-marker:focus-visible {
+  outline: none;
+}
+
+.atlas-marker:focus-visible .pin-pill {
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: calc(var(--focus-offset) + 2px);
 }
 
 /* ========== CROWD REPORTING ========== */

@@ -61,6 +61,19 @@
      it marks the field without reading as a border, and is decoration rather than a 3:1 boundary */
   --field-edge: var(--color-green-300);
 
+  /* Map pins, the score pill (step 8). Each category keeps a colour, deep enough that the score
+     on it clears 4.5:1: cafe 6.38, library 4.96, coworking 9.12, park 4.69. The user's choice,
+     2026-10-04: the deep set on both maps, a light stroke on Positron and a dark one on the dark map.
+     Selected, the pill takes the card's surface and the ink, with the category as its stroke */
+  --pin-cafe: var(--color-ochre-700);
+  --pin-library: var(--color-blue-600);
+  --pin-coworking: var(--color-neutral-800);
+  --pin-park: var(--color-green-600);
+  --pin-text: var(--color-green-50);
+  --pin-stroke: var(--color-green-50);
+  --pin-paper: var(--color-surface-card);
+  --pin-ink: var(--color-text-primary);
+
   /* What sits on the green tint of an open row (tags, the crowd row) steps one surface lighter to
      stay visible: the card in light (1.12:1), green-800 in dark (1.30:1), where the card is the
      tint's own colour */
@@ -102,6 +115,9 @@
     --bubble-text: var(--color-text-primary);
     --field-edge: var(--color-green-700);
     --surface-on-tint: var(--color-green-800);
+    --pin-stroke: var(--color-green-950);
+    --pin-paper: var(--color-surface-card);
+    --pin-ink: var(--color-text-primary);
   }
 }
 [data-theme="dark"] {
@@ -113,4 +129,7 @@
   --bubble-text: var(--color-text-primary);
   --field-edge: var(--color-green-700);
   --surface-on-tint: var(--color-green-800);
+  --pin-stroke: var(--color-green-950);
+  --pin-paper: var(--color-surface-card);
+  --pin-ink: var(--color-text-primary);
 }
