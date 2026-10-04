@@ -50,7 +50,10 @@ Thumbs.db
 
 # local embedded Postgres data
 .local-db
-/.env
+
+# Secrets: every .env, in any folder. The one exception holds only values that are public by design
+.env
+!artifacts/atlas/.env
 
 # model eval reports
 .ai-eval

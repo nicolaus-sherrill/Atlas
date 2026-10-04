@@ -635,13 +635,19 @@ html, body, #root {
 }
 
 /* The licence line and, at its end, the quiet theme switch */
+/* Made by and the version on the top line, level with the theme switch; the licence below */
 .sidebar-licence,
 .browse-footer {
   display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.footer-top {
+  display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px 16px;
+  gap: 16px;
 }
 
 .sidebar-licence p,

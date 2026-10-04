@@ -4,6 +4,7 @@ import { CATEGORIES, calcScore, getSpotDisplayTags, TAGS, isOpenNow, getTodayHou
 import SpotReveal from "./SpotReveal";
 import MultiSelectDropdown from "./MultiSelectDropdown";
 import Icon from "./Icon";
+import MadeBy from "./MadeBy";
 import PlaceResults from "./PlaceResults";
 import type { GeocodingResult } from "@/lib/geocode";
 import { matchesQuery } from "@/lib/search";
@@ -238,6 +239,11 @@ export default function BrowseView({ spots, onSpotSelect, onRated, onNotice, cro
       </div>
 
       <footer className="browse-footer">
+        {/* The top line sits level with the theme switch; the licence moves down a line */}
+        <div className="footer-top">
+          <MadeBy />
+          {themeToggle}
+        </div>
         <p>
           Atlas's spot data is open under the{" "}
           <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noreferrer">
@@ -249,7 +255,6 @@ export default function BrowseView({ spots, onSpotSelect, onRated, onNotice, cro
           </a>
           .
         </p>
-        {themeToggle}
       </footer>
 
     </div>

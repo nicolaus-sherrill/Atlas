@@ -5,6 +5,7 @@ import { spotsToGeoJSON, spotsToKML, downloadFile } from "@/lib/export";
 import type { GeocodingResult } from "@/lib/geocode";
 import { matchesQuery } from "@/lib/search";
 import Icon from "./Icon";
+import MadeBy from "./MadeBy";
 import PlaceResults from "./PlaceResults";
 
 interface SidebarProps {
@@ -137,6 +138,11 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
         )}
         <PlaceResults places={places} loading={placesLoading} onPick={onPickPlace} />
         <div className="sidebar-licence">
+          {/* The top line sits level with the theme switch; the licence moves down a line */}
+          <div className="footer-top">
+            <MadeBy />
+            {themeToggle}
+          </div>
           <p>
             Spot data is open under the{" "}
             <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noreferrer">
@@ -144,7 +150,6 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
             </a>
             .
           </p>
-          {themeToggle}
         </div>
       </div>
     </aside>
