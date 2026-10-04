@@ -47,7 +47,7 @@ export default function RateSpot({ spotId, onRated }: RateSpotProps) {
   if (!open) {
     return (
       <div className="rate-spot">
-        <button type="button" className="browse-detail-link-btn" onClick={(e) => { e.stopPropagation(); setOpen(true); setStatus("idle"); }}>
+        <button type="button" className="btn-outline btn-compact" onClick={(e) => { e.stopPropagation(); setOpen(true); setStatus("idle"); }}>
           {hasRated ? "Change your rating" : "Rate this spot"}
         </button>
         {status === "saved" && <span className="rate-spot-note">Thanks. Your rating is in the average.</span>}
@@ -78,10 +78,10 @@ export default function RateSpot({ spotId, onRated }: RateSpotProps) {
       </div>
       {error && <p className="rate-spot-error">{error}</p>}
       <div className="rate-spot-actions">
-        <button type="button" className="browse-detail-map-btn" onClick={save} disabled={status === "saving"}>
+        <button type="button" className="btn-solid btn-compact" onClick={save} disabled={status === "saving"}>
           {status === "saving" ? "Saving..." : hasRated ? "Update rating" : "Submit rating"}
         </button>
-        <button type="button" className="browse-detail-link-btn" onClick={() => setOpen(false)}>
+        <button type="button" className="btn-ghost btn-compact" onClick={() => setOpen(false)}>
           Cancel
         </button>
       </div>

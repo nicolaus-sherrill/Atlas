@@ -1,11 +1,9 @@
 import { useState, useMemo, Fragment } from "react";
 import type { WorkSpot, Category } from "@/lib/types";
-import { CATEGORIES, calcScore, getSpotDisplayTags, TAGS, SCORE_CATEGORIES, SCORE_CATEGORY_LABELS } from "@/lib/types";
-import RateSpot from "./RateSpot";
+import { CATEGORIES, calcScore, getSpotDisplayTags, TAGS, isOpenNow, getTodayHoursLabel } from "@/lib/types";
 import SuggestEditModal from "./SuggestEditModal";
 import ReportProblemModal from "./ReportProblemModal";
-import ScoreDots from "./ScoreDots";
-import TypicalBusyness from "./TypicalBusyness";
+import SpotReveal from "./SpotReveal";
 import MultiSelectDropdown from "./MultiSelectDropdown";
 import Icon from "./Icon";
 import PlaceResults from "./PlaceResults";
@@ -27,6 +25,9 @@ interface BrowseViewProps {
 }
 
 const ALL_FILTER_TAGS = TAGS.map((t) => t.label);
+
+// The row shows this many tags; the reveal lists only the rest, so it never repeats the row
+const ROW_TAGS = 3;
 
 export default function BrowseView({ spots, onSpotSelect, onRated, onNotice, query, places, placesLoading, onPickPlace, onDeleteSpot }: BrowseViewProps) {
   const [editingSpot, setEditingSpot] = useState<WorkSpot | null>(null);
@@ -128,6 +129,7 @@ export default function BrowseView({ spots, onSpotSelect, onRated, onNotice, que
               <th className="col-name">Spot</th>
               <th className="col-city">City</th>
               <th className="col-category">Type</th>
+              <th className="col-today">Today</th>
               <th className="col-tags">Tags</th>
               <th className="col-score">Score</th>
               <th className="col-map">Map</th>
@@ -137,14 +139,23 @@ export default function BrowseView({ spots, onSpotSelect, onRated, onNotice, que
             {filtered.map((spot, i) => {
               const cat = CATEGORIES.find((c) => c.value === spot.category);
               const score = calcScore(spot.scores, spot.tags);
-              const displayTags = getSpotDisplayTags(spot).slice(0, 3);
               const allTags = getSpotDisplayTags(spot);
               const isExpanded = expandedId === spot.id;
+              const open = spot.operatingHours ? isOpenNow(spot.operatingHours) : null;
+              const toggle = () => setExpandedId(isExpanded ? null : spot.id);
               return (
                 <Fragment key={spot.id}>
                   <tr
                     className={`browse-row ${isExpanded ? "expanded" : ""}`}
-                    onClick={() => setExpandedId(isExpanded ? null : spot.id)}
+                    onClick={toggle}
+                    onKeyDown={(e) => {
+                      if ((e.key === "Enter" || e.key === " ") && e.target === e.currentTarget) {
+                        e.preventDefault();
+                        toggle();
+                      }
+                    }}
+                    tabIndex={0}
+                    aria-expanded={isExpanded}
                   >
                     <td className="col-num">{String(i + 1).padStart(2, "0")}</td>
                     <td className="col-name">{spot.name}</td>
@@ -152,14 +163,23 @@ export default function BrowseView({ spots, onSpotSelect, onRated, onNotice, que
                     <td className="col-category">
                       <span className="browse-category-badge">{cat && <Icon name={cat.icon} weight="bold" size={16} />} {cat?.label}</span>
                     </td>
+                    <td className="col-today">
+                      {spot.operatingHours ? (
+                        <span className={`details-hours ${open ? "open" : "closed"}`}>
+                          <span className="hours-dot" aria-hidden="true" />
+                          <span className="details-hours-state">{open ? "Open" : "Closed"}</span>
+                          <span>{getTodayHoursLabel(spot.operatingHours)}</span>
+                        </span>
+                      ) : (
+                        <span className="browse-muted">No hours yet</span>
+                      )}
+                    </td>
                     <td className="col-tags">
                       <div className="browse-tag-pills">
-                        {displayTags.map((t) => (
+                        {allTags.slice(0, ROW_TAGS).map((t) => (
                           <span key={t} className="browse-tag-pill">{t}</span>
                         ))}
-                        {allTags.length > 3 && (
-                          <span className="browse-tag-pill more">+{allTags.length - 3}</span>
-                        )}
+                        {allTags.length > ROW_TAGS && <span className="browse-tag-pill more">+{allTags.length - ROW_TAGS}</span>}
                       </div>
                     </td>
                     <td className="col-score">
@@ -167,140 +187,39 @@ export default function BrowseView({ spots, onSpotSelect, onRated, onNotice, que
                     </td>
                     <td className="col-map">
                       <button
+                        type="button"
                         className="browse-map-link"
+                        aria-label={`Show ${spot.name} on the map`}
                         onClick={(e) => {
                           e.stopPropagation();
                           onSpotSelect(spot.id);
                         }}
                       >
-                        {spot.lat.toFixed(4)},{spot.lng.toFixed(4)}
+                        <span className="browse-coord">{spot.lat.toFixed(4)}, {spot.lng.toFixed(4)}</span>
+                        <Icon name="arrow-right" weight="bold" size={16} />
                       </button>
-                      <span className="browse-arrow">&rarr;</span>
                     </td>
                   </tr>
                   {isExpanded && (
                     <tr className="browse-detail-row">
-                      <td colSpan={7}>
-                        <div className="browse-detail">
-                          <div className="browse-detail-main">
-                            {spot.aiSummary && (
-                              <p className="browse-detail-summary">{spot.aiSummary}</p>
-                            )}
-                            {spot.description && !spot.aiSummary && (
-                              <p className="browse-detail-desc">{spot.description}</p>
-                            )}
-                            {spot.description && spot.aiSummary && (
-                              <p className="browse-detail-desc">{spot.description}</p>
-                            )}
-                          </div>
-                          <div className="browse-detail-meta">
-                            <div className="browse-detail-score-summary">
-                              <span className="browse-score">{score.toFixed(1)}</span>
-                              {spot.ratingCount !== undefined && (
-                                <span className="browse-rating-count">
-                                  {spot.ratingCount === 1 ? "1 rating" : `${spot.ratingCount} ratings`}
-                                </span>
-                              )}
-                            </div>
-                            <div className="browse-detail-category-scores">
-                              {(Object.keys(spot.scores) as Array<keyof typeof spot.scores>).map((key) => (
-                                <div key={key} className="browse-detail-category-score">
-                                  <span className="browse-detail-category-name">{SCORE_CATEGORY_LABELS[key]}</span>
-                                  <ScoreDots score={spot.scores[key]} className="browse-detail-category-value score-dots" />
-                                </div>
-                              ))}
-                            </div>
-                            <div className="browse-detail-tags">
-                              {allTags.map((t) => (
-                                <span key={t} className="browse-tag-pill">{t}</span>
-                              ))}
-                            </div>
-                            <TypicalBusyness spotId={spot.id} />
-                            <RateSpot spotId={spot.id} onRated={onRated} />
-                          </div>
-                          <div className="browse-detail-actions">
-                            <button
-                              className="browse-detail-map-btn"
-                              onClick={() => onSpotSelect(spot.id)}
-                            >
-                              View on Map &rarr;
-                            </button>
-                            <button
-                              type="button"
-                              className="browse-detail-link-btn"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setEditingSpot(spot);
-                              }}
-                            >
-                              Suggest an edit
-                            </button>
-                            <button
-                              type="button"
-                              className="browse-detail-link-btn"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setReportingSpot(spot);
-                              }}
-                            >
-                              Report a problem
-                            </button>
-                            {spot.website && (
-                              <a
-                                className="browse-detail-link-btn"
-                                href={spot.website}
-                                target="_blank"
-                                rel="noreferrer"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                Website &#8599;
-                              </a>
-                            )}
-                            {onDeleteSpot && (confirmDeleteId === spot.id ? (
-                              <div className="browse-delete-confirm">
-                                <span>Delete this spot?</span>
-                                <button
-                                  className="browse-delete-yes"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onDeleteSpot(spot.id);
-                                    setConfirmDeleteId(null);
-                                    setExpandedId(null);
-                                  }}
-                                >
-                                  Yes, delete
-                                </button>
-                                <button
-                                  className="browse-delete-no"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setConfirmDeleteId(null);
-                                  }}
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            ) : (
-                              <button
-                                className="browse-delete-btn"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setConfirmDeleteId(spot.id);
-                                }}
-                                title="Delete spot"
-                              >
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <polyline points="3 6 5 6 21 6" />
-                                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                                  <path d="M10 11v6" />
-                                  <path d="M14 11v6" />
-                                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                                </svg>
-                                Delete
-                              </button>
-                            ))}
-                          </div>
-                        </div>
+                      <td colSpan={8}>
+                        <SpotReveal
+                          spot={spot}
+                          allTags={allTags}
+                          hiddenTags={allTags.slice(ROW_TAGS)}
+                          confirmingDelete={confirmDeleteId === spot.id}
+                          onShowOnMap={() => onSpotSelect(spot.id)}
+                          onEdit={() => setEditingSpot(spot)}
+                          onReport={() => setReportingSpot(spot)}
+                          onRated={onRated}
+                          onDeleteAsk={onDeleteSpot ? () => setConfirmDeleteId(spot.id) : undefined}
+                          onDeleteCancel={() => setConfirmDeleteId(null)}
+                          onDeleteConfirm={() => {
+                            onDeleteSpot?.(spot.id);
+                            setConfirmDeleteId(null);
+                            setExpandedId(null);
+                          }}
+                        />
                       </td>
                     </tr>
                   )}

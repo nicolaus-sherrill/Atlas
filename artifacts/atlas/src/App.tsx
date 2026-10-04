@@ -306,7 +306,6 @@ function App() {
                 places={places}
                 placesLoading={placesLoading}
                 onPickPlace={handlePickPlace}
-                onDeleteSpot={isAdmin ? handleDeleteSpot : undefined}
               />
             </div>
             {!isWide && detailsSpot && (

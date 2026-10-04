@@ -11,7 +11,7 @@ export default function HoursEditor({ value, onChange }: HoursEditorProps) {
     return (
       <div className="hours-editor-empty">
         <span>Hours unknown</span>
-        <button type="button" className="browse-detail-link-btn" onClick={() => onChange({ ...DEFAULT_OPERATING_HOURS })}>
+        <button type="button" className="btn-outline btn-compact" onClick={() => onChange({ ...DEFAULT_OPERATING_HOURS })}>
           Add hours
         </button>
       </div>
