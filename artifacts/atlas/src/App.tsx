@@ -16,7 +16,7 @@ import { useBottomSheet, detentHeights, type Detent } from "@/hooks/use-bottom-s
 import type L from "leaflet";
 import { usePlaceSearch } from "@/hooks/use-place-search";
 import type { GeocodingResult } from "@/lib/geocode";
-import { fetchSpots, addSpot, removeSpot, requestSummary, DuplicatePlaceError } from "@/lib/store";
+import { fetchSpots, addSpot, deleteSpot, requestSummary, DuplicatePlaceError } from "@/lib/store";
 import { useIsAdmin } from "@/lib/admin";
 import type { WorkSpot } from "@/lib/types";
 
@@ -182,11 +182,11 @@ function App() {
 
   const handleDeleteSpot = useCallback(async (id: string) => {
     try {
-      await removeSpot(id);
+      await deleteSpot(id);
       setSpots((prev) => prev.filter((s) => s.id !== id));
       if (selectedSpotId === id) select(null);
     } catch {
-      setNotice("Couldn't remove that spot.");
+      setNotice("Couldn't delete that spot.");
     }
   }, [selectedSpotId, select]);
 

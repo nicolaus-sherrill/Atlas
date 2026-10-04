@@ -16,7 +16,6 @@ export interface SpotSnapshot {
   description: string;
   operating_hours: OperatingHours | null;
   website: string | null;
-  status: string;
 }
 
 export interface PendingEdit {
@@ -35,7 +34,7 @@ export interface ProblemReport {
   details: string;
   status: "open" | "resolved" | "dismissed";
   created_at: string;
-  spot: { name: string; status: string; city: string } | null;
+  spot: { name: string; city: string } | null;
 }
 
 export interface AdminRating {
@@ -55,14 +54,13 @@ export interface AdminSpot {
   city: string;
   address: string;
   category: string;
-  status: "published" | "removed";
   osm_type: string | null;
   osm_id: number | null;
   rating_count: number;
   created_at: string;
 }
 
-const SNAPSHOT = "name, category, city, address, lat, lng, tags, description, operating_hours, website, status";
+const SNAPSHOT = "name, category, city, address, lat, lng, tags, description, operating_hours, website";
 
 function check<T>(result: { data: T | null; error: { message: string } | null }): T {
   if (result.error) throw new Error(result.error.message);
@@ -104,7 +102,7 @@ export async function fetchReports(status: ProblemReport["status"] = "open"): Pr
   return check(
     await supabase
       .from("spot_reports")
-      .select("id, spot_id, reason, details, status, created_at, spot:spots(name, status, city)")
+      .select("id, spot_id, reason, details, status, created_at, spot:spots(name, city)")
       .eq("status", status)
       .order("created_at", { ascending: true }),
   ) as unknown as ProblemReport[];
@@ -145,11 +143,31 @@ export async function fetchAllSpots(): Promise<AdminSpot[]> {
   return check(
     await supabase
       .from("spots")
-      .select("id, name, city, address, category, status, osm_type, osm_id, rating_count, created_at")
+      .select("id, name, city, address, category, osm_type, osm_id, rating_count, created_at")
       .order("created_at", { ascending: false }),
   ) as AdminSpot[];
 }
 
-export async function setSpotStatus(id: string, status: AdminSpot["status"]): Promise<void> {
-  check(await supabase.from("spots").update({ status }).eq("id", id));
+// Deletes the spot and everything attached to it. The database archives a copy first.
+export async function deleteSpot(id: string): Promise<void> {
+  const deleted = check(await supabase.from("spots").delete().eq("id", id).select("id"));
+  if (!deleted?.length) throw new Error("That spot wasn't deleted. It may already be gone.");
+}
+
+export interface DeletedSpot {
+  id: number;
+  spot_id: string;
+  name: string;
+  city: string;
+  rating_count: number;
+  deleted_at: string;
+}
+
+// Deleted spots are kept for 90 days, then purged
+export async function fetchDeletedSpots(): Promise<DeletedSpot[]> {
+  return check(await supabase.rpc("list_deleted_spots")) as DeletedSpot[];
+}
+
+export async function restoreSpot(archiveId: number): Promise<void> {
+  check(await supabase.rpc("restore_spot", { p_archive_id: archiveId }));
 }

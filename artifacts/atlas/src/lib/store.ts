@@ -105,8 +105,10 @@ export async function requestSummary(id: string): Promise<boolean> {
   }
 }
 
-// Admin only. Hides the spot from the public map; the row and its history stay recoverable.
-export async function removeSpot(id: string): Promise<void> {
-  const { error } = await supabase.from("spots").update({ status: "removed" }).eq("id", id);
+// Admin only. Deletes the spot; the database archives it first, restorable from the admin page.
+export async function deleteSpot(id: string): Promise<void> {
+  const { data, error } = await supabase.from("spots").delete().eq("id", id).select("id");
   if (error) throw error;
+  // Row-level security turns a non-admin's delete into a silent no-op, not an error
+  if (!data?.length) throw new Error("Spot not deleted");
 }

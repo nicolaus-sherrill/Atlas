@@ -36,13 +36,13 @@ async function asAdmin() {
 await db.exec(`insert into auth.users values ('${adminId}'); insert into private.admins (user_id) values ('${adminId}');`);
 
 const scores = `'{"wifi":3,"outlets":3,"food":3,"atmosphere":3,"hours":3,"access":3}'::jsonb`;
-const newSpot = (name, extra = "") => `insert into public.spots (name, category, lat, lng, scores${extra ? ", status, ai_summary" : ""}) values ('${name}', 'cafe', 30.27, -97.74, ${scores}${extra})`;
+const newSpot = (name, extra = "") => `insert into public.spots (name, category, lat, lng, scores${extra ? ", ai_summary" : ""}) values ('${name}', 'cafe', 30.27, -97.74, ${scores}${extra})`;
 
 await asAnon();
 ok("anon sees 13 starter spots", (await rows("select count(*)::int n from public.spots"))[0].n === 13);
-await db.query(newSpot("Sneaky", ", 'removed', 'fake summary'"));
-const sneaky = (await rows("select status, ai_summary, id from public.spots where name='Sneaky'"))[0];
-ok("anon can't set status or AI summary", sneaky?.status === "published" && sneaky?.ai_summary === null);
+await db.query(newSpot("Sneaky", ", 'fake summary'"));
+const sneaky = (await rows("select ai_summary, id from public.spots where name='Sneaky'"))[0];
+ok("anon can't set an AI summary", sneaky && sneaky.ai_summary === null);
 ok("bad scores rejected", !!(await throws(`insert into public.spots (name, category, lat, lng, scores) values ('Bad', 'cafe', 30, -97, '{"wifi":9}'::jsonb)`)));
 ok("bad tag rejected", !!(await throws(`insert into public.spots (name, category, lat, lng, scores, tags) values ('Bad', 'cafe', 30, -97, ${scores}, array['free_money'])`)));
 await throws("update public.spots set name='Hacked' where id='seed-1'");
@@ -77,17 +77,46 @@ ok("admin sees the edit queue", !!edit);
 ok("admin sees the report queue", (await rows("select count(*)::int n from public.spot_reports where status='open'"))[0].n === 1);
 const before = (await rows("select tags from public.spots where id='seed-3'"))[0].tags;
 await db.query("select public.review_spot_edit($1, true)", [edit.id]);
-const after = (await rows("select name, description, tags, ai_summary, status from public.spots where id='seed-3'"))[0];
+const after = (await rows("select name, description, tags, ai_summary from public.spots where id='seed-3'"))[0];
 ok("approved edit applied", after.name === "Mañana Cafe" && after.description === "Now open later");
 ok("untouched fields kept (tags)", JSON.stringify(after.tags) === JSON.stringify(before));
 ok("stale AI summary cleared", after.ai_summary === null);
-await db.query("update public.spots set status='removed' where id='seed-4'");
+// ---------- delete, archive, restore ----------
 await asAnon("9.9.9.9");
-ok("removed spot hidden from public", (await rows("select count(*)::int n from public.spots where id='seed-4'"))[0].n === 0);
-ok("crowd report on removed spot refused", !!(await throws(`insert into public.crowd_reports (spot_id, level) values ('seed-4', 2)`)));
+await db.query(`insert into public.crowd_reports (spot_id, level) values ('seed-4', 2)`);
+await db.query(`insert into public.spot_reports (spot_id, reason) values ('seed-4', 'closed')`);
+await throws("delete from public.spots where id='seed-4'");
+const count4 = async () => (await rows("select count(*)::int n from public.spots where id='seed-4'"))[0].n;
+ok("anon can't delete a spot", (await count4()) === 1);
+ok("anon can't list deleted spots", !!(await throws("select * from public.list_deleted_spots()")));
 await asAdmin();
+const before4 = (await rows("select scores, rating_count, created_at from public.spots where id='seed-4'"))[0];
+const reports4 = async () => (await rows("select count(*)::int n from public.spot_reports where spot_id='seed-4'"))[0].n;
+const reportsBefore = await reports4();
+const crowdAt = (await rows("select reported_at from public.crowd_reports where spot_id='seed-4'"))[0].reported_at;
 await db.query("delete from public.spots where id='seed-4'");
-ok("admin can delete", (await rows("select count(*)::int n from public.spots where id='seed-4'"))[0].n === 0);
+ok("admin can delete", (await count4()) === 0);
+ok("delete takes ratings and reports with it",
+  (await rows("select (select count(*) from public.ratings where spot_id='seed-4') + (select count(*) from public.spot_reports where spot_id='seed-4') + (select count(*) from public.crowd_reports where spot_id='seed-4') n"))[0].n == 0);
+const archived = await rows("select * from public.list_deleted_spots()");
+ok("deleted spot is archived", archived.length === 1 && archived[0].spot_id === "seed-4" && archived[0].rating_count === 1, JSON.stringify(archived));
+await asAnon("9.9.9.8");
+ok("anon can't restore", !!(await throws(`select public.restore_spot(${archived[0].id})`)));
+ok("crowd report on a deleted spot refused", !!(await throws(`insert into public.crowd_reports (spot_id, level) values ('seed-4', 2)`)));
+await asAdmin();
+const restoreErr = await throws(`select public.restore_spot(${archived[0].id})`);
+const after4 = (await rows("select scores, rating_count, created_at from public.spots where id='seed-4'"))[0];
+ok("admin can restore", !restoreErr && !!after4, restoreErr ?? "");
+ok("restore keeps scores, rating count and dates", after4 && JSON.stringify(after4) === JSON.stringify(before4), JSON.stringify(after4));
+ok("restore brings back the reports", reportsBefore === 2 && (await reports4()) === reportsBefore);
+ok("restore keeps crowd report times",
+  (await rows("select reported_at from public.crowd_reports where spot_id='seed-4'"))[0]?.reported_at?.getTime() === crowdAt.getTime());
+ok("restore empties the archive entry", (await rows("select * from public.list_deleted_spots()")).length === 0);
+await db.query("delete from public.spots where id='seed-4'");
+const rearchived = (await rows("select id from public.list_deleted_spots()"))[0];
+await db.query(`insert into public.spots (id, name, category, lat, lng, scores) values ('seed-4', 'Taken', 'cafe', 30, -97, ${scores})`);
+ok("restore refused when the spot is back", !!(await throws(`select public.restore_spot(${rearchived.id})`)));
+await db.query("delete from public.spots where id='seed-4'");
 
 
 await asAnon("8.8.8.8");
@@ -167,5 +196,6 @@ ok("server key can save an AI summary", !serverWrite && (await rows("select ai_s
 await asAnon("7.7.7.7");
 ok("anon can't read admins table", !!(await throws("select * from private.admins")));
 ok("anon can't read rate limits", !!(await throws("select * from private.rate_limits")));
+ok("anon can't read the deleted-spot archive", !!(await throws("select * from private.deleted_spots")));
 console.log(failures ? `${failures} FAILED` : "Private tables locked");
 process.exit(failures ? 1 : 0);

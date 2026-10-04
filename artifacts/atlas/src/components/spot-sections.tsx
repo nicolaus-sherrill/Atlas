@@ -257,7 +257,7 @@ export function SpotFoot({ spot, onNotice, onDelete, lead }: SpotFootProps) {
         <div className="details-delete">
           {confirmDelete ? (
             <>
-              <span>Delete this spot?</span>
+              <span>Delete this spot? It can be restored from admin for 90 days.</span>
               <button type="button" className="btn-danger btn-compact" onClick={() => onDelete(spot.id)}>
                 Yes, delete
               </button>

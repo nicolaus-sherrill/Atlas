@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import {
+  deleteSpot,
   fetchAllSpots,
+  fetchDeletedSpots,
   fetchPendingEdits,
   fetchRecentRatings,
   fetchReports,
@@ -11,10 +13,11 @@ import {
   setRaterStatus,
   setRatingStatus,
   setReportStatus,
-  setSpotStatus,
+  restoreSpot,
   signOut,
   type AdminRating,
   type AdminSpot,
+  type DeletedSpot,
   type PendingEdit,
   type ProblemReport,
   type SpotSnapshot,
@@ -160,15 +163,23 @@ function Dashboard() {
   const [reports, setReports] = useState<ProblemReport[]>([]);
   const [ratings, setRatings] = useState<AdminRating[]>([]);
   const [spots, setSpots] = useState<AdminSpot[]>([]);
+  const [deleted, setDeleted] = useState<DeletedSpot[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     try {
-      const [e, r, ra, s] = await Promise.all([fetchPendingEdits(), fetchReports(), fetchRecentRatings(), fetchAllSpots()]);
+      const [e, r, ra, s, d] = await Promise.all([
+        fetchPendingEdits(),
+        fetchReports(),
+        fetchRecentRatings(),
+        fetchAllSpots(),
+        fetchDeletedSpots(),
+      ]);
       setEdits(e);
       setReports(r);
       setRatings(ra);
       setSpots(s);
+      setDeleted(d);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't load the queues.");
@@ -196,7 +207,7 @@ function Dashboard() {
     () => ratings.filter((r) => r.status === "visible" && ratingFlags(r, ratings).length > 0).length,
     [ratings],
   );
-  const unlinkedCount = spots.filter((s) => s.status === "published" && !s.osm_id).length;
+  const unlinkedCount = spots.filter((s) => !s.osm_id).length;
 
   const tabs: { id: Tab; label: string; count: number }[] = [
     { id: "edits", label: "Edits", count: edits.length },
@@ -228,7 +239,7 @@ function Dashboard() {
       {tab === "edits" && <EditsTab edits={edits} act={act} />}
       {tab === "reports" && <ReportsTab reports={reports} act={act} />}
       {tab === "ratings" && <RatingsTab ratings={ratings} act={act} />}
-      {tab === "spots" && <SpotsTab spots={spots} act={act} />}
+      {tab === "spots" && <SpotsTab spots={spots} deleted={deleted} act={act} />}
     </>
   );
 }
@@ -298,23 +309,20 @@ function ReportsTab({ reports, act }: { reports: ProblemReport[]; act: Act }) {
             <span className="admin-muted">{formatDate(report.created_at)}</span>
           </header>
           {report.details ? <p className="admin-note">"{report.details}"</p> : <p className="admin-muted">No details given.</p>}
-          {report.spot?.status === "removed" && <p className="admin-muted">This spot is already removed.</p>}
           <div className="admin-actions">
             <button type="button" className="admin-btn admin-btn-primary" onClick={() => act(() => setReportStatus(report.id, "resolved"))}>
               Mark resolved
             </button>
-            {report.spot?.status === "published" && (
+            {report.spot && (
               <button
                 type="button"
                 className="admin-btn"
-                onClick={() =>
-                  act(async () => {
-                    await setSpotStatus(report.spot_id, "removed");
-                    await setReportStatus(report.id, "resolved");
-                  })
-                }
+                onClick={() => {
+                  // The report is deleted with the spot, and the archive keeps a copy of both
+                  if (window.confirm(deleteWarning(report.spot!.name))) act(() => deleteSpot(report.spot_id));
+                }}
               >
-                Remove spot and resolve
+                Delete spot
               </button>
             )}
             <button type="button" className="admin-btn" onClick={() => act(() => setReportStatus(report.id, "dismissed"))}>
@@ -419,11 +427,13 @@ function RatingsTab({ ratings, act }: { ratings: AdminRating[]; act: Act }) {
   );
 }
 
-function SpotsTab({ spots, act }: { spots: AdminSpot[]; act: Act }) {
-  const [filter, setFilter] = useState<"unlinked" | "all" | "removed">("unlinked");
-  const shown = spots.filter((s) =>
-    filter === "unlinked" ? s.status === "published" && !s.osm_id : filter === "removed" ? s.status === "removed" : true,
-  );
+function deleteWarning(name: string): string {
+  return `Delete "${name}"? Its ratings, edits and reports go with it. You can restore all of it from Deleted for 90 days.`;
+}
+
+function SpotsTab({ spots, deleted, act }: { spots: AdminSpot[]; deleted: DeletedSpot[]; act: Act }) {
+  const [filter, setFilter] = useState<"unlinked" | "all" | "deleted">("unlinked");
+  const shown = filter === "unlinked" ? spots.filter((s) => !s.osm_id) : spots;
 
   return (
     <>
@@ -432,7 +442,7 @@ function SpotsTab({ spots, act }: { spots: AdminSpot[]; act: Act }) {
           [
             ["unlinked", "Not linked to OpenStreetMap"],
             ["all", "All"],
-            ["removed", "Removed"],
+            ["deleted", "Deleted"],
           ] as const
         ).map(([id, label]) => (
           <button key={id} type="button" className={`admin-tab ${filter === id ? "active" : ""}`} onClick={() => setFilter(id)}>
@@ -446,7 +456,9 @@ function SpotsTab({ spots, act }: { spots: AdminSpot[]; act: Act }) {
           "Find on OpenStreetMap" searches for the place to compare.
         </p>
       )}
-      {shown.length === 0 ? (
+      {filter === "deleted" ? (
+        <DeletedSpots deleted={deleted} act={act} />
+      ) : shown.length === 0 ? (
         <p className="admin-empty">Nothing here.</p>
       ) : (
         <div className="admin-table-wrap">
@@ -462,7 +474,7 @@ function SpotsTab({ spots, act }: { spots: AdminSpot[]; act: Act }) {
             </thead>
             <tbody>
               {shown.map((spot) => (
-                <tr key={spot.id} className={spot.status === "removed" ? "admin-row-hidden" : ""}>
+                <tr key={spot.id}>
                   <td>
                     {spot.name}
                     <div className="admin-muted">{spot.category}, {spot.city}</div>
@@ -486,23 +498,15 @@ function SpotsTab({ spots, act }: { spots: AdminSpot[]; act: Act }) {
                   </td>
                   <td>
                     <div className="admin-actions admin-actions-cell">
-                    {spot.status === "published" ? (
-                      <button
-                        type="button"
-                        className="admin-btn"
-                        onClick={() => {
-                          if (window.confirm(`Remove "${spot.name}" from the public map? You can restore it later.`)) {
-                            act(() => setSpotStatus(spot.id, "removed"));
-                          }
-                        }}
-                      >
-                        Remove
-                      </button>
-                    ) : (
-                      <button type="button" className="admin-btn" onClick={() => act(() => setSpotStatus(spot.id, "published"))}>
-                        Restore
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      className="admin-btn"
+                      onClick={() => {
+                        if (window.confirm(deleteWarning(spot.name))) act(() => deleteSpot(spot.id));
+                      }}
+                    >
+                      Delete
+                    </button>
                     </div>
                   </td>
                 </tr>
@@ -511,6 +515,49 @@ function SpotsTab({ spots, act }: { spots: AdminSpot[]; act: Act }) {
           </table>
         </div>
       )}
+    </>
+  );
+}
+
+function DeletedSpots({ deleted, act }: { deleted: DeletedSpot[]; act: Act }) {
+  if (deleted.length === 0) return <p className="admin-empty">Nothing deleted in the last 90 days.</p>;
+
+  return (
+    <>
+      <p className="admin-muted">
+        Deleted spots are kept for 90 days with their ratings, edits and reports. Restoring puts all of it back.
+      </p>
+      <div className="admin-table-wrap">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>Spot</th>
+              <th>Ratings</th>
+              <th>Deleted</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {deleted.map((d) => (
+              <tr key={d.id}>
+                <td>
+                  {d.name}
+                  <div className="admin-muted">{d.city}</div>
+                </td>
+                <td>{d.rating_count}</td>
+                <td>{formatDate(d.deleted_at)}</td>
+                <td>
+                  <div className="admin-actions admin-actions-cell">
+                    <button type="button" className="admin-btn" onClick={() => act(() => restoreSpot(d.id))}>
+                      Restore
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </>
   );
 }
