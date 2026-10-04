@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, Fragment } from "react";
 import type { WorkSpot } from "@/lib/types";
+import { CATEGORIES, calcScore, isOpenNow, getTodayHoursLabel } from "@/lib/types";
 import Icon from "./Icon";
 
 interface ChatMessage {
@@ -9,43 +10,88 @@ interface ChatMessage {
 
 interface ChatPanelProps {
   spots: WorkSpot[];
+  // Picks a spot the agent recommended, which opens it on the map
+  onSpotSelect: (id: string) => void;
   onClose: () => void;
 }
 
-export default function ChatPanel({ spots, onClose }: ChatPanelProps) {
+// The Atmo logomark, as the agent's face
+function AgentAvatar({ size }: { size: "thread" | "hero" }) {
+  return (
+    <span className={`avatar${size === "hero" ? " avatar-hero" : ""}`} aria-hidden="true">
+      <svg viewBox="0 0 96 96">
+        <path fill="currentColor" d="M1.107 0h55.354v34.596H1.107zm60.297 0H67c16.016 0 29 12.984 29 29v65.893H61.404V0Z" />
+        <circle cx="28.725" cy="67.275" r="28.725" fill="currentColor" />
+      </svg>
+    </span>
+  );
+}
+
+const SUGGESTIONS = [
+  { label: "Calls in the morning, focus after lunch", prompt: "I have calls from 9 to 11, then deep focus work until 3. I need fast wifi and good coffee." },
+  { label: "A quiet afternoon with good wifi", prompt: "I need a quiet place to work for 4 hours this afternoon. Good wifi is essential." },
+  { label: "Somewhere open late with outlets", prompt: "What are the best spots for someone who needs lots of outlets and wants to work late?" },
+];
+
+// The chat: a floating card beside the map controls on desktop, a full-height sheet on a phone.
+// The agent's replies come back as plain markdown; any Atlas spot they name becomes a row in the
+// bubble that opens the spot on the map.
+export default function ChatPanel({ spots, onSpotSelect, onClose }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const threadEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({
-      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-    });
-  }, []);
-
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
+    threadEndRef.current?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      block: "end",
+    });
+  }, [messages]);
 
+  // Focus moves into the card on open; Escape closes it
   useEffect(() => {
     inputRef.current?.focus();
-  }, []);
+    const onKey = (e: KeyboardEvent) => {
+      // A modal opened from the chat's spot takes Escape for itself
+      if (e.key === "Escape" && !document.querySelector(".browse-modal-backdrop")) onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
 
-  const sendMessage = async () => {
-    const trimmed = input.trim();
+  // A stream still running when the card closes is stopped, not left to finish unseen
+  useEffect(() => () => abortRef.current?.abort(), []);
+
+  // The composer grows with what's typed, up to a few lines
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+  }, [input]);
+
+  const startNewChat = () => {
+    abortRef.current?.abort();
+    setMessages([]);
+    setInput("");
+    setIsStreaming(false);
+    inputRef.current?.focus();
+  };
+
+  const replaceLast = (content: string) =>
+    setMessages((prev) => [...prev.slice(0, -1), { role: "assistant", content }]);
+
+  const sendMessage = async (text = input) => {
+    const trimmed = text.trim();
     if (!trimmed || isStreaming) return;
 
-    const userMessage: ChatMessage = { role: "user", content: trimmed };
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
+    const newMessages: ChatMessage[] = [...messages, { role: "user", content: trimmed }];
+    setMessages([...newMessages, { role: "assistant", content: "" }]);
     setInput("");
     setIsStreaming(true);
-
-    const assistantMessage: ChatMessage = { role: "assistant", content: "" };
-    setMessages([...newMessages, assistantMessage]);
 
     try {
       abortRef.current = new AbortController();
@@ -59,23 +105,12 @@ export default function ChatPanel({ spots, onClose }: ChatPanelProps) {
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: "Request failed" }));
-        setMessages((prev) => {
-          const updated = [...prev];
-          updated[updated.length - 1] = {
-            role: "assistant",
-            content: `Sorry, something went wrong: ${err.error || "Unknown error"}`,
-          };
-          return updated;
-        });
-        setIsStreaming(false);
+        replaceLast(`Sorry, something went wrong: ${err.error || "Unknown error"}`);
         return;
       }
 
       const reader = res.body?.getReader();
-      if (!reader) {
-        setIsStreaming(false);
-        return;
-      }
+      if (!reader) return;
 
       const decoder = new TextDecoder();
       let accumulated = "";
@@ -90,54 +125,25 @@ export default function ChatPanel({ spots, onClose }: ChatPanelProps) {
         buffer = lines.pop() || "";
 
         for (const line of lines) {
-          const trimmed = line.trim();
-          if (trimmed.startsWith("data: ")) {
-            const data = trimmed.slice(6);
-            if (data === "[DONE]") break;
-            try {
-              const parsed = JSON.parse(data);
-              if (parsed.content) {
-                accumulated += parsed.content;
-                const current = accumulated;
-                setMessages((prev) => {
-                  const updated = [...prev];
-                  updated[updated.length - 1] = {
-                    role: "assistant",
-                    content: current,
-                  };
-                  return updated;
-                });
-              }
-              if (parsed.error) {
-                accumulated += `\n\n_Error: ${parsed.error}_`;
-                const current = accumulated;
-                setMessages((prev) => {
-                  const updated = [...prev];
-                  updated[updated.length - 1] = {
-                    role: "assistant",
-                    content: current,
-                  };
-                  return updated;
-                });
-              }
-            } catch {
-              // partial JSON; re-buffer for next read
-              buffer = line + "\n" + buffer;
-              break;
-            }
+          const trimmedLine = line.trim();
+          if (!trimmedLine.startsWith("data: ")) continue;
+          const data = trimmedLine.slice(6);
+          if (data === "[DONE]") break;
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed.content) accumulated += parsed.content;
+            if (parsed.error) accumulated += `\n\n_Error: ${parsed.error}_`;
+            replaceLast(accumulated);
+          } catch {
+            // partial JSON; re-buffer for next read
+            buffer = line + "\n" + buffer;
+            break;
           }
         }
       }
     } catch (err: unknown) {
       if (err instanceof Error && err.name === "AbortError") return;
-      setMessages((prev) => {
-        const updated = [...prev];
-        updated[updated.length - 1] = {
-          role: "assistant",
-          content: "Sorry, I couldn't connect to the server. Please try again.",
-        };
-        return updated;
-      });
+      replaceLast("Sorry, I couldn't connect to the server. Please try again.");
     } finally {
       setIsStreaming(false);
       abortRef.current = null;
@@ -151,154 +157,218 @@ export default function ChatPanel({ spots, onClose }: ChatPanelProps) {
     }
   };
 
-  const formatContent = (content: string) => {
-    const lines = content.split("\n");
-    const elements: React.ReactNode[] = [];
-    let i = 0;
+  // Messages in runs: consecutive messages from one speaker share a group
+  const runs: { role: ChatMessage["role"]; items: { message: ChatMessage; index: number }[] }[] = [];
+  messages.forEach((message, index) => {
+    const last = runs[runs.length - 1];
+    if (last && last.role === message.role) last.items.push({ message, index });
+    else runs.push({ role: message.role, items: [{ message, index }] });
+  });
 
-    for (const line of lines) {
-      const key = i++;
-      if (line.startsWith("### ")) {
-        elements.push(<h4 key={key} className="chat-md-h3">{processBold(line.slice(4))}</h4>);
-      } else if (line.startsWith("## ")) {
-        elements.push(<h3 key={key} className="chat-md-h2">{processBold(line.slice(3))}</h3>);
-      } else if (line.startsWith("# ")) {
-        elements.push(<h2 key={key} className="chat-md-h1">{processBold(line.slice(2))}</h2>);
-      } else if (line.startsWith("- ") || line.startsWith("* ")) {
-        elements.push(
-          <div key={key} className="chat-md-li">
-            <span className="chat-md-bullet">•</span>
-            <span>{processBold(line.slice(2))}</span>
-          </div>
-        );
-      } else if (/^\d+\.\s/.test(line)) {
-        const match = line.match(/^(\d+\.)\s(.*)/);
-        if (match) {
-          elements.push(
-            <div key={key} className="chat-md-li">
-              <span className="chat-md-bullet">{match[1]}</span>
-              <span>{processBold(match[2])}</span>
-            </div>
-          );
-        }
-      } else if (line.trim() === "") {
-        elements.push(<div key={key} className="chat-md-spacer" />);
-      } else {
-        elements.push(<p key={key} className="chat-md-p">{processBold(line)}</p>);
-      }
-    }
-    return elements;
-  };
-
-  const processBold = (text: string): React.ReactNode => {
-    const parts = text.split(/(\*\*.*?\*\*)/g);
-    return parts.map((part, j) => {
-      if (part.startsWith("**") && part.endsWith("**")) {
-        return <strong key={j}>{part.slice(2, -2)}</strong>;
-      }
-      return part;
-    });
-  };
+  const waiting = isStreaming && messages[messages.length - 1]?.content === "";
 
   return (
-    <div className="chat-panel-backdrop" onClick={onClose}>
-      <div className="chat-panel" onClick={(e) => e.stopPropagation()}>
-        <div className="chat-panel-header">
-          <div className="chat-panel-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
-            <span>Atlas Planner</span>
+    <div className="chat-root">
+      <div className="chat-scrim" onClick={onClose} aria-hidden="true" />
+      <section className="chat-card" role="dialog" aria-label="Plan my day">
+        <header className="chat-head">
+          <h2 className="chat-title">Plan my day</h2>
+          <div className="chat-head-actions">
+            <button type="button" className="icon-button" aria-label="New chat" onClick={startNewChat}>
+              <Icon name="note-pencil" weight="bold" size={16} />
+            </button>
+            <button type="button" className="icon-button" aria-label="Close chat" onClick={onClose}>
+              <Icon name="x" weight="bold" size={16} />
+            </button>
           </div>
-          <button className="chat-panel-close" onClick={onClose} aria-label="Close chat">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
+        </header>
 
-        <div className="chat-messages">
-          {messages.length === 0 && (
-            <div className="chat-empty">
-              <Icon name="map-trifold" weight="light" size={32} className="chat-empty-icon" />
-              <h3>Plan your workday</h3>
-              <p>Describe your schedule, preferences, and needs — I'll recommend the best Atlas spots for each part of your day.</p>
-              <div className="chat-suggestions">
-                <button
-                  className="chat-suggestion"
-                  onClick={() => setInput("I have meetings from 9-11, then deep focus work until 3, then casual emails until 5. I need fast wifi and good coffee.")}
-                >
-                  Plan a full workday with meetings and focus time
+        {messages.length === 0 ? (
+          <div className="chat-empty">
+            <AgentAvatar size="hero" />
+            <p className="chat-greeting">
+              Where are you working today?
+              <span>Tell me your day and I'll match it to spots.</span>
+            </p>
+            <div className="chat-suggestions">
+              {SUGGESTIONS.map((s) => (
+                <button key={s.label} type="button" className="chat-arrow-row" onClick={() => sendMessage(s.prompt)}>
+                  <Icon name="arrow-right" weight="bold" size={16} />
+                  {s.label}
                 </button>
-                <button
-                  className="chat-suggestion"
-                  onClick={() => setInput("I need a quiet place to work for 4 hours this afternoon. Good wifi is essential.")}
-                >
-                  Find a quiet afternoon work spot
-                </button>
-                <button
-                  className="chat-suggestion"
-                  onClick={() => setInput("What are the best spots for someone who needs lots of outlets and wants to work late?")}
-                >
-                  Best spots for late-night work with outlets
-                </button>
-              </div>
+              ))}
             </div>
-          )}
-
-          {messages.map((msg, idx) => (
-            <div key={idx} className={`chat-message chat-message-${msg.role}`}>
-              {msg.role === "assistant" && (
-                <div className="chat-avatar">
-                  <svg width="14" height="14" viewBox="0 0 96 96" fill="none">
-                    <path fill="currentColor" d="M1.107 0h55.354v34.596H1.107zm60.297 0H67c16.016 0 29 12.984 29 29v65.893H61.404V0Z"/>
-                    <circle cx="28.725" cy="67.275" r="28.725" fill="currentColor"/>
-                  </svg>
+          </div>
+        ) : (
+          <div className="chat-thread" aria-live="polite">
+            {runs.map((run, r) =>
+              run.role === "user" ? (
+                <div key={r} className="chat-run-user">
+                  {run.items.map(({ message, index }, i) => (
+                    <div key={index} className={`chat-bubble chat-bubble-user${i === run.items.length - 1 ? " has-point" : ""}`}>
+                      {message.content}
+                    </div>
+                  ))}
                 </div>
-              )}
-              <div className={`chat-bubble chat-bubble-${msg.role}`}>
-                {msg.role === "assistant" ? (
-                  <div className="chat-md">{formatContent(msg.content)}</div>
-                ) : (
-                  msg.content
-                )}
-                {msg.role === "assistant" && isStreaming && idx === messages.length - 1 && (
-                  <span className="chat-cursor">▊</span>
-                )}
-              </div>
-            </div>
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
+              ) : (
+                <div key={r} className="chat-run-agent">
+                  <AgentAvatar size="thread" />
+                  <AgentReplies
+                    items={run.items}
+                    waiting={waiting && run.items.some(({ index }) => index === messages.length - 1)}
+                    spots={spots}
+                    onSpotSelect={onSpotSelect}
+                  />
+                </div>
+              ),
+            )}
+            <div ref={threadEndRef} />
+          </div>
+        )}
 
-        <div className="chat-input-area">
-          <div className="chat-input-wrapper">
+        <div className="chat-foot">
+          <div className="chat-composer">
             <textarea
               ref={inputRef}
               className="chat-input"
-              placeholder="Describe your workday..."
+              placeholder="Ask about your day"
+              aria-label="Ask about your day"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               rows={1}
-              disabled={isStreaming}
             />
             <button
+              type="button"
               className="chat-send"
-              onClick={sendMessage}
+              onClick={() => sendMessage()}
               disabled={!input.trim() || isStreaming}
-              aria-label="Send message"
+              aria-label="Send"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13" />
-                <polygon points="22 2 15 22 11 13 2 9 22 2" />
-              </svg>
+              <Icon name="arrow-up" weight="bold" size={16} />
             </button>
           </div>
-          <p className="chat-disclaimer">Atlas Planner uses AI to recommend spots. Always verify details independently.</p>
+          <p className="chat-disclaimer">The planner uses AI. Check the details before you go.</p>
         </div>
-      </div>
+      </section>
     </div>
+  );
+}
+
+// The spots a block of the reply names, in the order it names them. Longer names are matched
+// first, so a shorter name inside one ("Desnudo Coffee" in "Desnudo Coffee: South Lamar") isn't
+// counted twice. Each spot is shown once per reply.
+function spotsNamedIn(text: string, spots: WorkSpot[], alreadyShown: Set<string>): WorkSpot[] {
+  const lower = text.toLowerCase();
+  let rest = lower;
+  const found: WorkSpot[] = [];
+  for (const spot of [...spots].sort((a, b) => b.name.length - a.name.length)) {
+    const name = spot.name.toLowerCase();
+    if (!rest.includes(name)) continue;
+    rest = rest.split(name).join(" ");
+    if (alreadyShown.has(spot.id)) continue;
+    alreadyShown.add(spot.id);
+    found.push(spot);
+  }
+  return found.sort((a, b) => lower.indexOf(a.name.toLowerCase()) - lower.indexOf(b.name.toLowerCase()));
+}
+
+interface AgentRepliesProps {
+  items: { message: ChatMessage; index: number }[];
+  waiting: boolean;
+  spots: WorkSpot[];
+  onSpotSelect: (id: string) => void;
+}
+
+// One agent turn: each paragraph block is a bubble, and the first carries the point beside the
+// avatar. A spot named in a block gets a row under it.
+function AgentReplies({ items, waiting, spots, onSpotSelect }: AgentRepliesProps) {
+  const shown = new Set<string>();
+  const blocks = items.flatMap(({ message, index }) =>
+    message.content
+      .split(/\n\s*\n/)
+      .map((text) => text.trim())
+      .filter(Boolean)
+      .map((text, b) => ({ key: `${index}-${b}`, text })),
+  );
+
+  return (
+    <div className="chat-replies">
+      {/* Before the reply starts: the steps the planner really takes, in place of a blinking cursor */}
+      {waiting && (
+        <div className="chat-steps" role="status">
+          <div className="chat-steps-row">
+            <Icon name="check" weight="bold" size={16} />
+            <span>Read the {spots.length} spots on Atlas</span>
+          </div>
+          <div className="chat-steps-row">
+            <Icon name="circle-notch" weight="bold" size={16} className="chat-steps-busy" />
+            <span>Writing your plan</span>
+          </div>
+        </div>
+      )}
+      {blocks.map(({ key, text }, i) => (
+        <div key={key} className={`chat-bubble chat-bubble-agent${i === 0 ? " has-point" : ""}`}>
+          <div className="chat-md">{formatContent(text)}</div>
+          {spotsNamedIn(text, spots, shown).map((spot) => (
+            <SpotRef key={spot.id} spot={spot} onSelect={() => onSpotSelect(spot.id)} />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// A recommended spot, embedded in the bubble: name, type, today's hours and score
+function SpotRef({ spot, onSelect }: { spot: WorkSpot; onSelect: () => void }) {
+  const cat = CATEGORIES.find((c) => c.value === spot.category);
+  const open = spot.operatingHours ? isOpenNow(spot.operatingHours) : null;
+  return (
+    <button type="button" className="chat-spotref" onClick={onSelect}>
+      <span className="chat-spotref-name">{spot.name}</span>
+      <span className="details-score">{calcScore(spot.scores, spot.tags).toFixed(1)}</span>
+      <span className={`chat-spotref-meta details-hours ${open ? "open" : "closed"}`}>
+        {cat?.label ?? spot.category}
+        {spot.operatingHours && (
+          <>
+            <span className="hours-dot" aria-hidden="true" />
+            {open ? "Open" : "Closed"} · {getTodayHoursLabel(spot.operatingHours)}
+          </>
+        )}
+      </span>
+    </button>
+  );
+}
+
+// The planner's markdown, as far as it uses it: headings, bullets, numbered lines and bold
+function formatContent(content: string) {
+  return content.split("\n").map((line, key) => {
+    const heading = line.match(/^#{1,3}\s(.*)/);
+    if (heading) return <h4 key={key} className="chat-md-h">{processBold(heading[1])}</h4>;
+    if (line.startsWith("- ") || line.startsWith("* ")) {
+      return (
+        <div key={key} className="chat-md-li">
+          <span className="chat-md-bullet">•</span>
+          <span>{processBold(line.slice(2))}</span>
+        </div>
+      );
+    }
+    const numbered = line.match(/^(\d+\.)\s(.*)/);
+    if (numbered) {
+      return (
+        <div key={key} className="chat-md-li">
+          <span className="chat-md-bullet">{numbered[1]}</span>
+          <span>{processBold(numbered[2])}</span>
+        </div>
+      );
+    }
+    if (line.trim() === "") return <Fragment key={key} />;
+    return <p key={key} className="chat-md-p">{processBold(line)}</p>;
+  });
+}
+
+function processBold(text: string): React.ReactNode {
+  return text.split(/(\*\*.*?\*\*)/g).map((part, j) =>
+    part.startsWith("**") && part.endsWith("**") ? <strong key={j}>{part.slice(2, -2)}</strong> : part,
   );
 }

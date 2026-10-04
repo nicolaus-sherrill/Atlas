@@ -30,6 +30,11 @@ import PencilSimpleBold from "@phosphor-icons/core/assets/bold/pencil-simple-bol
 import FlagBold from "@phosphor-icons/core/assets/bold/flag-bold.svg?raw";
 import TrashBold from "@phosphor-icons/core/assets/bold/trash-bold.svg?raw";
 import AppleLogoBold from "@phosphor-icons/core/assets/bold/apple-logo-bold.svg?raw";
+import NotePencilBold from "@phosphor-icons/core/assets/bold/note-pencil-bold.svg?raw";
+import ArrowUpBold from "@phosphor-icons/core/assets/bold/arrow-up-bold.svg?raw";
+import ArrowRightBold from "@phosphor-icons/core/assets/bold/arrow-right-bold.svg?raw";
+import CheckBold from "@phosphor-icons/core/assets/bold/check-bold.svg?raw";
+import CircleNotchBold from "@phosphor-icons/core/assets/bold/circle-notch-bold.svg?raw";
 import RowsBold from "@phosphor-icons/core/assets/bold/rows-bold.svg?raw";
 
 import type { IconName, IconWeight } from "./icon-names";
@@ -56,6 +61,11 @@ const SVGS: Partial<Record<`${IconName}/${IconWeight}`, string>> = {
   "map-trifold/light": MapTrifoldLight,
   "map-trifold/bold": MapTrifoldBold,
   "rows/bold": RowsBold,
+  "note-pencil/bold": NotePencilBold,
+  "arrow-up/bold": ArrowUpBold,
+  "arrow-right/bold": ArrowRightBold,
+  "check/bold": CheckBold,
+  "circle-notch/bold": CircleNotchBold,
   "arrow-left/bold": ArrowLeftBold,
   "x/bold": XBold,
   "copy/bold": CopyBold,

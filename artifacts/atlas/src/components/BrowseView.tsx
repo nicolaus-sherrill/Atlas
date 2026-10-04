@@ -20,7 +20,6 @@ interface BrowseViewProps {
   onBrowseSubmit: (spot: Omit<WorkSpot, "id" | "submittedAt">) => Promise<boolean>;
   onRated: () => void;
   onNotice: (message: string) => void;
-  onChatOpen: () => void;
   // The shell's one search: it filters these spots, and places matching it list beneath them
   query: string;
   places: GeocodingResult[];
@@ -32,7 +31,7 @@ interface BrowseViewProps {
 
 const ALL_FILTER_TAGS = TAGS.map((t) => t.label);
 
-export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSubmit, onRated, onNotice, onChatOpen, query, places, placesLoading, onPickPlace, onDeleteSpot }: BrowseViewProps) {
+export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSubmit, onRated, onNotice, query, places, placesLoading, onPickPlace, onDeleteSpot }: BrowseViewProps) {
   const [editingSpot, setEditingSpot] = useState<WorkSpot | null>(null);
   const [reportingSpot, setReportingSpot] = useState<WorkSpot | null>(null);
   const [activeCities, setActiveCities] = useState<Set<string>>(new Set());
@@ -83,12 +82,6 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
           <p className="browse-tagline">Community-powered spots for remote work, handpicked by the internet.</p>
         </div>
         <div className="browse-header-actions">
-          <button className="btn-plan-day" onClick={onChatOpen}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
-            Plan my day
-          </button>
           <button className="btn-submit-place" onClick={() => setShowSubmitModal(true)}>
             Submit a place
           </button>

@@ -22,10 +22,9 @@ interface SidebarProps {
   onPickPlace: (place: GeocodingResult) => void;
   // Only passed for admins; everyone else gets no delete control
   onDeleteSpot?: (id: string) => void;
-  onChatOpen: () => void;
 }
 
-export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClick, isFormOpen, query, places, placesLoading, onPickPlace, onDeleteSpot, onChatOpen }: SidebarProps) {
+export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClick, isFormOpen, query, places, placesLoading, onPickPlace, onDeleteSpot }: SidebarProps) {
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [showExport, setShowExport] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -67,13 +66,6 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
           Export
         </button>
       </div>
-
-      <button className="btn-plan-day sidebar-plan-day" onClick={onChatOpen}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-        </svg>
-        Plan my day
-      </button>
 
       {showExport && (
         <div className="export-panel">

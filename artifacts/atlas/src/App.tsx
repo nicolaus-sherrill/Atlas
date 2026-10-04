@@ -88,6 +88,18 @@ function App() {
     setMapOpen(true);
   }, [select]);
 
+  // Closing the chat hands focus back to its button
+  const closeChat = useCallback(() => {
+    setIsChatOpen(false);
+    requestAnimationFrame(() => (document.querySelector(".avatar-fab") as HTMLElement | null)?.focus());
+  }, []);
+
+  // A spot the agent recommended opens on the map. On a phone the chat covers the map, so it closes
+  const handleChatSpotSelect = useCallback((id: string) => {
+    handleListSelect(id);
+    if (isPhone) closeChat();
+  }, [handleListSelect, isPhone, closeChat]);
+
   const handleMarkerSelect = useCallback((id: string) => {
     select(id, "marker");
   }, [select]);
@@ -123,8 +135,8 @@ function App() {
   useEffect(() => {
     if (!detailsOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      // A modal over the details takes Escape for itself
-      if (e.key === "Escape" && !document.querySelector(".browse-modal-backdrop")) closeDetails();
+      // A modal or the chat over the details takes Escape for itself
+      if (e.key === "Escape" && !document.querySelector(".browse-modal-backdrop, .chat-card")) closeDetails();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -309,7 +321,6 @@ function App() {
               onBrowseSubmit={handleSubmit}
               onRated={reloadSpots}
               onNotice={setNotice}
-              onChatOpen={() => setIsChatOpen(true)}
               onDeleteSpot={isAdmin ? handleDeleteSpot : undefined}
               query={query}
               places={places}
@@ -332,7 +343,6 @@ function App() {
                 placesLoading={placesLoading}
                 onPickPlace={handlePickPlace}
                 onDeleteSpot={isAdmin ? handleDeleteSpot : undefined}
-                onChatOpen={() => setIsChatOpen(true)}
               />
             </div>
             {!isWide && detailsSpot && (
@@ -367,7 +377,7 @@ function App() {
         </div>
       </aside>
 
-      <MapControls map={map} mapOpen={showMap} onChatOpen={() => setIsChatOpen(true)} onNotice={setNotice} />
+      <MapControls map={map} mapOpen={showMap} chatOpen={isChatOpen} onChatToggle={() => (isChatOpen ? closeChat() : setIsChatOpen(true))} onNotice={setNotice} />
 
       {notice && (
         <div className="app-notice" role="status" onClick={() => setNotice(null)}>
@@ -375,9 +385,7 @@ function App() {
         </div>
       )}
 
-      {isChatOpen && (
-        <ChatPanel spots={spots} onClose={() => setIsChatOpen(false)} />
-      )}
+      {isChatOpen && <ChatPanel spots={spots} onSpotSelect={handleChatSpotSelect} onClose={closeChat} />}
     </div>
   );
 }

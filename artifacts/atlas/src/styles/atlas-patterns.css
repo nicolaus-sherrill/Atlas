@@ -44,6 +44,17 @@
   --avatar-mark: var(--color-green-950);
   --avatar-ring: var(--color-green-200);
 
+  /* The chat card, and its bubbles: xl 12 with an xs 2 point. Yours green-200, the agent's
+     neutral-100 (Decision 3a) */
+  --chat-card-width: 400px;
+  --chat-card-height: 640px;
+  --chat-card-radius: var(--radius-2xl);
+  --bubble-radius: var(--radius-xl);
+  --bubble-point-radius: var(--radius-xs);
+  --bubble-user-bg: var(--color-green-200);
+  --bubble-agent-bg: var(--color-neutral-100);
+  --bubble-text: var(--color-text-primary);
+
   /* Map camera: its own role, read by lib/camera.ts. Layout 600 is too fast and too sharp for a map.
      The Softer profile, the user's call 2026-10-03: calmer and more cinematic. The interface keeps
      today's curves. */
@@ -63,16 +74,24 @@
   background: var(--color-surface-canvas);
 }
 
-/* Dark mirrors the avatar: mark 50 on disc 700 (6.42:1), ring 800 */
+/* Dark mirrors the avatar (mark 50 on disc 700, 6.42:1, ring 800) and steps the bubbles down to
+   green-700 and green-800. --bubble-text is declared again here: an alias resolves where it is
+   declared, so the :root copy would keep the light theme's text (the 1.76:1 defect in render 04) */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --avatar-fill: var(--color-green-700);
     --avatar-mark: var(--color-green-50);
     --avatar-ring: var(--color-green-800);
+    --bubble-user-bg: var(--color-green-700);
+    --bubble-agent-bg: var(--color-green-800);
+    --bubble-text: var(--color-text-primary);
   }
 }
 [data-theme="dark"] {
   --avatar-fill: var(--color-green-700);
   --avatar-mark: var(--color-green-50);
   --avatar-ring: var(--color-green-800);
+  --bubble-user-bg: var(--color-green-700);
+  --bubble-agent-bg: var(--color-green-800);
+  --bubble-text: var(--color-text-primary);
 }

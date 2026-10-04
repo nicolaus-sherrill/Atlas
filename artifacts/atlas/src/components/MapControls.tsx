@@ -7,13 +7,15 @@ interface MapControlsProps {
   map: L.Map | null;
   // Zoom and locate only mean something over the map; the chat button stays in both states
   mapOpen: boolean;
-  onChatOpen: () => void;
+  // The chat button is the agent's avatar while the chat is closed, and its close while open
+  chatOpen: boolean;
+  onChatToggle: () => void;
   onNotice: (message: string) => void;
 }
 
 // The map's own buttons, drawn by the app rather than Leaflet: the zoom group (two 44px buttons
 // split by a hairline), locate under it, and the chat button, which is the agent's avatar.
-export default function MapControls({ map, mapOpen, onChatOpen, onNotice }: MapControlsProps) {
+export default function MapControls({ map, mapOpen, chatOpen, onChatToggle, onNotice }: MapControlsProps) {
   const [locating, setLocating] = useState(false);
   const [youAreHere, setYouAreHere] = useState<L.CircleMarker | null>(null);
 
@@ -61,11 +63,21 @@ export default function MapControls({ map, mapOpen, onChatOpen, onNotice }: MapC
           <Icon name="crosshair" weight="bold" size={16} />
         </button>
       </div>
-      <button type="button" className="avatar avatar-fab" aria-label="Plan my day" onClick={onChatOpen}>
-        <svg viewBox="0 0 96 96" aria-hidden="true">
+      <button
+        type="button"
+        className="avatar avatar-fab"
+        aria-label={chatOpen ? "Close chat" : "Plan my day"}
+        aria-expanded={chatOpen}
+        onClick={onChatToggle}
+      >
+        {/* The face and the close glyph cross-fade on the component role */}
+        <svg className="avatar-face" viewBox="0 0 96 96" aria-hidden="true">
           <path fill="currentColor" d="M1.107 0h55.354v34.596H1.107zm60.297 0H67c16.016 0 29 12.984 29 29v65.893H61.404V0Z" />
           <circle cx="28.725" cy="67.275" r="28.725" fill="currentColor" />
         </svg>
+        <span className="avatar-close" aria-hidden="true">
+          <Icon name="x" weight="bold" size={20} />
+        </span>
       </button>
     </div>
   );
