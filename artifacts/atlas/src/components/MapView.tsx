@@ -12,16 +12,25 @@ import type { WorkSpot, Category } from "@/lib/types";
 import { CATEGORIES } from "@/lib/types";
 import { iconSvg } from "@/lib/icons";
 import { moveCamera, nudgeIntoView, comfortablyInView, type ClearArea } from "@/lib/camera";
+import { useMediaQuery } from "@/hooks/use-media-query";
+
+// OpenFreeMap's own styles, served as they are with no recolour: Positron for light, Dark for dark
+const BASEMAP = {
+  light: "https://tiles.openfreemap.org/styles/positron",
+  dark: "https://tiles.openfreemap.org/styles/dark",
+};
 
 // A teardrop pin per category: the pin colour comes from map.pin.<category>, the icon from map.pin.icon.
 // The square is turned 45 degrees, so its pointed corner lands s/2 + s/sqrt(2) below the box's top.
+// Today's pins stay in Atlas Light on either basemap: their green-50 halo is what keeps the dark
+// coworking pin visible on the dark map (Decision 6). Step 8 replaces them with inverting markers.
 function createMarkerIcon(category: Category, selected = false): L.DivIcon {
   const cat = CATEGORIES.find((c) => c.value === category);
   const size = selected ? 36 : 28;
   const tip = Math.round(size / 2 + size / Math.SQRT2);
   return L.divIcon({
     className: "atlas-marker",
-    html: `<div class="atlas-pin ${category}${selected ? " selected" : ""}">${iconSvg(cat?.icon ?? "map-pin", "fill", selected ? 18 : 14)}</div>`,
+    html: `<div class="atlas-pin ${category}${selected ? " selected" : ""}" data-theme="light">${iconSvg(cat?.icon ?? "map-pin", "fill", selected ? 18 : 14)}</div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, tip],
   });
@@ -51,6 +60,13 @@ export default function MapView({ spots, selection, centreEveryPick, getClearAre
   const selectedIdRef = useRef<string | null>(null);
   const pendingMarkerRef = useRef<L.Marker | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  // The basemap follows the page's theme: a forced data-theme on the root wins, then the system's
+  const prefersDark = useMediaQuery("(prefers-color-scheme: dark)");
+  const forced = document.documentElement.dataset.theme;
+  const theme: "light" | "dark" = forced === "dark" || forced === "light" ? forced : prefersDark ? "dark" : "light";
+  const themeRef = useRef(theme);
+  themeRef.current = theme;
+  const basemapRef = useRef<ReturnType<typeof maplibreGL> | null>(null);
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
@@ -64,7 +80,7 @@ export default function MapView({ spots, selection, centreEveryPick, getClearAre
 
     // OpenFreeMap: free, keyless vector tiles built on OpenStreetMap data.
     // The style carries its own OpenFreeMap and OpenStreetMap credits
-    maplibreGL({ style: "https://tiles.openfreemap.org/styles/positron" }).addTo(map);
+    basemapRef.current = maplibreGL({ style: BASEMAP[themeRef.current] }).addTo(map);
 
     mapRef.current = map;
     onReady?.(map);
@@ -180,7 +196,7 @@ export default function MapView({ spots, selection, centreEveryPick, getClearAre
         // A hollow pin with a plus: the spot being added, not yet on the map
         icon: L.divIcon({
           className: "atlas-marker-pending",
-          html: `<div class="atlas-pin pending">${iconSvg("plus", "bold", 14)}</div>`,
+          html: `<div class="atlas-pin pending" data-theme="light">${iconSvg("plus", "bold", 14)}</div>`,
           iconSize: [28, 28],
           iconAnchor: [14, 34],
         }),
@@ -221,6 +237,13 @@ export default function MapView({ spots, selection, centreEveryPick, getClearAre
     return () => observer.disconnect();
   }, []);
 
-  // The basemap is light in both themes until commit 8 brings the dark style, so the map and its markers stay in Atlas Light
-  return <div ref={containerRef} className="atlas-map" data-theme="light" style={{ width: "100%", height: "100%" }} />;
+  // Swap the basemap's style when the theme changes; the map itself, its camera and markers stay put
+  const appliedThemeRef = useRef(theme);
+  useEffect(() => {
+    if (theme === appliedThemeRef.current) return;
+    appliedThemeRef.current = theme;
+    basemapRef.current?.getMaplibreMap()?.setStyle(BASEMAP[theme]);
+  }, [theme]);
+
+  return <div ref={containerRef} className="atlas-map" style={{ width: "100%", height: "100%" }} />;
 }

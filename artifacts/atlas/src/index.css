@@ -3567,6 +3567,18 @@ a.details-group-row:hover .details-group-link {
   }
 }
 
+/* The map's credit line takes the theme: a solid canvas strip, no translucency behind the text */
+.atlas-map .leaflet-control-attribution {
+  background: var(--color-surface-canvas);
+  color: var(--color-text-secondary);
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--type-label-letter-spacing);
+}
+
+.atlas-map .leaflet-control-attribution a {
+  color: var(--color-text-primary);
+}
+
 /* Controls and Leaflet don't inherit the page font by default */
 button,
 input,
