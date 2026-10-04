@@ -5,6 +5,8 @@ import SpotForm from "@/components/SpotForm";
 import BrowseView from "@/components/BrowseView";
 import ChatPanel from "@/components/ChatPanel";
 import Icon from "@/components/Icon";
+import MapControls from "@/components/MapControls";
+import type L from "leaflet";
 import { usePlaceSearch } from "@/hooks/use-place-search";
 import type { GeocodingResult } from "@/lib/geocode";
 import { fetchSpots, addSpot, removeSpot, requestSummary, DuplicatePlaceError } from "@/lib/store";
@@ -34,6 +36,7 @@ function App() {
   const [pendingGeoData, setPendingGeoData] = useState<{ address: string; city: string } | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [map, setMap] = useState<L.Map | null>(null);
   const { places, loading: placesLoading } = usePlaceSearch(query);
   // Where the camera goes next; seq makes picking the same place twice still move it
   const [cameraTarget, setCameraTarget] = useState<{ lat: number; lng: number; seq: number } | null>(null);
@@ -135,6 +138,7 @@ function App() {
           onSpotSelect={handleSpotSelect}
           pendingLocation={pendingLocation}
           cameraTarget={cameraTarget}
+          onReady={setMap}
         />
 
         {isFormOpen && (
@@ -219,6 +223,8 @@ function App() {
           </div>
         </div>
       </aside>
+
+      <MapControls map={map} mapOpen={mapOpen} onChatOpen={() => setIsChatOpen(true)} onNotice={setNotice} />
 
       {notice && (
         <div className="app-notice" role="status" onClick={() => setNotice(null)}>

@@ -20,6 +20,22 @@
   --shell-card-radius: var(--radius-2xl);
   --shell-gutter: var(--spacing-4);
 
+  /* Map controls */
+  --map-control-size: 44px;
+  --map-control-radius: var(--radius-sm);
+  --map-control-gap: var(--spacing-2);
+  --map-credit-height: 20px;  /* the map's credit line, which the controls sit above */
+
+  /* The chat button and the agent in the thread. The mark takes the theme's inverse, and the disc
+     and ring step back toward the canvas: mark 950 on disc 300 (8.19:1), ring 200. The user's
+     call, 2026-10-03 */
+  --avatar-size-thread: 28px;
+  --avatar-size-hero: 48px;
+  --avatar-stroke: 3px;
+  --avatar-fill: var(--color-green-300);
+  --avatar-mark: var(--color-green-950);
+  --avatar-ring: var(--color-green-200);
+
   /* Map camera: its own role, read by lib/camera.ts. Layout 600 is too fast and too sharp for a map.
      The Softer profile, the user's call 2026-10-03: calmer and more cinematic. The interface keeps
      today's curves. */
@@ -35,4 +51,18 @@
 .atlas-map {
   isolation: isolate;
   z-index: var(--layer-map);
+}
+
+/* Dark mirrors the avatar: mark 50 on disc 700 (6.42:1), ring 800 */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --avatar-fill: var(--color-green-700);
+    --avatar-mark: var(--color-green-50);
+    --avatar-ring: var(--color-green-800);
+  }
+}
+[data-theme="dark"] {
+  --avatar-fill: var(--color-green-700);
+  --avatar-mark: var(--color-green-50);
+  --avatar-ring: var(--color-green-800);
 }

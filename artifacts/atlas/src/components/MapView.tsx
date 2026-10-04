@@ -140,9 +140,11 @@ interface MapViewProps {
   pendingLocation: { lat: number; lng: number } | null;
   // A place picked from the search; the camera moves there when seq changes
   cameraTarget: { lat: number; lng: number; seq: number } | null;
+  // Hands the map to the app's own controls once it exists
+  onReady?: (map: L.Map) => void;
 }
 
-export default function MapView({ spots, selectedSpotId, onMapClick, onSpotSelect, pendingLocation, cameraTarget }: MapViewProps) {
+export default function MapView({ spots, selectedSpotId, onMapClick, onSpotSelect, pendingLocation, cameraTarget, onReady }: MapViewProps) {
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
   const selectedIdRef = useRef<string | null>(null);
@@ -171,13 +173,12 @@ export default function MapView({ spots, selectedSpotId, onMapClick, onSpotSelec
       markerZoomAnimation: !reduceMotion,
     }).setView([30.27, -97.74], 12);
 
-    L.control.zoom({ position: "bottomright" }).addTo(map);
-
     // OpenFreeMap: free, keyless vector tiles built on OpenStreetMap data.
     // The style carries its own OpenFreeMap and OpenStreetMap credits
     maplibreGL({ style: "https://tiles.openfreemap.org/styles/positron" }).addTo(map);
 
     mapRef.current = map;
+    onReady?.(map);
 
     const handlePopupClick = async (e: MouseEvent) => {
       const target = e.target as HTMLElement;

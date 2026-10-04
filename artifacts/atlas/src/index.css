@@ -755,6 +755,125 @@ html, body, #root {
   padding-top: 8px;
 }
 
+/* ========== MAP CONTROLS ========== */
+
+/* The map's own buttons, bottom right, clear of the map's credits. Shadow and no border: a
+   floating control takes elevation, not both */
+.map-controls {
+  position: absolute;
+  inset-inline-end: var(--shell-gutter);
+  bottom: calc(var(--shell-gutter) + var(--map-credit-height));
+  z-index: var(--layer-control);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--map-control-gap);
+}
+
+.map-controls-map {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--map-control-gap);
+  transition: opacity var(--motion-component-duration) var(--motion-easing-enter);
+}
+
+/* Zoom and locate leave with the map; the chat button stays */
+.map-closed .map-controls-map {
+  opacity: 0;
+  pointer-events: none;
+  transition-duration: var(--motion-component-duration-exit);
+  transition-timing-function: var(--motion-easing-exit);
+}
+
+.map-zoom {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--map-control-radius);
+  background: var(--color-surface-card);
+  box-shadow: var(--elevation-floating);
+  overflow: hidden;
+}
+
+.map-zoom .map-control + .map-control {
+  border-top: 1px solid var(--color-border-divider);
+}
+
+.map-control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--map-control-size);
+  height: var(--map-control-size);
+  border: 0;
+  background: var(--color-surface-card);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter);
+}
+
+.map-control:hover {
+  background-image: linear-gradient(var(--color-overlay-hover), var(--color-overlay-hover));
+}
+
+.map-control:focus-visible {
+  position: relative;
+  outline-offset: calc(var(--focus-width) * -1);
+}
+
+.map-control-solo {
+  border-radius: var(--map-control-radius);
+  box-shadow: var(--elevation-floating);
+}
+
+.map-control[aria-busy="true"] .icon {
+  opacity: 0.5;
+}
+
+/* The agent's avatar: the Atmo logomark in the theme's inverse, on a disc with a ring */
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--avatar-size-thread);
+  height: var(--avatar-size-thread);
+  border-radius: var(--radius-full);
+  background: var(--avatar-fill);
+  color: var(--avatar-mark);
+  box-shadow: 0 0 0 var(--avatar-stroke) var(--avatar-ring);
+}
+
+.avatar svg {
+  width: 50%;
+  height: 50%;
+}
+
+.avatar-fab {
+  width: var(--avatar-size-hero);
+  height: var(--avatar-size-hero);
+  margin-top: 8px;
+  border: 0;
+  cursor: pointer;
+  box-shadow: 0 0 0 var(--avatar-stroke) var(--avatar-ring), var(--elevation-floating);
+  transition: transform var(--motion-feedback-duration) var(--motion-easing-enter);
+}
+
+.avatar-fab:active {
+  transform: scale(0.96);
+}
+
+.avatar-fab:focus-visible {
+  outline-offset: calc(var(--avatar-stroke) + 2px);
+}
+
+/* Where you are, from the locate button */
+.you-are-here {
+  fill: var(--color-map-marker);
+  fill-opacity: 1;
+  stroke: var(--color-map-marker-ring);
+}
+
 /* Two bodies of one card. Each is laid out at its own width, so neither reflows while the card
    resizes: the card clips the table as it narrows. They cross-fade on the component role */
 .list-card-body {
@@ -2010,27 +2129,6 @@ html, body, #root {
   50% { transform: rotate(-45deg) scale(1.1); }
 }
 
-.leaflet-control-zoom {
-  border: 1px solid var(--color-border-control) !important;
-  border-radius: var(--radius) !important;
-  overflow: hidden;
-  box-shadow: var(--elevation-floating) !important;
-}
-
-.leaflet-control-zoom a {
-  background: var(--color-surface-card) !important;
-  color: var(--color-text-primary) !important;
-  border-color: var(--color-border-divider) !important;
-  width: 32px !important;
-  height: 32px !important;
-  line-height: 32px !important;
-  font-size: var(--type-body-m-font-size) !important;
-}
-
-.leaflet-control-zoom a:hover {
-  background-image: linear-gradient(var(--color-overlay-hover), var(--color-overlay-hover)) !important;
-}
-
 /* ========== CROWD REPORTING ========== */
 
 .crowd-time {
@@ -2402,7 +2500,8 @@ html, body, #root {
 }
 
 .browse-footer {
-  padding: 24px var(--shell-gutter) 60px;
+  /* the bottom clears the chat button, which floats over the table */
+  padding: 24px var(--shell-gutter) calc(var(--avatar-size-hero) + var(--map-credit-height) + var(--shell-gutter) * 2);
   font-size: var(--type-body-s-font-size);
   letter-spacing: var(--type-body-s-letter-spacing);
   line-height: var(--type-body-s-line-height);
@@ -2415,7 +2514,7 @@ html, body, #root {
 
 @media (max-width: 768px) {
   .browse-footer {
-    padding: 24px 16px 96px;
+    padding-inline: var(--shell-gutter);
   }
 }
 
