@@ -25,7 +25,7 @@ function reviewsOf(spot: WorkSpot) {
 // The AI summary, written from people's notes
 export function SpotSummary({ spot }: { spot: WorkSpot }) {
   if (!spot.aiSummary) return null;
-  return <p className="details-summary is-summary">{spot.aiSummary}</p>;
+  return <p className="details-summary">{spot.aiSummary}</p>;
 }
 
 // People's notes as outlined review cards, in one row that scrolls sideways when they overflow.
