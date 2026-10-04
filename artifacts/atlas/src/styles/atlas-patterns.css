@@ -61,6 +61,11 @@
      it marks the field without reading as a border, and is decoration rather than a 3:1 boundary */
   --field-edge: var(--color-green-300);
 
+  /* What sits on the green tint of an open row (tags, the crowd row) steps one surface lighter to
+     stay visible: the card in light (1.12:1), green-800 in dark (1.30:1), where the card is the
+     tint's own colour */
+  --surface-on-tint: var(--color-surface-card);
+
   /* Map camera: its own role, read by lib/camera.ts. Layout 600 is too fast and too sharp for a map.
      The Softer profile, the user's call 2026-10-03: calmer and more cinematic. The interface keeps
      today's curves. */
@@ -96,6 +101,7 @@
     --bubble-agent-bg: var(--color-green-800);
     --bubble-text: var(--color-text-primary);
     --field-edge: var(--color-green-700);
+    --surface-on-tint: var(--color-green-800);
   }
 }
 [data-theme="dark"] {
@@ -106,4 +112,5 @@
   --bubble-agent-bg: var(--color-green-800);
   --bubble-text: var(--color-text-primary);
   --field-edge: var(--color-green-700);
+  --surface-on-tint: var(--color-green-800);
 }

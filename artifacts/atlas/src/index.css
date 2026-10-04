@@ -302,10 +302,10 @@ html, body, #root {
   white-space: nowrap;
 }
 
-/* On a tinted row the pills step to the card so they stay visible */
+/* On a tinted row the pills step one surface lighter so they stay visible */
 .browse-row:hover .browse-tag-pill,
 .browse-row.expanded .browse-tag-pill {
-  background: var(--color-surface-card);
+  background: var(--surface-on-tint);
 }
 
 .browse-tag-pill.more {
@@ -415,11 +415,11 @@ html, body, #root {
   margin-top: 12px;
 }
 
-/* The reveal sits on the raised tint, so the crowd row and the tags step onto the card surface to
-   stay visible as blocks */
+/* The reveal sits on the raised tint, so the crowd row and the tags step one surface lighter to stay
+   visible as blocks */
 .reveal .details-crowd,
 .reveal .details-tag {
-  background: var(--color-surface-card);
+  background: var(--surface-on-tint);
 }
 
 .btn-solid {
