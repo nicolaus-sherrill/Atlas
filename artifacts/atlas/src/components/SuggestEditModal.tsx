@@ -1,4 +1,3 @@
-import { createPortal } from "react-dom";
 import { useMemo, useState } from "react";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import HoursEditor from "@/components/HoursEditor";
@@ -6,6 +5,7 @@ import { suggestEdit, type EditableFields } from "@/lib/contributions";
 import type { GeocodingResult } from "@/lib/geocode";
 import { CATEGORIES, TAGS, type TagId, type WorkSpot } from "@/lib/types";
 import Icon from "./Icon";
+import ModalShell from "./ModalShell";
 
 interface SuggestEditModalProps {
   spot: WorkSpot;
@@ -73,100 +73,14 @@ export default function SuggestEditModal({ spot, onClose, onSent }: SuggestEditM
     }
   };
 
-  return createPortal(
-    <div className="browse-modal-backdrop" onClick={onClose}>
-      <div className="browse-modal" onClick={(e) => e.stopPropagation()}>
-        <form className="spot-form" onSubmit={submit}>
-          <div className="spot-form-header">
-            <h2>Suggest an edit</h2>
-            <button type="button" className="spot-form-close" onClick={onClose} aria-label="Close">
-              &times;
-            </button>
-          </div>
-          <p className="modal-intro">Change anything that's wrong about {spot.name}. An admin reviews every edit before it goes live.</p>
-
-          <div className="form-group">
-            <label htmlFor="edit-name">Name</label>
-            <input id="edit-name" type="text" value={fields.name} maxLength={200} onChange={(e) => set("name", e.target.value)} />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="edit-address">Address</label>
-            <AddressAutocomplete id="edit-address" value={fields.address} onChange={(v) => set("address", v)} onSelect={handleAddressSelect} />
-            {changes.lat !== undefined || changes.lng !== undefined ? (
-              <p className="modal-hint">The pin moves to this address.</p>
-            ) : (
-              changes.address !== undefined && <p className="modal-hint">Pick the address from the suggestions to move the pin too.</p>
-            )}
-          </div>
-
-          <div className="form-group">
-            <label>Category</label>
-            <div className="category-select">
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat.value}
-                  type="button"
-                  className={`category-option ${fields.category === cat.value ? "active" : ""}`}
-                  onClick={() => set("category", cat.value)}
-                >
-                  <Icon name={cat.icon} weight="bold" size={16} />
-                  <span>{cat.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label>Hours</label>
-            <HoursEditor value={fields.operating_hours} onChange={(v) => set("operating_hours", v)} />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="edit-website">Website</label>
-            <input
-              id="edit-website"
-              type="url"
-              placeholder="https://"
-              value={fields.website}
-              onChange={(e) => set("website", e.target.value.trim())}
-            />
-            {websiteInvalid && <p className="modal-error">Enter a full web address, starting with https://</p>}
-          </div>
-
-          <div className="form-group">
-            <label>Tags</label>
-            <div className="tag-chip-grid">
-              {TAGS.map((tag) => (
-                <button
-                  key={tag.id}
-                  type="button"
-                  className={`tag-chip ${fields.tags.includes(tag.id) ? "active" : ""}`}
-                  onClick={() => toggleTag(tag.id)}
-                >
-                  {tag.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="edit-description">Description</label>
-            <textarea id="edit-description" rows={3} maxLength={2000} value={fields.description} onChange={(e) => set("description", e.target.value)} />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="edit-note">How do you know? (optional)</label>
-            <textarea
-              id="edit-note"
-              rows={2}
-              maxLength={1000}
-              placeholder="e.g. I was there last week, or their website says so"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-            />
-          </div>
-
+  return (
+    <ModalShell
+      title="Suggest an edit"
+      intro={<>Change anything that's wrong about {spot.name}. An admin reviews every edit before it goes live.</>}
+      onClose={onClose}
+      onSubmit={submit}
+      footer={
+        <>
           {error && <p className="modal-error">{error}</p>}
           <button type="submit" className="btn-submit" disabled={changedCount === 0 || websiteInvalid || sending}>
             {sending
@@ -175,9 +89,90 @@ export default function SuggestEditModal({ spot, onClose, onSent }: SuggestEditM
                 ? "Change something to suggest an edit"
                 : `Send ${changedCount} change${changedCount === 1 ? "" : "s"} for review`}
           </button>
-        </form>
+        </>
+      }
+    >
+      <div className="form-group">
+        <label htmlFor="edit-name">Name</label>
+        <input id="edit-name" type="text" value={fields.name} maxLength={200} onChange={(e) => set("name", e.target.value)} />
       </div>
-    </div>,
-    document.body,
+
+      <div className="form-group">
+        <label htmlFor="edit-address">Address</label>
+        <AddressAutocomplete id="edit-address" value={fields.address} onChange={(v) => set("address", v)} onSelect={handleAddressSelect} />
+        {changes.lat !== undefined || changes.lng !== undefined ? (
+          <p className="modal-hint">The pin moves to this address.</p>
+        ) : (
+          changes.address !== undefined && <p className="modal-hint">Pick the address from the suggestions to move the pin too.</p>
+        )}
+      </div>
+
+      <div className="form-group">
+        <label>Category</label>
+        <div className="category-select">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat.value}
+              type="button"
+              className={`category-option ${fields.category === cat.value ? "active" : ""}`}
+              onClick={() => set("category", cat.value)}
+            >
+              <Icon name={cat.icon} weight="bold" size={16} />
+              <span>{cat.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label>Hours</label>
+        <HoursEditor value={fields.operating_hours} onChange={(v) => set("operating_hours", v)} />
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="edit-website">Website</label>
+        <input
+          id="edit-website"
+          type="url"
+          placeholder="https://"
+          value={fields.website}
+          onChange={(e) => set("website", e.target.value.trim())}
+        />
+        {websiteInvalid && <p className="modal-error">Enter a full web address, starting with https://</p>}
+      </div>
+
+      <div className="form-group">
+        <label>Tags</label>
+        <div className="tag-chip-grid">
+          {TAGS.map((tag) => (
+            <button
+              key={tag.id}
+              type="button"
+              className={`tag-chip ${fields.tags.includes(tag.id) ? "active" : ""}`}
+              onClick={() => toggleTag(tag.id)}
+            >
+              {tag.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="edit-description">Description</label>
+        <textarea id="edit-description" rows={3} maxLength={2000} value={fields.description} onChange={(e) => set("description", e.target.value)} />
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="edit-note">How do you know? (optional)</label>
+        <textarea
+          id="edit-note"
+          rows={2}
+          maxLength={1000}
+          placeholder="e.g. I was there last week, or their website says so"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
+      </div>
+    </ModalShell>
   );
 }

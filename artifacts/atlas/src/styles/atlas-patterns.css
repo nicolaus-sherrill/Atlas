@@ -71,9 +71,8 @@
   --motion-map-camera-pan-duration: 1100ms;  /* a short glide, and the nudge that clears a hidden marker */
   --motion-map-camera-easing: cubic-bezier(0.37, 0, 0.63, 1);  /* sine ease-in-out */
 
-  /* Loops: the two animations that repeat. They have no role in the motion system, so reduced
-     motion turns each off by name in index.css */
-  --motion-loop-pulse: 1.5s;  /* the pending pin while a spot is being placed */
+  /* Loops: an animation that repeats has no role in the motion system, so reduced motion turns it
+     off by name in index.css */
   --motion-loop-spin: 1s;     /* the chat's working spinner */
 }
 

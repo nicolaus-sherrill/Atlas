@@ -65,26 +65,6 @@ html, body, #root {
   line-height: var(--type-body-m-line-height);
 }
 
-.btn-submit-place {
-  padding: 10px 20px;
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface-card);
-  color: var(--color-text-primary);
-  font-size: var(--type-body-s-font-size);
-  letter-spacing: var(--type-body-s-letter-spacing);
-  font-family: inherit;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), border-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
-  flex-shrink: 0;
-}
-
-.btn-submit-place:hover {
-  background: var(--color-selected-bg);
-  color: var(--color-selected-text);
-}
-
 .browse-chips-section {
   padding: 0 var(--shell-gutter) 20px;
   display: flex;
@@ -615,12 +595,6 @@ html, body, #root {
    assistive tech */
 .map-open .list-card-add-label {
   display: none;
-}
-
-.list-card-add[aria-pressed="true"] {
-  background: var(--color-selected-bg);
-  color: var(--color-selected-text);
-  border-color: transparent;
 }
 
 /* The sheet's own Add button is for phones, where the card head is hidden */
@@ -1793,83 +1767,8 @@ a.details-group-row:hover .details-group-link {
 
 /* ========== SPOT FORM ========== */
 
-.spot-form-body {
-  padding: 0 var(--shell-gutter) 24px;
-}
-
-.spot-form-title {
-  margin: 0 0 16px;
-  font-size: var(--type-body-xl-font-size);
-  letter-spacing: var(--type-body-xl-letter-spacing);
-  line-height: 1.2;
-  font-weight: var(--font-weight-medium);
-}
-
-.spot-form-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-
-.spot-form-header h2 {
-  font-size: var(--type-body-l-font-size);
-  font-weight: 700;
-  letter-spacing: var(--type-body-l-letter-spacing);
-}
-
-.spot-form-close {
-  width: 28px;
-  height: 28px;
-  border: none;
-  background: none;
-  font-size: var(--type-body-l-font-size);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  border-radius: var(--radius-full);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), border-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
-}
-
-.spot-form-close:hover {
-  background-image: linear-gradient(var(--color-overlay-hover), var(--color-overlay-hover));
-  color: var(--color-text-primary);
-}
-
-.spot-form-hint {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px;
-  background: var(--color-surface-raised);
-  border-radius: var(--radius-lg);
-  margin-bottom: 16px;
-}
-
-.spot-form-hint p {
-  font-size: var(--type-body-s-font-size);
-  letter-spacing: var(--type-body-s-letter-spacing);
-  color: var(--color-text-secondary);
-}
-
-.spot-form-location {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  background: var(--color-surface-raised);
-  border-radius: var(--radius-sm);
-  margin-bottom: 16px;
-  font-size: var(--type-body-s-font-size);
-  letter-spacing: var(--type-body-s-letter-spacing);
-  color: var(--color-text-primary);
-  font-variant-numeric: tabular-nums;
-}
-
 .form-group {
-  margin-bottom: 14px;
+  margin-bottom: 20px;
 }
 
 .form-row {
@@ -1879,32 +1778,34 @@ a.details-group-row:hover .details-group-link {
 }
 
 .city-display {
-  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
   border: 1px solid var(--color-border-divider);
   border-radius: var(--radius-sm);
   font-size: var(--type-body-s-font-size);
   letter-spacing: var(--type-body-s-letter-spacing);
   background: var(--color-surface-raised);
   color: var(--color-text-primary);
-  min-height: 38px;
-  display: flex;
-  align-items: center;
 }
 
 .form-group label {
   display: block;
+  margin-bottom: 8px;
   font-size: var(--type-label-font-size);
-  font-weight: 600;
-  color: var(--color-text-primary);
-  margin-bottom: 6px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: var(--text-tracking-plus-6);
 }
 
-.form-group input,
+/* Text fields; checkboxes and radios keep their own size */
+.form-group input:not([type="checkbox"]):not([type="radio"]),
 .form-group textarea {
   width: 100%;
-  padding: 10px 12px;
+  min-height: 44px;
+  padding: 0 12px;
   border: 1px solid var(--color-border-control);
   border-radius: var(--radius-sm);
   font-size: var(--type-body-s-font-size);
@@ -1914,6 +1815,11 @@ a.details-group-row:hover .details-group-link {
   color: var(--color-text-primary);
   outline: none;
   transition: border-color var(--motion-feedback-duration) var(--motion-easing-enter);
+}
+
+.form-group textarea {
+  padding: 10px 12px;
+  line-height: var(--type-body-s-line-height);
   resize: vertical;
 }
 
@@ -1926,11 +1832,15 @@ a.details-group-row:hover .details-group-link {
 .category-select {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px;
+  gap: 8px;
 }
 
 .category-option {
-  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 12px;
   border: 1px solid var(--color-border-control);
   border-radius: var(--radius-sm);
   background: var(--color-surface-card);
@@ -1939,9 +1849,6 @@ a.details-group-row:hover .details-group-link {
   letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
   transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), border-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
 }
 
@@ -1956,8 +1863,12 @@ a.details-group-row:hover .details-group-link {
 }
 
 .btn-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
-  padding: 12px;
+  min-height: 48px;
+  padding: 0 16px;
   border: none;
   border-radius: var(--radius-sm);
   background: var(--color-action-primary-bg);
@@ -1965,10 +1876,9 @@ a.details-group-row:hover .details-group-link {
   font-size: var(--type-body-s-font-size);
   letter-spacing: var(--type-body-s-letter-spacing);
   font-family: inherit;
-  font-weight: 600;
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), border-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
-  margin-top: 4px;
+  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
 }
 
 .btn-submit:hover:not(:disabled) {
@@ -1992,6 +1902,7 @@ a.details-group-row:hover .details-group-link {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  min-height: 36px;
 }
 
 .score-category-name {
@@ -2009,24 +1920,28 @@ a.details-group-row:hover .details-group-link {
 
 .score-dots-input {
   display: inline-flex;
-  gap: 2px;
+  margin-inline-end: -10px;
 }
 
 .score-dot-char {
+  /* a 32px target around a 12px dot */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
   border: none;
   background: none;
-  padding: 3px;
   cursor: pointer;
-  font-size: 0;
-  line-height: 0;
 }
 
 /* Drawn like the rating dots: a ring until chosen, then filled */
 .score-dot-char::before {
   content: "";
   display: block;
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: var(--radius-full);
   box-shadow: inset 0 0 0 1.5px var(--color-data-empty);
 }
@@ -2043,7 +1958,7 @@ a.details-group-row:hover .details-group-link {
 .tag-chip-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 }
 
 .form-hint-text {
@@ -2054,14 +1969,16 @@ a.details-group-row:hover .details-group-link {
   line-height: var(--type-body-s-line-height);
 }
 .tag-chip {
-  padding: 6px 14px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
   border-radius: var(--radius-full);
   border: 1px solid var(--color-border-control);
   background: var(--color-surface-card);
-  color: var(--color-text-secondary);
+  color: var(--color-text-primary);
   font-size: var(--type-body-s-font-size);
   letter-spacing: var(--type-body-s-letter-spacing);
-  font-weight: 500;
   cursor: pointer;
   transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), border-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
   white-space: nowrap;
@@ -2120,59 +2037,101 @@ a.details-group-row:hover .details-group-link {
 
 /* ========== BROWSE SUBMIT MODAL ========== */
 
+/* ========== MODALS ==========
+   Add a spot, suggest an edit, report a problem: components/ModalShell.tsx. A 2xl card over the
+   scrim on desktop; on a phone, the whole page. The head and the foot hold still while the body
+   scrolls, so the title, the close and the submit are always in reach */
 .browse-modal-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--color-scrim);
+  inset: 0;
   z-index: var(--layer-modal);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
+  background: var(--color-scrim);
 }
 
 .browse-modal {
+  display: flex;
+  flex-direction: column;
   width: 100%;
-  max-width: 480px;
-  max-height: calc(100vh - 48px);
-  overflow-y: auto;
+  max-width: 520px;
+  max-height: min(840px, calc(100dvh - 48px));
+  overflow: hidden;
   border-radius: var(--radius-2xl);
   background: var(--color-surface-card);
+  color: var(--color-text-primary);
   box-shadow: var(--elevation-overlay);
   animation: chat-enter var(--motion-component-duration) var(--motion-easing-enter);
 }
 
-/* On a phone a modal is a full-width sheet from the bottom, rounded at the top */
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+  min-height: 64px;
+  padding: 8px 8px 8px 24px;
+  border-bottom: 1px solid var(--color-border-divider);
+}
+
+.modal-head h2 {
+  margin: 0;
+  font-size: var(--type-body-xl-font-size);
+  letter-spacing: var(--type-body-xl-letter-spacing);
+  line-height: 1.2;
+  font-weight: var(--font-weight-medium);
+}
+
+.modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 20px 24px 8px;
+}
+
+.modal-foot {
+  flex-shrink: 0;
+  padding: 16px 24px 24px;
+  border-top: 1px solid var(--color-border-divider);
+  background: var(--color-surface-card);
+}
+
+.modal-foot .modal-hint,
+.modal-foot .modal-error {
+  margin: 0 0 12px;
+}
+
+/* On a phone a modal is the whole page: square, edge to edge, inside the safe areas */
 @media (max-width: 768px) {
   .browse-modal-backdrop {
-    align-items: flex-end;
-    padding: calc(env(safe-area-inset-top) + 12px) 0 0;
+    padding: 0;
   }
 
   .browse-modal {
     max-width: none;
-    max-height: 100%;
-    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
-    padding-bottom: env(safe-area-inset-bottom);
+    max-height: none;
+    height: 100%;
+    border-radius: 0;
+    padding-top: env(safe-area-inset-top);
     animation-name: chat-sheet-enter;
     animation-duration: var(--motion-layout-duration);
   }
-}
 
-.browse-modal .spot-form {
-  border: none;
-  border-radius: var(--radius-none);
-  box-shadow: none;
-}
+  .modal-head {
+    padding-left: var(--shell-gutter);
+  }
 
-.browse-header-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-shrink: 0;
+  .modal-body {
+    padding: 16px var(--shell-gutter) 8px;
+  }
+
+  .modal-foot {
+    padding: 12px var(--shell-gutter) calc(12px + env(safe-area-inset-bottom));
+  }
 }
 
 /* ========== CHAT ========== */
@@ -2465,11 +2424,10 @@ a.details-group-row:hover .details-group-link {
   to { transform: rotate(360deg); }
 }
 
-/* Loops have no role to zero, so reduced motion stops each one by name. The spinner holds still
-   and the words say it's working; the pending pin stays put, outlined, with its plus */
+/* A loop has no role to zero, so reduced motion stops it by name. The spinner holds still and the
+   words say it's working */
 @media (prefers-reduced-motion: reduce) {
-  .chat-steps-busy,
-  .atlas-pin.pending {
+  .chat-steps-busy {
     animation: none;
   }
 }
@@ -2605,11 +2563,6 @@ a.details-group-row:hover .details-group-link {
   border: none !important;
 }
 
-.atlas-marker-pending {
-  background: transparent !important;
-  border: none !important;
-}
-
 /* Map pins: a teardrop per category, an inverse icon, a halo in the map's ring colour */
 .atlas-pin {
   width: 100%;
@@ -2635,19 +2588,6 @@ a.details-group-row:hover .details-group-link {
 /* Selected: larger, with an ink ring outside the halo */
 .atlas-pin.selected {
   box-shadow: 0 0 0 2px var(--color-map-marker-ring), 0 0 0 4px var(--color-map-marker), var(--elevation-floating);
-}
-
-/* Pending: hollow, outlined in ink, with a plus */
-.atlas-pin.pending {
-  background: var(--color-map-marker-ring);
-  color: var(--color-map-marker);
-  box-shadow: inset 0 0 0 2px var(--color-map-marker), var(--elevation-floating);
-  animation: pin-pulse var(--motion-loop-pulse) ease-in-out infinite;
-}
-
-@keyframes pin-pulse {
-  0%, 100% { transform: rotate(-45deg) scale(1); }
-  50% { transform: rotate(-45deg) scale(1.1); }
 }
 
 /* ========== CROWD REPORTING ========== */
@@ -2945,12 +2885,6 @@ a.details-group-row:hover .details-group-link {
     pointer-events: none;
   }
 
-
-  .browse-header-actions {
-    flex-direction: column;
-    align-items: stretch;
-    width: 100%;
-  }
 }
 
 .spot-card-hours {
@@ -3107,13 +3041,6 @@ a.details-group-row:hover .details-group-link {
 
 .place-link-card a {
   color: inherit;
-}
-
-.spot-form-hint-text {
-  margin: 0 0 8px;
-  font-size: var(--type-body-s-font-size);
-  letter-spacing: var(--type-body-s-letter-spacing);
-  color: var(--color-text-secondary);
 }
 
 .browse-detail-link-btn {
@@ -3484,7 +3411,7 @@ a.details-group-row:hover .details-group-link {
 /* ========== SUGGEST AN EDIT, REPORT A PROBLEM ========== */
 
 .modal-intro {
-  margin: -4px 0 16px;
+  margin: 0 0 20px;
   font-size: var(--type-body-s-font-size);
   letter-spacing: var(--type-body-s-letter-spacing);
   line-height: var(--type-body-s-line-height);
@@ -3593,12 +3520,14 @@ a.details-group-row:hover .details-group-link {
 .form-group .report-reason {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  min-height: 44px;
   margin: 0;
-  padding: 10px 12px;
+  padding: 0 12px;
   border: 1px solid var(--color-border-control);
   border-radius: var(--radius-sm);
   background: var(--color-surface-card);
+  color: var(--color-text-primary);
   font-size: var(--type-body-s-font-size);
   font-weight: 400;
   text-transform: none;
@@ -3607,7 +3536,10 @@ a.details-group-row:hover .details-group-link {
 }
 
 .form-group .report-reason input {
-  width: auto;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--color-action-primary-bg);
 }
 
 .form-group .report-reason.active {

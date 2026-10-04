@@ -68,11 +68,9 @@ export default function RateSpot({ spotId, onRated }: RateSpotProps) {
                   type="button"
                   className={`score-dot-char ${scores[sc.key as ScoreCategory] >= v ? "filled" : ""}`}
                   onClick={() => setScores((prev) => ({ ...prev, [sc.key]: v }))}
-                  title={`${v}/5`}
                   aria-label={`${sc.label} ${v} of 5`}
-                >
-                  ●
-                </button>
+                  aria-pressed={scores[sc.key as ScoreCategory] === v}
+                />
               ))}
             </span>
           </div>

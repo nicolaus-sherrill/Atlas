@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import MapView from "@/components/MapView";
 import Sidebar from "@/components/Sidebar";
-import SpotForm from "@/components/SpotForm";
+import BrowseSubmitModal from "@/components/BrowseSubmitModal";
 import BrowseView from "@/components/BrowseView";
 import ChatPanel from "@/components/ChatPanel";
 import Icon from "@/components/Icon";
@@ -58,9 +58,8 @@ function App() {
   useEffect(() => {
     reloadCrowd();
   }, [reloadCrowd]);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [pendingLocation, setPendingLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [pendingGeoData, setPendingGeoData] = useState<{ address: string; city: string } | null>(null);
+  // Add a spot is a modal over whichever view is showing, so adding never switches you to the map
+  const [isAddOpen, setIsAddOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [map, setMap] = useState<L.Map | null>(null);
@@ -74,13 +73,6 @@ function App() {
     setMapOpen(true);
     setCameraTarget((prev) => ({ lat: place.lat, lng: place.lng, seq: (prev?.seq ?? 0) + 1 }));
   }, []);
-
-  const handleMapClick = useCallback((lat: number, lng: number) => {
-    if (isFormOpen) {
-      setPendingLocation({ lat, lng });
-      setPendingGeoData(null);
-    }
-  }, [isFormOpen]);
 
   // A row in the map list, or "View on map" from the table
   const handleListSelect = useCallback((id: string) => {
@@ -106,8 +98,8 @@ function App() {
 
   // A pick or a search lifts a peeking sheet, so what it opened has room to show
   useEffect(() => {
-    if (isPhone && (selection || query.trim() || isFormOpen)) setDetent((d) => (d === "peek" ? "half" : d));
-  }, [isPhone, selection, query, isFormOpen]);
+    if (isPhone && (selection || query.trim())) setDetent((d) => (d === "peek" ? "half" : d));
+  }, [isPhone, selection, query]);
 
   // The last spot shown stays in the sheet while it slides away
   const detailsSpot = spots.find((s) => s.id === selectedSpotId) ?? null;
@@ -115,8 +107,8 @@ function App() {
   if (detailsSpot) lastDetailsSpot.current = detailsSpot;
   const detailsOpen = showMap && !!detailsSpot;
   const sheetOpen = detailsOpen && isWide;
-  // The list steps aside for the details (A) and for the add form, which take its place in the card
-  const listCovered = (detailsOpen && !isWide) || isFormOpen;
+  // The list steps aside for the details under A, which take its place in the card
+  const listCovered = detailsOpen && !isWide;
 
   // Closing the details hands focus back to the spot's row, so the keyboard keeps its place. It
   // waits for the commit, when the list is no longer inert and can take focus.
@@ -158,28 +150,12 @@ function App() {
     return { left, top: 0, right: size.x, bottom: size.y };
   }, [isPhone, mapOpen, sheetOpen, detent]);
 
-  const handleAddClick = () => {
-    if (!mapOpen) {
-      setMapOpen(true);
-    }
-    if (isFormOpen) {
-      setIsFormOpen(false);
-      setPendingLocation(null);
-      setPendingGeoData(null);
-    } else {
-      setIsFormOpen(true);
-      select(null);
-    }
-  };
-
   // Resolves true when the spot saved, so a form can stay open (keeping what was typed) on failure
   const handleSubmit = async (spot: Omit<WorkSpot, "id" | "submittedAt">): Promise<boolean> => {
     try {
       const newSpot = await addSpot(spot);
       setSpots((prev) => [newSpot, ...prev]);
-      setIsFormOpen(false);
-      setPendingLocation(null);
-      setPendingGeoData(null);
+      setIsAddOpen(false);
       select(newSpot.id);
       if (newSpot.description) {
         requestSummary(newSpot.id).then((wrote) => {
@@ -210,12 +186,6 @@ function App() {
     }
   }, [selectedSpotId, select]);
 
-  const handleFormCancel = () => {
-    setIsFormOpen(false);
-    setPendingLocation(null);
-    setPendingGeoData(null);
-  };
-
   return (
     <div ref={shellRef} className={`app-shell ${showMap ? "map-open" : "map-closed"}`} data-detent={isPhone ? detent : undefined}>
       {/* The map is always mounted, under the list card, so switching views never rebuilds it */}
@@ -225,9 +195,7 @@ function App() {
           selection={selection}
           centreEveryPick={!isWide}
           getClearArea={getClearArea}
-          onMapClick={handleMapClick}
           onMarkerSelect={handleMarkerSelect}
-          pendingLocation={pendingLocation}
           cameraTarget={cameraTarget}
           onReady={setMap}
         />
@@ -280,7 +248,7 @@ function App() {
             <div className="segmented" role="group" aria-label="View">
               <button type="button" data-shell-view="table" aria-pressed={!mapOpen} onClick={() => setMapOpen(false)}>
                 <Icon name="rows" weight="bold" size={16} />
-                Table
+                List
               </button>
               <button type="button" data-shell-view="map" aria-pressed={mapOpen} onClick={() => setMapOpen(true)}>
                 <Icon name="map-trifold" weight="bold" size={16} />
@@ -291,8 +259,7 @@ function App() {
               type="button"
               className="btn-outline list-card-add"
               aria-label="Add a spot"
-              aria-pressed={isFormOpen}
-              onClick={handleAddClick}
+              onClick={() => setIsAddOpen(true)}
             >
               <Icon name="plus" weight="bold" size={16} />
               <span className="list-card-add-label">Add a spot</span>
@@ -317,8 +284,6 @@ function App() {
             <BrowseView
               spots={spots}
               onSpotSelect={handleListSelect}
-              onAddClick={handleAddClick}
-              onBrowseSubmit={handleSubmit}
               onRated={reloadSpots}
               onNotice={setNotice}
               onDeleteSpot={isAdmin ? handleDeleteSpot : undefined}
@@ -336,8 +301,7 @@ function App() {
                 spots={spots}
                 onSpotSelect={handleListSelect}
                 selectedSpotId={selectedSpotId}
-                onAddClick={handleAddClick}
-                isFormOpen={isFormOpen}
+                onAddClick={() => setIsAddOpen(true)}
                 query={query}
                 places={places}
                 placesLoading={placesLoading}
@@ -359,20 +323,6 @@ function App() {
                 />
               </div>
             )}
-            {isFormOpen && (
-              <div className="pane-layer details-scroll">
-                <SpotForm
-                  pendingLocation={pendingLocation}
-                  geoData={pendingGeoData}
-                  onSubmit={handleSubmit}
-                  onCancel={handleFormCancel}
-                  onLocationChange={(lat, lng) => {
-                    setPendingLocation({ lat, lng });
-                    setPendingGeoData(null);
-                  }}
-                />
-              </div>
-            )}
           </div>
         </div>
       </aside>
@@ -383,6 +333,15 @@ function App() {
         <div className="app-notice" role="status" onClick={() => setNotice(null)}>
           {notice}
         </div>
+      )}
+
+      {isAddOpen && (
+        <BrowseSubmitModal
+          onSubmit={async (spot) => {
+            await handleSubmit(spot);
+          }}
+          onClose={() => setIsAddOpen(false)}
+        />
       )}
 
       {isChatOpen && <ChatPanel spots={spots} onSpotSelect={handleChatSpotSelect} onClose={closeChat} />}

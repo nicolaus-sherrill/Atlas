@@ -14,7 +14,6 @@ interface SidebarProps {
   onSpotSelect: (id: string) => void;
   selectedSpotId: string | null;
   onAddClick: () => void;
-  isFormOpen: boolean;
   // The shell's one search: it filters these spots, and places matching it list beneath them
   query: string;
   places: GeocodingResult[];
@@ -24,7 +23,7 @@ interface SidebarProps {
   onDeleteSpot?: (id: string) => void;
 }
 
-export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClick, isFormOpen, query, places, placesLoading, onPickPlace, onDeleteSpot }: SidebarProps) {
+export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClick, query, places, placesLoading, onPickPlace, onDeleteSpot }: SidebarProps) {
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [showExport, setShowExport] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -60,7 +59,7 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
 
       <div className="sidebar-actions">
         <button className="btn-primary sidebar-add" onClick={onAddClick}>
-          {isFormOpen ? "Cancel" : "+ Add a Spot"}
+          + Add a spot
         </button>
         <button className="btn-secondary" onClick={() => setShowExport(!showExport)}>
           Export

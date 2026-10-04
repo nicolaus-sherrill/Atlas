@@ -1,4 +1,3 @@
-import { createPortal } from "react-dom";
 import { useState } from "react";
 import type { WorkSpot, Category, TagId, CategoryScores, ScoreCategory } from "@/lib/types";
 import { CATEGORIES, TAGS, SCORE_CATEGORIES, EMPTY_SCORES } from "@/lib/types";
@@ -7,6 +6,7 @@ import type { GeocodingResult } from "@/lib/geocode";
 import PlaceLinkCard from "@/components/PlaceLinkCard";
 import { usePlaceLink } from "@/hooks/use-place-link";
 import Icon from "./Icon";
+import ModalShell from "./ModalShell";
 
 interface BrowseSubmitModalProps {
   onSubmit: (spot: Omit<WorkSpot, "id" | "submittedAt">) => void;
@@ -80,126 +80,121 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
     });
   };
 
-  return createPortal(
-    <div className="browse-modal-backdrop" onClick={onClose}>
-      <div className="browse-modal" onClick={(e) => e.stopPropagation()}>
-        <form className="spot-form" onSubmit={handleSubmit}>
-          <div className="spot-form-header">
-            <h2>Submit a Place</h2>
-            <button type="button" className="spot-form-close" onClick={onClose}>
-              &times;
-            </button>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="browse-name">Name</label>
-            <AddressAutocomplete
-              id="browse-name"
-              mode="place"
-              value={name}
-              onChange={setName}
-              onSelect={handleNameSelect}
-              placeholder="Start typing the place's name"
-              autoFocus
-            />
-            {link && <PlaceLinkCard link={link} onClear={clear} />}
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="browse-address">Address</label>
-            <AddressAutocomplete
-              id="browse-address"
-              value={address}
-              onChange={setAddress}
-              onSelect={handleAddressSelect}
-              placeholder="123 Main St, Austin, TX"
-            />
-          </div>
-
-          {city && (
-            <div className="form-group">
-              <label>City</label>
-              <div className="city-display">{city}</div>
-            </div>
-          )}
-
-          <div className="form-group">
-            <label htmlFor="browse-category">Category</label>
-            <div className="category-select">
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat.value}
-                  type="button"
-                  className={`category-option ${category === cat.value ? "active" : ""}`}
-                  onClick={() => setCategory(cat.value)}
-                >
-                  <Icon name={cat.icon} weight="bold" size={16} />
-                  <span>{cat.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label>Rate this spot</label>
-            <div className="score-categories">
-              {SCORE_CATEGORIES.map((sc) => (
-                <div key={sc.key} className="score-category-row">
-                  <span className="score-category-name">{sc.label}</span>
-                  <span className="score-dots-input">
-                    {[1, 2, 3, 4, 5].map((v) => (
-                      <button
-                        key={v}
-                        type="button"
-                        className={`score-dot-char ${scores[sc.key] >= v ? "filled" : ""}`}
-                        onClick={() => setScore(sc.key, v)}
-                        title={`${v}/5`}
-                      >
-                        ●
-                      </button>
-                    ))}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label>Tags</label>
-            <div className="tag-chip-grid">
-              {TAGS.map((tag) => (
-                <button
-                  key={tag.id}
-                  type="button"
-                  className={`tag-chip ${selectedTags.has(tag.id) ? "active" : ""}`}
-                  onClick={() => toggleTag(tag.id)}
-                >
-                  {tag.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="browse-description">Notes (optional)</label>
-            <textarea
-              id="browse-description"
-              placeholder="What makes this spot great for working?"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-            />
-          </div>
-
+  return (
+    <ModalShell
+      title="Add a spot"
+      intro="Find it by name, or give its address. Atlas fills in what it can."
+      onClose={onClose}
+      onSubmit={handleSubmit}
+      footer={
+        <>
           {name.trim() && !location && (
-            <p className="spot-form-hint-text">Pick the place from the suggestions, or choose an address, so Atlas knows where it is.</p>
+            <p className="modal-hint">Pick the place from the suggestions, or choose an address, so Atlas knows where it is.</p>
           )}
           <button type="submit" className="btn-submit" disabled={!name.trim() || !location}>
-            Submit Place
+            Add spot
           </button>
-        </form>
+        </>
+      }
+    >
+      <div className="form-group">
+        <label htmlFor="browse-name">Name</label>
+        <AddressAutocomplete
+          id="browse-name"
+          mode="place"
+          value={name}
+          onChange={setName}
+          onSelect={handleNameSelect}
+          placeholder="Start typing the place's name"
+          autoFocus
+        />
+        {link && <PlaceLinkCard link={link} onClear={clear} />}
       </div>
-    </div>,
-    document.body,
+
+      <div className="form-group">
+        <label htmlFor="browse-address">Address</label>
+        <AddressAutocomplete
+          id="browse-address"
+          value={address}
+          onChange={setAddress}
+          onSelect={handleAddressSelect}
+          placeholder="123 Main St, Austin, TX"
+        />
+      </div>
+
+      {city && (
+        <div className="form-group">
+          <label>City</label>
+          <div className="city-display">{city}</div>
+        </div>
+      )}
+
+      <div className="form-group">
+        <label htmlFor="browse-category">Category</label>
+        <div className="category-select">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat.value}
+              type="button"
+              className={`category-option ${category === cat.value ? "active" : ""}`}
+              onClick={() => setCategory(cat.value)}
+            >
+              <Icon name={cat.icon} weight="bold" size={16} />
+              <span>{cat.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label>Rate this spot</label>
+        <div className="score-categories">
+          {SCORE_CATEGORIES.map((sc) => (
+            <div key={sc.key} className="score-category-row">
+              <span className="score-category-name">{sc.label}</span>
+              <span className="score-dots-input">
+                {[1, 2, 3, 4, 5].map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    className={`score-dot-char ${scores[sc.key] >= v ? "filled" : ""}`}
+                    onClick={() => setScore(sc.key, v)}
+                    aria-label={`${sc.label} ${v} of 5`}
+                    aria-pressed={scores[sc.key] === v}
+                  />
+                ))}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label>Tags</label>
+        <div className="tag-chip-grid">
+          {TAGS.map((tag) => (
+            <button
+              key={tag.id}
+              type="button"
+              className={`tag-chip ${selectedTags.has(tag.id) ? "active" : ""}`}
+              onClick={() => toggleTag(tag.id)}
+            >
+              {tag.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="browse-description">Notes (optional)</label>
+        <textarea
+          id="browse-description"
+          placeholder="What makes this spot great for working?"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={3}
+        />
+      </div>
+    </ModalShell>
   );
 }

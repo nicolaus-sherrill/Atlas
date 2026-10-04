@@ -45,20 +45,17 @@ interface MapViewProps {
   centreEveryPick: boolean;
   // The part of the map the cards leave clear, at rest
   getClearArea: (map: L.Map) => ClearArea;
-  onMapClick: (lat: number, lng: number) => void;
   onMarkerSelect: (id: string) => void;
-  pendingLocation: { lat: number; lng: number } | null;
   // A place picked from the search; the camera moves there when seq changes
   cameraTarget: { lat: number; lng: number; seq: number } | null;
   // Hands the map to the app's own controls once it exists
   onReady?: (map: L.Map) => void;
 }
 
-export default function MapView({ spots, selection, centreEveryPick, getClearArea, onMapClick, onMarkerSelect, pendingLocation, cameraTarget, onReady }: MapViewProps) {
+export default function MapView({ spots, selection, centreEveryPick, getClearArea, onMarkerSelect, cameraTarget, onReady }: MapViewProps) {
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
   const selectedIdRef = useRef<string | null>(null);
-  const pendingMarkerRef = useRef<L.Marker | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   // The basemap follows the page's theme: a forced data-theme on the root wins, then the system's
   const prefersDark = useMediaQuery("(prefers-color-scheme: dark)");
@@ -91,26 +88,10 @@ export default function MapView({ spots, selection, centreEveryPick, getClearAre
     };
   }, []);
 
-  const onMapClickRef = useRef(onMapClick);
-  onMapClickRef.current = onMapClick;
   const onMarkerSelectRef = useRef(onMarkerSelect);
   onMarkerSelectRef.current = onMarkerSelect;
   const getClearAreaRef = useRef(getClearArea);
   getClearAreaRef.current = getClearArea;
-
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    const handler = (e: L.LeafletMouseEvent) => {
-      onMapClickRef.current(e.latlng.lat, e.latlng.lng);
-    };
-    map.on("click", handler);
-
-    return () => {
-      map.off("click", handler);
-    };
-  }, []);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -181,33 +162,6 @@ export default function MapView({ spots, selection, centreEveryPick, getClearAre
     // Only a new pick moves the camera, never a change to the spots list
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selection?.seq]);
-
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    if (pendingMarkerRef.current) {
-      pendingMarkerRef.current.remove();
-      pendingMarkerRef.current = null;
-    }
-
-    if (pendingLocation) {
-      const marker = L.marker([pendingLocation.lat, pendingLocation.lng], {
-        // A hollow pin with a plus: the spot being added, not yet on the map
-        icon: L.divIcon({
-          className: "atlas-marker-pending",
-          html: `<div class="atlas-pin pending" data-theme="light">${iconSvg("plus", "bold", 14)}</div>`,
-          iconSize: [28, 28],
-          iconAnchor: [14, 34],
-        }),
-      }).addTo(map);
-      pendingMarkerRef.current = marker;
-      // A tap on the map is already in view; a name or address picked in the form may not be
-      const target = L.latLng(pendingLocation.lat, pendingLocation.lng);
-      const area = getClearAreaRef.current(map);
-      if (!comfortablyInView(map, target, area)) moveCamera(map, target, Math.max(map.getZoom(), 15), area);
-    }
-  }, [pendingLocation]);
 
   // Move to a picked place, centred in the map the list card leaves clear. If the card is still
   // narrowing from the table, wait for it to settle so the clear area is measured at rest.

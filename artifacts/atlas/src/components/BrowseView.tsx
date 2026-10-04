@@ -1,7 +1,6 @@
 import { useState, useMemo, Fragment } from "react";
 import type { WorkSpot, Category } from "@/lib/types";
 import { CATEGORIES, calcScore, getSpotDisplayTags, TAGS, SCORE_CATEGORIES, SCORE_CATEGORY_LABELS } from "@/lib/types";
-import BrowseSubmitModal from "./BrowseSubmitModal";
 import RateSpot from "./RateSpot";
 import SuggestEditModal from "./SuggestEditModal";
 import ReportProblemModal from "./ReportProblemModal";
@@ -16,8 +15,6 @@ import { matchesQuery } from "@/lib/search";
 interface BrowseViewProps {
   spots: WorkSpot[];
   onSpotSelect: (id: string) => void;
-  onAddClick: () => void;
-  onBrowseSubmit: (spot: Omit<WorkSpot, "id" | "submittedAt">) => Promise<boolean>;
   onRated: () => void;
   onNotice: (message: string) => void;
   // The shell's one search: it filters these spots, and places matching it list beneath them
@@ -31,14 +28,13 @@ interface BrowseViewProps {
 
 const ALL_FILTER_TAGS = TAGS.map((t) => t.label);
 
-export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSubmit, onRated, onNotice, query, places, placesLoading, onPickPlace, onDeleteSpot }: BrowseViewProps) {
+export default function BrowseView({ spots, onSpotSelect, onRated, onNotice, query, places, placesLoading, onPickPlace, onDeleteSpot }: BrowseViewProps) {
   const [editingSpot, setEditingSpot] = useState<WorkSpot | null>(null);
   const [reportingSpot, setReportingSpot] = useState<WorkSpot | null>(null);
   const [activeCities, setActiveCities] = useState<Set<string>>(new Set());
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [activeTags, setActiveTags] = useState<Set<string>>(new Set());
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const cities = useMemo(() => {
@@ -80,11 +76,6 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
       <header className="browse-header">
         <div className="browse-header-left">
           <p className="browse-tagline">Community-powered spots for remote work, handpicked by the internet.</p>
-        </div>
-        <div className="browse-header-actions">
-          <button className="btn-submit-place" onClick={() => setShowSubmitModal(true)}>
-            Submit a place
-          </button>
         </div>
       </header>
 
@@ -361,14 +352,6 @@ export default function BrowseView({ spots, onSpotSelect, onAddClick, onBrowseSu
         />
       )}
 
-      {showSubmitModal && (
-        <BrowseSubmitModal
-          onSubmit={async (spot) => {
-            if (await onBrowseSubmit(spot)) setShowSubmitModal(false);
-          }}
-          onClose={() => setShowSubmitModal(false)}
-        />
-      )}
     </div>
   );
 }
