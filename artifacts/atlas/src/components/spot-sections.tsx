@@ -2,8 +2,9 @@
 // open row (SpotReveal) both compose these, so a spot reads the same wherever you open it; only
 // the arrangement differs. Each part owns its own state and modals.
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import type { WorkSpot } from "@/lib/types";
+import { deleteMyReview, fetchReviews, REVIEW_MAX_LENGTH, submitReview, type Review } from "@/lib/reviews";
 import { calcScore, formatWeeklyHours, SCORE_CATEGORY_LABELS } from "@/lib/types";
 import { BUSYNESS_LEVELS, getBusynessInfo, submitCrowdReport, timeAgo, type CrowdStatus } from "@/lib/crowd";
 import CrowdMark from "./CrowdMark";
@@ -16,10 +17,16 @@ import ReportProblemModal from "./ReportProblemModal";
 
 // ---------- What the place is like: the summary, and what people say ----------
 
-// People's notes about a spot, shown as reviews. Atlas keeps one today: the note from whoever added
-// the spot. More arrive when ratings can carry a note, and the row scrolls sideways to hold them.
-function reviewsOf(spot: WorkSpot) {
-  return spot.description ? [{ text: spot.description, by: "From the person who added it", date: spot.submittedAt }] : [];
+// People's notes about a spot, shown as reviews: the note from whoever added the spot first, then
+// everyone's reviews, newest first. The row scrolls sideways to hold them.
+function reviewsOf(spot: WorkSpot, reviews: Review[]) {
+  const added = spot.description
+    ? [{ key: "added", text: spot.description, by: "From the person who added it", date: spot.submittedAt }]
+    : [];
+  return [
+    ...added,
+    ...reviews.map((r) => ({ key: r.id, text: r.body, by: r.mine ? "Your review" : "From someone on Atlas", date: r.created_at })),
+  ];
 }
 
 // The AI summary, written from people's notes
@@ -28,28 +35,130 @@ export function SpotSummary({ spot }: { spot: WorkSpot }) {
   return <p className="details-summary">{spot.aiSummary}</p>;
 }
 
-// People's notes as outlined review cards, in one row that scrolls sideways when they overflow.
-// They sit low in the details, after the facts and the scores
+// People's notes as outlined review cards, in one row that scrolls sideways when they overflow, and
+// a way to add your own. They sit low in the details, after the facts and the scores
 export function SpotReviews({ spot }: { spot: WorkSpot }) {
-  const reviews = reviewsOf(spot);
-  if (reviews.length === 0) return null;
+  const [list, setList] = useState<Review[]>([]);
+  const load = useCallback(() => {
+    let cancelled = false;
+    fetchReviews(spot.id)
+      .then((r) => !cancelled && setList(r))
+      .catch(() => !cancelled && setList([]));
+    return () => {
+      cancelled = true;
+    };
+  }, [spot.id]);
+  useEffect(load, [load]);
+
+  const reviews = reviewsOf(spot, list);
+  const mine = list.find((r) => r.mine) ?? null;
   return (
     <section className="details-section">
       <div className="details-section-head">
         <h3>What people say</h3>
       </div>
-      <div className="review-scroller" role="list" aria-label="What people say" tabIndex={0}>
-        {reviews.map((r, i) => (
-          <figure key={i} className="review-card" role="listitem">
-            <blockquote>{r.text}</blockquote>
-            <figcaption>
-              {r.by}
-              {r.date && <> · {new Date(r.date).toLocaleDateString("en-US", { month: "short", year: "numeric" })}</>}
-            </figcaption>
-          </figure>
-        ))}
-      </div>
+      {reviews.length > 0 && (
+        <div className="review-scroller" role="list" aria-label="What people say" tabIndex={0}>
+          {reviews.map((r) => (
+            <figure key={r.key} className="review-card" role="listitem">
+              <blockquote>{r.text}</blockquote>
+              <figcaption>
+                {r.by}
+                {r.date && <> · {new Date(r.date).toLocaleDateString("en-US", { month: "short", year: "numeric" })}</>}
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      )}
+      <WriteReview spotId={spot.id} mine={mine} onSaved={load} />
     </section>
+  );
+}
+
+// Lets anyone write one review of a spot, or change or delete the one they wrote
+function WriteReview({ spotId, mine, onSaved }: { spotId: string; mine: Review | null; onSaved: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [body, setBody] = useState("");
+  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "deleted" | "error">("idle");
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    setOpen(false);
+    setStatus("idle");
+  }, [spotId]);
+
+  const begin = () => {
+    setBody(mine?.body ?? "");
+    setError(null);
+    setStatus("idle");
+    setOpen(true);
+  };
+
+  const run = async (action: () => Promise<void>, done: "saved" | "deleted") => {
+    setStatus("saving");
+    setError(null);
+    try {
+      await action();
+      setStatus(done);
+      setOpen(false);
+      onSaved();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      setError(message.includes("Too many") ? "You've written a lot of reviews this hour. Try again later." : "Couldn't save your review. Try again.");
+      setStatus("error");
+    }
+  };
+
+  if (!open) {
+    return (
+      <div className="rate-spot write-review">
+        <button type="button" className="btn-ghost btn-compact" onClick={(e) => { e.stopPropagation(); begin(); }}>
+          {mine ? "Edit your review" : "Write a review"}
+        </button>
+        {status === "saved" && <span className="rate-spot-note">Thanks. Your review is up.</span>}
+        {status === "deleted" && <span className="rate-spot-note">Your review is deleted.</span>}
+      </div>
+    );
+  }
+
+  const id = `review-${spotId}`;
+  return (
+    <div className="rate-spot rate-spot-open write-review" onClick={(e) => e.stopPropagation()}>
+      <div className="form-group">
+        <label htmlFor={id}>Your review</label>
+        <textarea
+          id={id}
+          rows={4}
+          maxLength={REVIEW_MAX_LENGTH}
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          placeholder="What's it like to work here?"
+        />
+      </div>
+      {error && <p className="rate-spot-error">{error}</p>}
+      <div className="rate-spot-actions">
+        <button
+          type="button"
+          className="btn-solid btn-compact"
+          onClick={() => run(() => submitReview(spotId, body), "saved")}
+          disabled={status === "saving" || !body.trim()}
+        >
+          {status === "saving" ? "Saving..." : mine ? "Update review" : "Post review"}
+        </button>
+        <button type="button" className="btn-ghost btn-compact" onClick={() => setOpen(false)}>
+          Cancel
+        </button>
+        {mine && (
+          <button
+            type="button"
+            className="btn-ghost btn-compact"
+            onClick={() => run(() => deleteMyReview(spotId), "deleted")}
+            disabled={status === "saving"}
+          >
+            Delete
+          </button>
+        )}
+      </div>
+    </div>
   );
 }
 

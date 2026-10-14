@@ -1195,6 +1195,15 @@ a.details-group-row:hover .details-group-link {
   color: var(--color-text-secondary);
 }
 
+/* Writing your own review sits under the cards, or under the heading when there are none yet */
+.write-review {
+  margin-top: 12px;
+}
+
+.write-review textarea {
+  min-height: 96px;
+}
+
 
 /* The overall score leads the scores, each category sits under it */
 .details-overall {

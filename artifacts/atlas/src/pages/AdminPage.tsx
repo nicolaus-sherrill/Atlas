@@ -7,15 +7,18 @@ import {
   fetchDeletedSpots,
   fetchPendingEdits,
   fetchRecentRatings,
+  fetchRecentReviews,
   fetchReports,
   reviewEdit,
   sendSignInLink,
   setRaterStatus,
   setRatingStatus,
   setReportStatus,
+  setReviewStatus,
   restoreSpot,
   signOut,
   type AdminRating,
+  type AdminReview,
   type AdminSpot,
   type DeletedSpot,
   type PendingEdit,
@@ -26,7 +29,7 @@ import { FLAG_LABELS, ratingFlags } from "@/lib/rating-flags";
 import { requestSummary } from "@/lib/store";
 import { formatWeeklyHours, getTagLabel, SCORE_CATEGORY_LABELS, type OperatingHours, type ScoreCategory } from "@/lib/types";
 
-type Tab = "edits" | "reports" | "ratings" | "spots";
+type Tab = "edits" | "reports" | "ratings" | "reviews" | "spots";
 
 const REPORT_REASONS: Record<ProblemReport["reason"], string> = {
   closed: "Closed",
@@ -162,22 +165,25 @@ function Dashboard() {
   const [edits, setEdits] = useState<PendingEdit[]>([]);
   const [reports, setReports] = useState<ProblemReport[]>([]);
   const [ratings, setRatings] = useState<AdminRating[]>([]);
+  const [reviews, setReviews] = useState<AdminReview[]>([]);
   const [spots, setSpots] = useState<AdminSpot[]>([]);
   const [deleted, setDeleted] = useState<DeletedSpot[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     try {
-      const [e, r, ra, s, d] = await Promise.all([
+      const [e, r, ra, rv, s, d] = await Promise.all([
         fetchPendingEdits(),
         fetchReports(),
         fetchRecentRatings(),
+        fetchRecentReviews(),
         fetchAllSpots(),
         fetchDeletedSpots(),
       ]);
       setEdits(e);
       setReports(r);
       setRatings(ra);
+      setReviews(rv);
       setSpots(s);
       setDeleted(d);
       setError(null);
@@ -213,6 +219,7 @@ function Dashboard() {
     { id: "edits", label: "Edits", count: edits.length },
     { id: "reports", label: "Reports", count: reports.length },
     { id: "ratings", label: "Ratings", count: flaggedCount },
+    { id: "reviews", label: "Reviews", count: 0 },
     { id: "spots", label: "Spots", count: unlinkedCount },
   ];
 
@@ -239,6 +246,7 @@ function Dashboard() {
       {tab === "edits" && <EditsTab edits={edits} act={act} />}
       {tab === "reports" && <ReportsTab reports={reports} act={act} />}
       {tab === "ratings" && <RatingsTab ratings={ratings} act={act} />}
+      {tab === "reviews" && <ReviewsTab reviews={reviews} act={act} />}
       {tab === "spots" && <SpotsTab spots={spots} deleted={deleted} act={act} />}
     </>
   );
@@ -331,6 +339,51 @@ function ReportsTab({ reports, act }: { reports: ProblemReport[]; act: Act }) {
           </div>
         </article>
       ))}
+    </div>
+  );
+}
+
+function ReviewsTab({ reviews, act }: { reviews: AdminReview[]; act: Act }) {
+  if (reviews.length === 0) return <p className="admin-empty">No reviews yet.</p>;
+  return (
+    <div className="admin-table-wrap">
+      <table className="admin-table">
+        <thead>
+          <tr>
+            <th>Spot</th>
+            <th>Review</th>
+            <th>Writer</th>
+            <th>When</th>
+            <th />
+          </tr>
+        </thead>
+        <tbody>
+          {reviews.map((review) => (
+            <tr key={review.id} className={review.status === "hidden" ? "admin-row-hidden" : ""}>
+              <td>{review.spot?.name ?? "Deleted spot"}</td>
+              <td>
+                {review.body}
+                {review.status === "hidden" && <span className="admin-chip">Hidden</span>}
+              </td>
+              <td>
+                <code>{shortId(review.user_id)}</code>
+              </td>
+              <td className="admin-muted">{formatDate(review.updated_at)}</td>
+              <td>
+                <div className="admin-actions admin-actions-cell">
+                  <button
+                    type="button"
+                    className="admin-btn"
+                    onClick={() => act(() => setReviewStatus(review.id, review.status === "visible" ? "hidden" : "visible"))}
+                  >
+                    {review.status === "visible" ? "Hide" : "Restore"}
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

@@ -137,6 +137,33 @@ export async function setRaterStatus(userId: string, status: AdminRating["status
   return check(await supabase.rpc("set_rater_ratings_status", { p_user_id: userId, p_status: status })) as number;
 }
 
+// ---------- reviews ----------
+
+export interface AdminReview {
+  id: string;
+  spot_id: string;
+  user_id: string | null;
+  body: string;
+  status: "visible" | "hidden";
+  created_at: string;
+  updated_at: string;
+  spot: { name: string } | null;
+}
+
+export async function fetchRecentReviews(limit = 300): Promise<AdminReview[]> {
+  return check(
+    await supabase
+      .from("reviews")
+      .select("id, spot_id, user_id, body, status, created_at, updated_at, spot:spots(name)")
+      .order("updated_at", { ascending: false })
+      .limit(limit),
+  ) as unknown as AdminReview[];
+}
+
+export async function setReviewStatus(id: string, status: AdminReview["status"]): Promise<void> {
+  check(await supabase.rpc("set_review_status", { p_review_id: id, p_status: status }));
+}
+
 // ---------- spots ----------
 
 export async function fetchAllSpots(): Promise<AdminSpot[]> {
