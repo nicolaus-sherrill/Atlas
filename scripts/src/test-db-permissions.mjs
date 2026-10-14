@@ -187,6 +187,44 @@ await asRater(raterA, "10.0.0.1");
 await db.query("delete from public.ratings where spot_id='seed-1'");
 ok("a rater can withdraw their own rating", (await spotRow("seed-1")).rating_count === 2);
 
+// ---------- reviews ----------
+const review = (spot, body) => `insert into public.reviews (spot_id, body) values ('${spot}', '${body}')
+  on conflict (spot_id, user_id) do update set body = excluded.body`;
+const reviewsOf = async (spot) => rows(`select * from public.spot_reviews('${spot}')`);
+await asRater(raterA, "10.0.0.1");
+ok("a visitor can review a spot", !(await throws(review("seed-2", "  Quiet mornings, loud after noon  "))));
+ok("review text is trimmed", (await reviewsOf("seed-2"))[0]?.body === "Quiet mornings, loud after noon");
+ok("the writer sees their review as theirs", (await reviewsOf("seed-2"))[0]?.mine === true);
+ok("reviewing again replaces the earlier review", !(await throws(review("seed-2", "Quiet mornings"))) && (await reviewsOf("seed-2")).length === 1);
+ok("an empty review is refused", !!(await throws(review("seed-3", "   "))));
+await asRater(raterB, "10.0.0.2");
+await db.query(review("seed-2", "Great outlets"));
+ok("two people's reviews both show", (await reviewsOf("seed-2")).length === 2);
+ok("another person's review isn't marked theirs", (await reviewsOf("seed-2")).filter((r) => r.mine).length === 1);
+ok("a writer can't read others' rows directly", (await rows("select * from public.reviews where spot_id='seed-2'")).length === 1);
+await db.query("update public.reviews set status='hidden', body='Hacked' where spot_id='seed-2'");
+ok("a writer can't hide or rewrite others' reviews", (await reviewsOf("seed-2")).some((r) => r.body === "Quiet mornings"));
+ok("a writer can't moderate", !!(await throws(`select public.set_review_status((select id from public.reviews limit 1), 'hidden')`)));
+await asAnon("10.0.0.4");
+ok("anon reads visible reviews", (await reviewsOf("seed-2")).length === 2);
+ok("anon sees no writer ids", !Object.keys((await reviewsOf("seed-2"))[0]).includes("user_id"));
+ok("anon without a session can't review", !!(await throws(review("seed-2", "drive-by"))));
+ok("anon can't read the reviews table", await denied("select * from public.reviews"));
+await asAdmin();
+const spam = (await rows("select id from public.reviews where user_id=$1", [raterB]))[0].id;
+await db.query("select public.set_review_status($1, 'hidden')", [spam]);
+ok("admin hides a review", (await reviewsOf("seed-2")).length === 1);
+await db.query("delete from public.spots where id='seed-2'");
+const arch2 = (await rows("select id from public.list_deleted_spots() where spot_id='seed-2'"))[0];
+ok("deleting a spot takes its reviews", (await rows("select count(*)::int n from public.reviews where spot_id='seed-2'"))[0].n === 0);
+await db.query(`select public.restore_spot(${arch2.id})`);
+const back = await rows("select body, status from public.reviews where spot_id='seed-2' order by body");
+// B's own row took the "Hacked" text above (their own review is theirs to rewrite), and an admin hid it
+ok("restore brings reviews back, hidden one still hidden", back.length === 2 && back.find((r) => r.body === "Hacked")?.status === "hidden", JSON.stringify(back));
+await asRater(raterA, "10.0.0.1");
+await db.query("delete from public.reviews where spot_id='seed-2'");
+ok("a writer can delete their own review", (await reviewsOf("seed-2")).length === 0);
+
 // ---------- server key ----------
 await db.exec(`reset role; select set_config('request.jwt.claim.role','service_role',false), set_config('request.jwt.claim.sub','',false); set role service_role;`);
 const serverWrite = await throws("update public.spots set ai_summary = 'server test' where id = 'seed-2'");
