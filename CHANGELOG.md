@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.1.0: Everyone can say what a spot is like
+
+### New
+- **Write a review of any spot**, then change or delete it whenever you like
+- **Reviews from everyone show under What people say**, after the note from whoever added the spot
+
+### Fixed
+- **Three starter spots now sit at their real addresses**, with their pins moved to match
+
 ## v1.0.1: Removed spots stay removed
 
 ### Changed
