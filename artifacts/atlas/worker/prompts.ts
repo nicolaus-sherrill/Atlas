@@ -43,26 +43,48 @@ Features: ${tagList}
 Write a natural, helpful summary in 1-2 sentences. Do not use bullet points.`;
 }
 
+// "21:00" -> "9pm", "07:30" -> "7:30am", "00:00" -> "midnight"
+function clock12(t: string): string {
+  const [h, m] = t.split(":").map(Number);
+  if (h % 24 === 0 && m === 0) return "midnight";
+  const suffix = h % 24 < 12 ? "am" : "pm";
+  const hour = h % 12 === 0 ? 12 : h % 12;
+  return `${hour}${m ? `:${String(m).padStart(2, "0")}` : ""}${suffix}`;
+}
+
+// Today's entry from a hoursLine() string, spelled out so the model doesn't have to find the
+// right day in the week or convert 24-hour times.
+function hoursToday(hours: string, dayAbbr: string): string | undefined {
+  const entry = hours.split(", ").find((e) => e.startsWith(`${dayAbbr} `));
+  if (!entry) return undefined;
+  const range = entry.slice(dayAbbr.length + 1);
+  if (range === "closed") return "closed all day";
+  const [open, close] = range.split("-");
+  return `open ${clock12(open)} to ${clock12(close)}`;
+}
+
 export function buildPlannerSystemPrompt(spots: SpotData[], now?: Date): string {
+  const dayAbbr = now?.toLocaleDateString("en-US", { weekday: "short", timeZone: "America/Chicago" });
   const spotDescriptions = spots
     .map((s, i) => {
       const scoreEntries = Object.entries(s.scores)
         .map(([k, v]) => `${k}: ${v}/5`)
         .join(", ");
       const tags = s.tags.length > 0 ? s.tags.join(", ") : "none";
+      const today = s.hours && dayAbbr ? hoursToday(s.hours, dayAbbr) : undefined;
       return `${i + 1}. ${s.name}
    Category: ${s.category}
    City: ${s.city}
    Address: ${s.address}
    Overall Score: ${s.overallScore}/5
    Scores: ${scoreEntries}
-   Tags: ${tags}${s.hours ? `\n   Hours: ${s.hours}` : ""}
+   Tags: ${tags}${today ? `\n   Today: ${today}` : ""}${s.hours ? `\n   Hours: ${s.hours}` : ""}
    Description: ${s.description}${s.aiSummary ? `\n   AI Summary: ${s.aiSummary}` : ""}`;
     })
     .join("\n\n");
 
   const today = now
-    ? `\nToday is ${now.toLocaleDateString("en-US", { weekday: "long", timeZone: "America/Chicago" })}. Only recommend a spot for a time block when its hours cover that block.\n`
+    ? `\nToday is ${now.toLocaleDateString("en-US", { weekday: "long", timeZone: "America/Chicago" })}. Each spot's "Today" line gives its hours for today.\n`
     : "";
 
   return `You are Atlas Planner, an AI assistant that helps remote workers plan their workday itinerary using spots from the Atlas database.
@@ -73,17 +95,18 @@ ${spotDescriptions}
 
 Your role:
 - Help users plan a sequence of spots for their workday based on their schedule, preferences, and needs.
-- When recommending spots, explain WHY each one fits the specific time block and requirements (e.g., "For your deep focus block from 11-3, I'd suggest Austin Central Library — it scores 5/5 on environment with quiet, library-level noise and generous table space.").
+- When recommending spots, explain WHY each one fits the specific time block and requirements (e.g., "For your deep focus block from 11-3, I'd suggest [spot name] — it scores 5/5 on environment with quiet, library-level noise and generous table space.").
 - Consider factors like wifi quality, noise level, outlet availability, food options, hours, and accessibility based on what the user mentions.
 - If the user has constraints (e.g., "near downtown", "needs good coffee"), filter your recommendations accordingly.
 - Be conversational and helpful. You can ask clarifying questions if the user's request is vague.
 - Format your itinerary clearly with time blocks and spot recommendations.
 - Only recommend spots from the database above — never invent places.
 - Keep responses concise but informative. Use markdown formatting for readability (bold for spot names, bullet points for features).
+- Hours are a hard rule. When the user asks about a time, start your reply with one line that begins "Open then:" and names only the spots whose "Today" hours are open at that time, each with its closing time. Then plan only from that line. A spot that is closed then must not appear anywhere in your reply: not as a pick, a backup, an "if you can go earlier" option, or a note that it is closed. A spot that closes partway through can be suggested for the part it is open. If nothing is open then, say so plainly.
 - End every reply with two or three follow-ups the user might want next, written as the user would say them, each under eight words. Put them after a line that says exactly "Follow-ups:", one per line, each starting with "- ". For example:
 Follow-ups:
 - Somewhere with food for lunch
-- Swap the library for a cafe`;
+- Swap the second spot for a cafe`;
 }
 
 const DAY_ABBR = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
