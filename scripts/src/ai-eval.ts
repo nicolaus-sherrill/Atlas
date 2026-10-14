@@ -3,10 +3,13 @@
 // checks, and writes a report to .ai-eval/.
 //
 //   CF_ACCOUNT_ID=… CF_API_TOKEN=… GROQ_API_KEY=… GEMINI_API_KEY=… \
-//     pnpm --filter @workspace/scripts run ai-eval [--repeat 2] [--only glm]
+//     pnpm --filter @workspace/scripts run ai-eval [--repeat 2] [--only gemma] [--cases planner]
+//
+// --only matches model labels and --cases matches case ids. --rescore <results.json> re-runs the
+// checks on a saved run's outputs without calling any model.
 
 import OpenAI from "openai";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { buildPlannerSystemPrompt, buildSummaryPrompt, toPlannerSpot as toSpotData } from "../../artifacts/atlas/worker/prompts";
 import { SEED_DATA } from "../../artifacts/atlas/src/lib/seed-data";
@@ -118,9 +121,22 @@ const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").tri
 
 // Bold spans that read like a place name (mostly Title Case) but match no known spot. Features and
 // headings ("Fast, reliable Wi-Fi", "Backup if outlets are flexible:") are sentence case, so they pass.
+// Title Case headings ("Key Features", "My Recommendation") and places like "Austin, TX" pass because
+// every word is a heading word or a city, and a made-up spot name needs at least one word that isn't.
 const SMALL_WORDS = new Set(["a", "an", "and", "at", "by", "for", "in", "of", "on", "the", "to", "+", "&"]);
+const HEADING_WORDS = new Set(
+  (
+    "key features feature recommendation recommendations recommended summary itinerary note notes alternative alternatives " +
+    "option options plan schedule overview why it fits pick picks top best bet my your our morning afternoon evening " +
+    "night late tonight today tomorrow block session deep focus work break lunch coffee wi fi fast blazing reliable " +
+    "outlets power quiet hours open closed backup tip tips important heads up highlights pros cons verdict next steps " +
+    "location address score scores atmosphere food access check tier environment travel time ai pro generous seating space tables comfortable"
+  ).split(" "),
+);
+const STATE_CODES = new Set(["tx", "texas", "usa", "us"]);
 function unknownBoldNames(text: string, spots: WorkSpot[]): string[] {
   const known = spots.map((s) => normalize(s.name));
+  const cities = new Set(spots.map((s) => normalize(s.city)));
   const bolds = [...text.matchAll(/\*\*([^*]+)\*\*/g)].map((m) => m[1].trim().replace(/[:.,]$/, ""));
   return bolds.filter((b) => {
     const n = normalize(b);
@@ -128,6 +144,8 @@ function unknownBoldNames(text: string, spots: WorkSpot[]): string[] {
     if (known.some((k) => k.includes(n) || n.includes(k))) return false;
     const words = b.split(/\s+/).filter((w) => !SMALL_WORDS.has(w.toLowerCase()));
     if (words.length < 2) return false;
+    const plain = words.flatMap((w) => w.toLowerCase().split(/[-\u2010\u2011]/)).map((w) => w.replace(/[^a-z]/g, ""));
+    if (plain.every((w) => !w || HEADING_WORDS.has(w) || cities.has(w) || STATE_CODES.has(w))) return false;
     const capitalized = words.filter((w) => /^[A-Z]/.test(w)).length;
     return capitalized / words.length >= 0.75;
   });
@@ -219,7 +237,7 @@ const CASES: Case[] = [
       const named = mentionedSpots(o, seeds);
       return [
         { name: "non-empty", pass: o.trim().length > 0 },
-        { name: "ends with 2-3 follow-ups", pass: splitFollowUps(o).followUps.length >= 2 },
+      { name: "ends with 2-3 follow-ups", pass: splitFollowUps(o).followUps.length >= 2 },
         { name: "no invented places", pass: invented.length === 0, detail: invented.join("; ") },
         { name: "recommends 2+ spots", pass: named.length >= 2, detail: named.map((s) => s.name).join("; ") },
         { name: "every named spot is open 9-5 somewhere", pass: named.every((s) => openAt(s, 10 * 60) || openAt(s, 15 * 60)) },
@@ -239,7 +257,7 @@ const CASES: Case[] = [
       const closed = named.filter((s) => !openAt(s, 21 * 60 + 30));
       return [
         { name: "non-empty", pass: o.trim().length > 0 },
-        { name: "ends with 2-3 follow-ups", pass: splitFollowUps(o).followUps.length >= 2 },
+      { name: "ends with 2-3 follow-ups", pass: splitFollowUps(o).followUps.length >= 2 },
         { name: "no invented places", pass: unknownBoldNames(o, seeds).length === 0, detail: unknownBoldNames(o, seeds).join("; ") },
         { name: "every named spot is open at 9:30pm", pass: closed.length === 0, detail: closed.map((s) => s.name).join("; ") },
       ];
@@ -255,7 +273,7 @@ const CASES: Case[] = [
     }),
     check: (o) => [
       { name: "non-empty", pass: o.trim().length > 0 },
-        { name: "ends with 2-3 follow-ups", pass: splitFollowUps(o).followUps.length >= 2 },
+      { name: "ends with 2-3 follow-ups", pass: splitFollowUps(o).followUps.length >= 2 },
       { name: "no invented places", pass: unknownBoldNames(o, seeds).length === 0, detail: unknownBoldNames(o, seeds).join("; ") },
       { name: "says Atlas has nothing in Dallas", pass: /(no|don't|do not|doesn't|isn't|aren't|not)\b[^.]*\b(dallas|spots|listings)/i.test(o) },
     ],
@@ -270,7 +288,7 @@ const CASES: Case[] = [
     }),
     check: (o) => [
       { name: "non-empty", pass: o.trim().length > 0 },
-        { name: "ends with 2-3 follow-ups", pass: splitFollowUps(o).followUps.length >= 2 },
+      { name: "ends with 2-3 follow-ups", pass: splitFollowUps(o).followUps.length >= 2 },
       { name: "doesn't recommend Starbucks", pass: !/\*\*[^*]*starbucks[^*]*\*\*/i.test(o) },
     ],
   },
@@ -284,7 +302,7 @@ const CASES: Case[] = [
     }),
     check: (o) => [
       { name: "non-empty", pass: o.trim().length > 0 },
-        { name: "ends with 2-3 follow-ups", pass: splitFollowUps(o).followUps.length >= 2 },
+      { name: "ends with 2-3 follow-ups", pass: splitFollowUps(o).followUps.length >= 2 },
       { name: "asks a clarifying question", pass: o.includes("?") },
     ],
   },
@@ -300,7 +318,7 @@ const CASES: Case[] = [
       }),
       check: (o: string) => [
         { name: "non-empty", pass: o.trim().length > 0 },
-        { name: "ends with 2-3 follow-ups", pass: splitFollowUps(o).followUps.length >= 2 },
+      { name: "ends with 2-3 follow-ups", pass: splitFollowUps(o).followUps.length >= 2 },
         { name: "no invented places", pass: unknownBoldNames(o, big).length === 0, detail: unknownBoldNames(o, big).join("; ") },
         { name: "recommends 2+ spots", pass: mentionedSpots(o, big).length >= 2 },
       ],
@@ -402,9 +420,38 @@ function report(results: Result[]): string {
   return lines.join("\n");
 }
 
+function writeReport(results: Result[]) {
+  const outDir = path.resolve(import.meta.dirname, "../../.ai-eval");
+  mkdirSync(outDir, { recursive: true });
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  writeFileSync(path.join(outDir, `${stamp}.json`), JSON.stringify(results, null, 2));
+  writeFileSync(path.join(outDir, `${stamp}.md`), report(results));
+  console.log(`\nReport: .ai-eval/${stamp}.md`);
+}
+
+function rescore(file: string) {
+  const saved: Result[] = JSON.parse(readFileSync(file, "utf8"));
+  const results = saved.map((r) => {
+    const testCase = CASES.find((c) => c.id === r.caseId);
+    if (!testCase || r.error) return r;
+    const checks = testCase.check(r.output);
+    const before = new Map(r.checks.map((k) => [k.name, k.pass]));
+    for (const k of checks) {
+      if (before.get(k.name) !== k.pass) console.log(`${k.pass ? "now passes" : "now fails "}  ${r.candidate}  ${r.caseId}  ${k.name}${k.detail ? ` (${k.detail})` : ""}`);
+    }
+    return { ...r, checks, ok: checks.every((k) => k.pass) };
+  });
+  writeReport(results);
+}
+
 async function main() {
+  const rescoreFile = arg("rescore");
+  if (rescoreFile) return rescore(rescoreFile);
+
   const repeats = Number(arg("repeat") ?? 1);
   const only = arg("only")?.toLowerCase();
+  const casesFilter = arg("cases")?.toLowerCase();
+  const cases = CASES.filter((c) => !casesFilter || c.id.toLowerCase().includes(casesFilter));
 
   const runnable = CANDIDATES.filter((c) => !only || c.label.toLowerCase().includes(only)).flatMap((c) => {
     const client = clientFor(c.provider);
@@ -422,7 +469,7 @@ async function main() {
   await Promise.all(
     runnable.map(async ({ c, client }) => {
       for (let rep = 0; rep < repeats; rep++) {
-        for (const testCase of CASES) {
+        for (const testCase of cases) {
           const r = await runOne(client, c, testCase, rep);
           results.push(r);
           console.log(`${r.ok ? "PASS" : "FAIL"}  ${c.label}  ${testCase.id}  ${(r.latencyMs / 1000).toFixed(1)}s${r.error ? `  ${r.error}` : ""}`);
@@ -435,12 +482,7 @@ async function main() {
   const order = new Map(CANDIDATES.map((c, i) => [c.label, i]));
   results.sort((a, b) => order.get(a.candidate)! - order.get(b.candidate)! || a.repeat - b.repeat);
 
-  const outDir = path.resolve(import.meta.dirname, "../../.ai-eval");
-  mkdirSync(outDir, { recursive: true });
-  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-  writeFileSync(path.join(outDir, `${stamp}.json`), JSON.stringify(results, null, 2));
-  writeFileSync(path.join(outDir, `${stamp}.md`), report(results));
-  console.log(`\nReport: .ai-eval/${stamp}.md`);
+  writeReport(results);
 }
 
 main();
