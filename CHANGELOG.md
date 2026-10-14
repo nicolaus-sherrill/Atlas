@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.0.1: Removed spots stay removed
+
+### Changed
+- **Admins can restore a deleted spot for 90 days**, with its ratings, edits and reports
+
+### Fixed
+- **A removed spot no longer stays on the map.** Removing one now deletes it
+- **Escape closes an open list of place suggestions first**, not the whole add-a-spot form
+- **Moving through a spot's details by keyboard no longer shifts the card sideways**
+
 ## v1.0.0: The map comes first
 
 Atlas is rebuilt around one card that sits over a map that never leaves.
