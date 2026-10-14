@@ -80,6 +80,17 @@ tracking with `var(--type-<role>-letter-spacing)`, or `var(--text-tracking-plus-
 `pnpm --filter @workspace/atlas run check:type` fails on any other size or tracking value in
 `src/`, and `typecheck` and `deploy` run it.
 
+### Testing writes on atlas-dev
+
+`atlas-dev` is a second, free Supabase project for trying writes without touching live data. Run
+the app against it with `vite --mode atlasdev`, which loads `artifacts/atlas/.env.atlasdev` on top
+of `.env`. Every value in that file is public by design: the dev project's URL and publishable key,
+and Cloudflare's always-pass Turnstile test sitekey, so contributing works from localhost. The dev
+project's captcha setting holds the matching test secret.
+
+To put a migration on atlas-dev first, push it from a copy of `supabase/` linked to the dev project.
+This repo stays linked to production, so a bare `npx supabase db push` here goes live.
+
 ### Database changes
 
 Add a file to `supabase/migrations/`, add checks to `scripts/src/test-db-permissions.mjs`, run
