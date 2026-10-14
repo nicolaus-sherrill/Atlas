@@ -102,6 +102,13 @@ export default function AddressAutocomplete({
         placeholder={placeholder}
         value={value}
         onChange={handleChange}
+        // Escape closes the open list first, and the modal around it only on the next press
+        onKeyDown={(e) => {
+          if (e.key === "Escape" && open && results.length > 0) {
+            e.preventDefault();
+            setOpen(false);
+          }
+        }}
         autoComplete="off"
         autoFocus={autoFocus}
         role="combobox"

@@ -19,11 +19,11 @@ interface ModalShellProps {
 export default function ModalShell({ title, intro, onClose, onSubmit, footer, children }: ModalShellProps) {
   const titleId = useRef(`modal-${Math.random().toString(36).slice(2)}`).current;
 
-  // Escape closes; focus goes back to whatever opened the modal
+  // Escape closes, unless a control inside already used it; focus goes back to whatever opened the modal
   useEffect(() => {
     const opener = document.activeElement as HTMLElement | null;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape" && !e.defaultPrevented) onClose();
     };
     document.addEventListener("keydown", onKey);
     return () => {
