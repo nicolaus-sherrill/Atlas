@@ -7,6 +7,11 @@
 //
 // --only matches model labels and --cases matches case ids. --rescore <results.json> re-runs the
 // checks on a saved run's outputs without calling any model.
+//
+// Workers AI runs share the live site's 10,000 free neurons, which come back 24 hours after use,
+// not at midnight. Before calling anything the eval prices the worst case (every reply runs to
+// max_tokens) and stops if that's over --budget, 2500 neurons by default. A full three-model run
+// prices at about 9,200, so pass a bigger --budget only when the live site can spare the day.
 
 import OpenAI from "openai";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -55,6 +60,8 @@ function clientFor(provider: Candidate["provider"]): OpenAI | null {
       return new OpenAI({
         baseURL: `https://api.cloudflare.com/client/v4/accounts/${env.CF_ACCOUNT_ID}/ai/v1`,
         apiKey: env.CF_API_TOKEN,
+        // A retried request is billed again but counted once in the report
+        maxRetries: 0,
       });
     case "groq":
       if (!env.GROQ_API_KEY) return null;
@@ -444,6 +451,19 @@ function rescore(file: string) {
   writeReport(results);
 }
 
+// Worst case for one candidate: input at 3 characters a token, which overcounts English, every
+// reply running to max_tokens, and 25% on top, since Cloudflare billed about 15% more than the
+// replies' own token counts on 2026-10-15
+function worstCaseNeurons(c: Candidate, cases: Case[], repeats: number): number {
+  if (!c.neurons) return 0;
+  const perRun = cases.reduce((sum, testCase) => {
+    const { system, user, maxTokens } = testCase.run();
+    const inputTokens = ((system?.length ?? 0) + user.length) / 3;
+    return sum + (inputTokens * c.neurons!.input + maxTokens * c.neurons!.output) / 1_000_000;
+  }, 0);
+  return perRun * repeats * 1.25;
+}
+
 async function main() {
   const rescoreFile = arg("rescore");
   if (rescoreFile) return rescore(rescoreFile);
@@ -462,6 +482,17 @@ async function main() {
   if (runnable.length === 0) {
     console.error("No providers configured. Set CF_ACCOUNT_ID + CF_API_TOKEN, GROQ_API_KEY, or GEMINI_API_KEY.");
     process.exit(1);
+  }
+
+  const budget = Number(arg("budget") ?? 2500);
+  const costs = runnable.map(({ c }) => ({ label: c.label, neurons: worstCaseNeurons(c, cases, repeats) })).filter((x) => x.neurons > 0);
+  const worstCase = costs.reduce((sum, x) => sum + x.neurons, 0);
+  if (costs.length) {
+    console.log(`Workers AI worst case: ${Math.round(worstCase)} neurons (${costs.map((x) => `${x.label} ${Math.round(x.neurons)}`).join(", ")})`);
+    if (worstCase > budget) {
+      console.error(`That's over the ${budget}-neuron budget, out of the 10,000 the live site shares. Narrow it with --only and --cases, or pass --budget ${Math.ceil(worstCase)}.`);
+      process.exit(1);
+    }
   }
 
   const results: Result[] = [];
@@ -483,6 +514,8 @@ async function main() {
   results.sort((a, b) => order.get(a.candidate)! - order.get(b.candidate)! || a.repeat - b.repeat);
 
   writeReport(results);
+  const used = results.reduce((sum, r) => sum + (r.neurons ?? 0), 0);
+  if (costs.length) console.log(`Workers AI used: ${Math.round(used)} neurons, from the token counts in each reply`);
 }
 
 main();
