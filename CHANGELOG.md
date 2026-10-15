@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.1.1: One warm red
+
+### Changed
+- **Errors and delete buttons now use Atlas's terracotta red**, the same red as Typical busyness
+- **The busiest hours stand out most in Typical busyness**, drawn in the brightest red of the scale
+
 ## v1.1.0: Everyone can say what a spot is like
 
 ### New
