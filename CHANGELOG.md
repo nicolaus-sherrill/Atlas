@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.1.2: Smooth map moves
+
+### Fixed
+- **The map now travels smoothly to a spot you pick**, instead of jumping straight there
+- **Pins stay on their spots while the map moves**, instead of drifting over the wrong place
+- **Dragging the map after stopping its flight to a spot no longer leaves a blank strip**
+
 ## v1.1.1: One warm red
 
 ### Changed
