@@ -2,10 +2,17 @@
 
 ## v1.1.2: Smooth map moves
 
+### Changed
+- **On a phone, the list sheet starts lowered**, so the map is nearly whole
+- **A full sheet stops under the status bar with its handle showing**, and a Map button brings the map back
+- **A spot's details close with an X beside its name**, in place of the All spots row
+
 ### Fixed
 - **The map now travels smoothly to a spot you pick**, instead of jumping straight there
 - **Pins stay on their spots while the map moves**, instead of drifting over the wrong place
 - **Dragging the map after stopping its flight to a spot no longer leaves a blank strip**
+- **The phone's list sheet now drags from anywhere and settles smoothly**, instead of needing the small handle
+- **A spot picked on a phone, from the list or a pin, is centred above the sheet and zoomed in**
 
 ## v1.1.1: One warm red
 
