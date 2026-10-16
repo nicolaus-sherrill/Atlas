@@ -8,10 +8,36 @@ import Icon from "./Icon";
 import MadeBy from "./MadeBy";
 import PlaceResults from "./PlaceResults";
 
+// The category chips: on a phone they float over the map above the sheet, so the app draws them;
+// elsewhere they sit at the top of the list
+export function CategoryChips({ active, onChange }: { active: Category | null; onChange: (category: Category | null) => void }) {
+  return (
+    <div className="sidebar-categories">
+      <button className={`category-chip ${active === null ? "active" : ""}`} onClick={() => onChange(null)}>
+        All
+      </button>
+      {CATEGORIES.map((cat) => (
+        <button
+          key={cat.value}
+          className={`category-chip ${active === cat.value ? "active" : ""}`}
+          onClick={() => onChange(active === cat.value ? null : cat.value)}
+        >
+          <Icon name={cat.icon} weight="bold" size={14} /> {cat.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 interface SidebarProps {
   spots: WorkSpot[];
   onSpotSelect: (id: string) => void;
   selectedSpotId: string | null;
+  // The chosen category, which the app holds so the chips can live outside the list on a phone
+  activeCategory: Category | null;
+  onCategoryChange: (category: Category | null) => void;
+  // True on a phone, where the chips float over the map instead of heading the list
+  floatingChips: boolean;
   onAddClick: () => void;
   // The shell's one search: it filters these spots, and places matching it list beneath them
   query: string;
@@ -22,8 +48,7 @@ interface SidebarProps {
   themeToggle: React.ReactNode;
 }
 
-export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClick, query, places, placesLoading, onPickPlace, themeToggle }: SidebarProps) {
-  const [activeCategory, setActiveCategory] = useState<Category | null>(null);
+export default function Sidebar({ spots, onSpotSelect, selectedSpotId, activeCategory, onCategoryChange, floatingChips, onAddClick, query, places, placesLoading, onPickPlace, themeToggle }: SidebarProps) {
   const [showExport, setShowExport] = useState(false);
   const filtered = spots.filter((spot) => {
     const matchesCategory = !activeCategory || spot.category === activeCategory;
@@ -32,23 +57,7 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, onAddClic
 
   return (
     <aside className="sidebar">
-      <div className="sidebar-categories">
-        <button
-          className={`category-chip ${activeCategory === null ? "active" : ""}`}
-          onClick={() => setActiveCategory(null)}
-        >
-          All
-        </button>
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat.value}
-            className={`category-chip ${activeCategory === cat.value ? "active" : ""}`}
-            onClick={() => setActiveCategory(activeCategory === cat.value ? null : cat.value)}
-          >
-            <Icon name={cat.icon} weight="bold" size={14} /> {cat.label}
-          </button>
-        ))}
-      </div>
+      {!floatingChips && <CategoryChips active={activeCategory} onChange={onCategoryChange} />}
 
       <div className="sidebar-actions">
         <button className="btn-primary sidebar-add" onClick={onAddClick}>

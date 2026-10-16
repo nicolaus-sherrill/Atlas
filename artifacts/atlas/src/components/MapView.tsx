@@ -14,6 +14,9 @@ import { iconSvg } from "@/lib/icons";
 import { moveCamera, nudgeIntoView, comfortablyInView, type ClearArea } from "@/lib/camera";
 
 // OpenFreeMap's own styles, served as they are with no recolour: Positron for light, Dark for dark
+// How close a pick zooms the map on a phone, where a spot is worth reading street by street
+const FOCUS_ZOOM = 15;
+
 const BASEMAP = {
   light: "https://tiles.openfreemap.org/styles/positron",
   dark: "https://tiles.openfreemap.org/styles/dark",
@@ -53,7 +56,8 @@ interface MapViewProps {
   // The selected spot, and where it was picked: a list pick may move the camera, a marker click
   // only nudges a hidden pin into view. seq makes picking the same spot again count
   selection: { id: string; source: "list" | "marker"; seq: number } | null;
-  // Under A (one card) every list pick centres the spot; under B only one not comfortably in view
+  // Under A (one card) every pick, from the list or a pin, centres the spot in the part of the map
+  // the card leaves clear and zooms in to it; under B only a list pick not comfortably in view moves
   centreEveryPick: boolean;
   // The part of the map the cards leave clear, at rest
   getClearArea: (map: L.Map) => ClearArea;
@@ -156,10 +160,11 @@ export default function MapView({ spots, selection, centreEveryPick, getClearAre
     }
   }, [selectedId, spots]);
 
-  // The camera rule. Hover never moves the map. A marker click nudges the map only if the pin is
-  // hidden under a card or near an edge. A list pick moves it only if the spot isn't comfortably in
-  // the clear area, or the map is zoomed out below 13; the move keeps the user's zoom, or goes to 15
-  // from below 13. Under A, every list pick centres the spot.
+  // The camera rule. Hover never moves the map. Under B a marker click nudges the map only if the
+  // pin is hidden under a card or near an edge, and a list pick moves it only if the spot isn't
+  // comfortably in the clear area, or the map is zoomed out below 13; the move keeps the user's zoom,
+  // or goes to 15 from below 13. Under A, one card over a map that is mostly hidden, every pick from
+  // the list or a pin centres the spot in the clear area and zooms in to at least 15.
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !selection) return;
@@ -169,6 +174,10 @@ export default function MapView({ spots, selection, centreEveryPick, getClearAre
     // A frame later, so a sheet opening in the same render has its class and the area is measured with it
     const frame = requestAnimationFrame(() => {
       const area = getClearAreaRef.current(map);
+      if (centreEveryPick) {
+        moveCamera(map, target, Math.max(map.getZoom(), FOCUS_ZOOM), area);
+        return;
+      }
       if (selection.source === "marker") {
         // The selected pill is wider and taller than the margin, and hangs above and to both sides
         // of its point, so clear its measured box with 16px to spare
@@ -179,7 +188,7 @@ export default function MapView({ spots, selection, centreEveryPick, getClearAre
         return;
       }
       const zoomedOut = map.getZoom() < 13;
-      if (centreEveryPick || zoomedOut || !comfortablyInView(map, target, area)) {
+      if (zoomedOut || !comfortablyInView(map, target, area)) {
         moveCamera(map, target, zoomedOut ? 15 : map.getZoom(), area);
       }
     });

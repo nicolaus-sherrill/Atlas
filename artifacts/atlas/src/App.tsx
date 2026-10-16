@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import MapView from "@/components/MapView";
-import Sidebar from "@/components/Sidebar";
+import Sidebar, { CategoryChips } from "@/components/Sidebar";
 import BrowseSubmitModal from "@/components/BrowseSubmitModal";
 import BrowseView from "@/components/BrowseView";
 import ChatPanel from "@/components/ChatPanel";
@@ -18,7 +18,7 @@ import { usePlaceSearch } from "@/hooks/use-place-search";
 import type { GeocodingResult } from "@/lib/geocode";
 import { fetchSpots, addSpot, deleteSpot, requestSummary, DuplicatePlaceError } from "@/lib/store";
 import { useIsAdmin } from "@/lib/admin";
-import type { WorkSpot } from "@/lib/types";
+import type { Category, WorkSpot } from "@/lib/types";
 
 function App() {
   const [spots, setSpots] = useState<WorkSpot[]>([]);
@@ -51,10 +51,19 @@ function App() {
   // On a phone the map is always showing and the list is a bottom sheet over it, so there is no
   // table state: showMap is the map state on desktop and always true on a phone
   const showMap = mapOpen || isPhone;
-  const [detent, setDetent] = useState<Detent>("half");
+  // The sheet starts lowered, the map nearly whole, as Google Maps does
+  const [detent, setDetent] = useState<Detent>("peek");
   const shellRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLElement>(null);
-  const { grabProps, onHandleKeyDown } = useBottomSheet({ shellRef, sheetRef, detent, onDetentChange: setDetent });
+  const floatRef = useRef<HTMLDivElement>(null);
+  const { onHandleKeyDown } = useBottomSheet({ shellRef, sheetRef, detent, onDetentChange: setDetent, enabled: isPhone });
+  // What opens in the sheet needs room to show: a lowered sheet lifts to half, and the list steps
+  // down from full so the map is there for what was picked. The detent is set in the same event as
+  // the pick, so the camera measures the clear area the sheet is about to leave, not the one it is leaving
+  const liftSheet = useCallback((from: Detent[] = ["peek"]) => {
+    setDetent((d) => (from.includes(d) ? "half" : d));
+  }, []);
+  const [category, setCategory] = useState<Category | null>(null);
   const [crowdStatuses, setCrowdStatuses] = useState<Record<string, CrowdStatus>>({});
   const reloadCrowd = useCallback(() => {
     fetchAllCrowdStatuses().then(setCrowdStatuses);
@@ -75,14 +84,17 @@ function App() {
   const handlePickPlace = useCallback((place: GeocodingResult) => {
     setQuery("");
     setMapOpen(true);
+    liftSheet(["full"]);
     setCameraTarget((prev) => ({ lat: place.lat, lng: place.lng, seq: (prev?.seq ?? 0) + 1 }));
-  }, []);
+  }, [liftSheet]);
 
-  // A row in the map list, or "View on map" from the table
+  // A row in the map list, or "View on map" from the table. On a phone the sheet comes to half,
+  // so the map shows the spot above it
   const handleListSelect = useCallback((id: string) => {
     select(id, "list");
     setMapOpen(true);
-  }, [select]);
+    liftSheet(["peek", "full"]);
+  }, [select, liftSheet]);
 
   // Closing the chat hands focus back to its button
   const closeChat = useCallback(() => {
@@ -98,12 +110,14 @@ function App() {
 
   const handleMarkerSelect = useCallback((id: string) => {
     select(id, "marker");
-  }, [select]);
+    liftSheet();
+  }, [select, liftSheet]);
 
-  // A pick or a search lifts a peeking sheet, so what it opened has room to show
-  useEffect(() => {
-    if (isPhone && (selection || query.trim())) setDetent((d) => (d === "peek" ? "half" : d));
-  }, [isPhone, selection, query]);
+  // Typing lifts a lowered sheet, so the matches have room to show
+  const handleQueryChange = useCallback((value: string) => {
+    setQuery(value);
+    if (value.trim()) liftSheet();
+  }, [liftSheet]);
 
   // The last spot shown stays in the sheet while it slides away
   const detailsSpot = spots.find((s) => s.id === selectedSpotId) ?? null;
@@ -144,10 +158,11 @@ function App() {
     const size = m.getSize();
     if (isPhone) {
       // Under the floating search and chips, above the sheet at its resting detent
-      const chips = document.querySelector(".sidebar-categories")?.getBoundingClientRect().bottom ?? 0;
+      const chips = floatRef.current?.getBoundingClientRect().bottom ?? 0;
       const shell = shellRef.current;
       const sheet = shell ? detentHeights(shell)[detent] : 0;
-      return { left: 0, top: chips, right: size.x, bottom: size.y - sheet };
+      // At full the sheet covers the map; keep a sliver so the camera still has somewhere to aim
+      return { left: 0, top: chips, right: size.x, bottom: Math.max(chips + 120, size.y - sheet) };
     }
     const card = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--shell-card-width")) || 380;
     const left = !mapOpen ? 0 : sheetOpen ? card * 2 : card;
@@ -161,6 +176,7 @@ function App() {
       setSpots((prev) => [newSpot, ...prev]);
       setIsAddOpen(false);
       select(newSpot.id);
+      liftSheet(["peek", "full"]);
       if (newSpot.description) {
         requestSummary(newSpot.id).then((wrote) => {
           if (wrote) reloadSpots();
@@ -189,6 +205,21 @@ function App() {
       setNotice("Couldn't delete that spot.");
     }
   }, [selectedSpotId, select]);
+
+  // The one search. On a phone it floats over the map, under the sheet, with the chips; elsewhere
+  // it heads the card
+  const searchBox = (
+    <div className="shell-search" role="search">
+      <Icon name="magnifying-glass" weight="bold" size={16} />
+      <input
+        type="search"
+        placeholder="Search spots or places"
+        aria-label="Search spots or places"
+        value={query}
+        onChange={(e) => handleQueryChange(e.target.value)}
+      />
+    </div>
+  );
 
   return (
     <div ref={shellRef} className={`app-shell ${showMap ? "map-open" : "map-closed"}`} data-detent={isPhone ? detent : undefined}>
@@ -226,11 +257,19 @@ function App() {
         </aside>
       )}
 
+      {/* On a phone the search and chips float over the map and the sheet slides over them */}
+      {isPhone && (
+        <div ref={floatRef} className="phone-float" inert={detent === "full"}>
+          {searchBox}
+          <CategoryChips active={category} onChange={setCategory} />
+        </div>
+      )}
+
       {/* One card over the map: the table at full width, the list at 380px, and a bottom sheet on a phone */}
       <aside ref={sheetRef} className="list-card" aria-label="Spots">
         {/* On a phone the card is a bottom sheet: this is where it is dragged from */}
         {isPhone && (
-          <div className="sheet-grab" {...grabProps}>
+          <div className="sheet-grab">
             <button
               type="button"
               className="sheet-handle"
@@ -272,16 +311,7 @@ function App() {
           </div>
         </header>
 
-        <div className="shell-search" role="search">
-          <Icon name="magnifying-glass" weight="bold" size={16} />
-          <input
-            type="search"
-            placeholder="Search spots or places"
-            aria-label="Search spots or places"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </div>
+        {!isPhone && searchBox}
 
         {/* Both bodies stay mounted, so each keeps its filters and scroll; the hidden one is inert */}
         <div className="list-card-body">
@@ -309,6 +339,9 @@ function App() {
                 spots={spots}
                 onSpotSelect={handleListSelect}
                 selectedSpotId={selectedSpotId}
+                activeCategory={category}
+                onCategoryChange={setCategory}
+                floatingChips={isPhone}
                 onAddClick={() => setIsAddOpen(true)}
                 query={query}
                 places={places}
@@ -321,7 +354,7 @@ function App() {
               <div className="pane-layer details-scroll" key={detailsSpot.id}>
                 <SpotDetails
                   spot={detailsSpot}
-                  dismiss="back"
+                  dismiss="inline"
                   onDismiss={closeDetails}
                   crowdStatus={crowdStatuses[detailsSpot.id] ?? null}
                   onRated={reloadSpots}
@@ -334,6 +367,19 @@ function App() {
           </div>
         </div>
       </aside>
+
+      {/* At full the sheet covers the map: this is the way back to it, beside the handle's drag */}
+      {isPhone && (
+        <button
+          type="button"
+          className="sheet-map-pill"
+          inert={detent !== "full"}
+          onClick={() => setDetent(selectedSpotId ? "half" : "peek")}
+        >
+          <Icon name="map-trifold" weight="bold" size={16} />
+          Map
+        </button>
+      )}
 
       <MapControls map={map} mapOpen={showMap} chatOpen={isChatOpen} onChatToggle={() => (isChatOpen ? closeChat() : setIsChatOpen(true))} onNotice={setNotice} />
 

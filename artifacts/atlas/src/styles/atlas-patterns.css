@@ -6,7 +6,7 @@
      shadow 500, markers 600, tooltip 650, popup 700, controls 800/1000) stay inside it and the app
      counts from 0 instead of outbidding them. */
   --layer-map: 0;
-  --layer-surface: 10;   /* list card, sheet */
+  --layer-surface: 10;   /* list card, sheet, and the phone's search and chips beneath it */
   --layer-control: 20;   /* map buttons, mobile search and chips */
   --layer-chat: 30;      /* chat card or sheet */
   --layer-popover: 40;   /* dropdowns */
@@ -14,7 +14,6 @@
   --layer-modal: 60;     /* suggest an edit, report a problem, submit a place */
   --layer-toast: 70;
   --layer-system: 80;    /* Turnstile */
-  --layer-sheet-float: 2; /* the phone's floating search and chips, inside the sheet's own stacking */
 
   /* Shell */
   --shell-card-width: 380px;
@@ -23,11 +22,12 @@
 
   /* The phone's bottom sheet */
   --sheet-radius: var(--radius-2xl);
-  --sheet-peek: 112px;
-  --sheet-half: 52%;
+  --sheet-peek: 108px;        /* lowered: the handle and the count, the map nearly whole */
+  --sheet-half: 50%;          /* half: how much of the screen the sheet covers */
+  --sheet-top-gap: 12px;      /* full: the map left showing above the sheet, under the status bar */
   --sheet-handle-width: 36px;
   --sheet-handle-height: 4px;
-  --sheet-float-top: 132px;  /* the floating search and chips, which the full sheet scrolls beneath */
+  --sheet-float-top: 132px;   /* the floating search and chips, which the map's buttons stop under */
 
   /* Map controls */
   --map-control-size: 44px;

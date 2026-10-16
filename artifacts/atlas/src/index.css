@@ -824,6 +824,31 @@ html, body, #root {
   justify-content: flex-end;
 }
 
+/* The name and its close on one row, where the close replaces the row that used to sit above the
+   name. Top-aligned, so a name that wraps keeps the close beside its first line */
+.details-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.details-title .details-name {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
+  padding-top: 4px;
+}
+
+.details-close {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-raised);
+}
+
 .details-name {
   margin: 0 0 4px;
   font-size: var(--type-body-xl-font-size);
@@ -2843,36 +2868,46 @@ a.details-group-row:hover .details-group-link {
     gap: 12px;
   }
 
-  /* The card is a bottom sheet. It rests at peek, half or full (data-detent on the shell), moves
-     between them on the layout role, and follows a finger while dragged (hooks/use-bottom-sheet.ts).
-     Rounded at the top while it floats, square at full height, where it holds every edge. */
+  /* The card is a bottom sheet: one full-height panel moved by a transform, so dragging it never
+     reflows the list. It rests at peek, half or full (data-detent on the shell), settles between
+     them on the layout role, and follows a finger while dragged (hooks/use-bottom-sheet.ts). At full
+     it stops under the status bar with its handle showing, and covers the search and chips. Each
+     detent's offset is a percentage of the shell, which translateY resolves against the sheet's own
+     height, the shell's. */
+  .app-shell {
+    --sheet-y-peek: calc(100% - var(--sheet-peek) - env(safe-area-inset-bottom));
+    --sheet-y-half: calc(100% - var(--sheet-half));
+    --sheet-y-full: calc(env(safe-area-inset-top) + var(--sheet-top-gap));
+    --sheet-y: var(--sheet-y-peek);
+  }
+  .app-shell[data-detent="half"] { --sheet-y: var(--sheet-y-half); }
+  .app-shell[data-detent="full"] { --sheet-y: var(--sheet-y-full); }
+  .app-shell.is-dragging { --sheet-y: var(--sheet-drag); }
+
   .map-open .list-card,
   .list-card {
-    inset-block-start: auto;
-    inset-block-end: 0;
+    inset-block: 0 auto;
     width: 100%;
-    height: var(--sheet-height);
+    height: 100%;
     border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
     box-shadow: var(--elevation-overlay);
-    padding-bottom: env(safe-area-inset-bottom);
-    transition:
-      height var(--motion-layout-duration) var(--motion-easing-enter),
-      border-radius var(--motion-layout-duration) var(--motion-easing-enter);
-  }
-
-  .app-shell[data-detent="peek"] { --sheet-height: calc(var(--sheet-peek) + env(safe-area-inset-bottom)); }
-  .app-shell[data-detent="half"] { --sheet-height: var(--sheet-half); }
-  .app-shell[data-detent="full"] { --sheet-height: 100%; }
-  .app-shell.is-dragging { --sheet-height: var(--sheet-drag); }
-
-  .app-shell[data-detent="full"] .list-card {
-    border-radius: var(--radius-none);
-    padding-top: calc(var(--sheet-float-top) + env(safe-area-inset-top));
+    /* What the sheet hangs below the screen at full, and the home bar, so the list ends in view */
+    padding-bottom: calc(env(safe-area-inset-top) + var(--sheet-top-gap) + env(safe-area-inset-bottom));
+    transform: translate3d(0, var(--sheet-y), 0);
+    will-change: transform;
+    /* The component role, not the layout one: a release carries momentum, and 600ms read as sticky */
+    transition: transform var(--motion-component-duration) var(--motion-easing-enter);
   }
 
   .app-shell.is-dragging .list-card,
   .app-shell.is-dragging .map-controls {
     transition: none;
+  }
+
+  /* Below full the sheet's own drag is the only way to move, so the list holds still under a finger */
+  .app-shell:not([data-detent="full"]) .sidebar-list,
+  .app-shell:not([data-detent="full"]) .details-scroll {
+    overflow-y: hidden;
   }
 
   /* In dark, the sheet's edge is a hairline */
@@ -2881,12 +2916,13 @@ a.details-group-row:hover .details-group-link {
   }
   [data-theme="dark"] .list-card { box-shadow: 0 0 0 1px var(--color-border-divider); }
 
-  /* The grab zone: the handle and the strip around it. touch-action none hands the gesture to the
-     sheet instead of the page */
+  /* The grab zone: the handle and a strip around it, the width of the sheet. A drag anywhere on the
+     sheet moves it; this strip is the one that always does, and a tap on it steps to the next
+     detent. touch-action none hands its gestures to the sheet instead of the page */
   .sheet-grab {
     display: flex;
-    justify-content: center;
     flex-shrink: 0;
+    height: 32px;
     touch-action: none;
     cursor: grab;
   }
@@ -2897,10 +2933,11 @@ a.details-group-row:hover .details-group-link {
 
   .sheet-handle {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    width: 64px;
-    height: 24px;
+    width: 100%;
+    height: 100%;
+    padding: 10px 0 0;
     border: 0;
     background: transparent;
     cursor: inherit;
@@ -2911,10 +2948,6 @@ a.details-group-row:hover .details-group-link {
     height: var(--sheet-handle-height);
     border-radius: var(--radius-full);
     background: var(--color-border-control);
-  }
-
-  .app-shell[data-detent="full"] .sheet-handle span {
-    visibility: hidden;
   }
 
   .sidebar-add {
@@ -2931,33 +2964,81 @@ a.details-group-row:hover .details-group-link {
     width: 100%;
   }
 
-  /* Search and the chips float over the map at the top, above the sheet */
-  .shell-search {
-    position: fixed;
-    top: calc(env(safe-area-inset-top) + 12px);
-    inset-inline: 12px;
-    z-index: var(--layer-sheet-float);
+  /* Search and the chips float over the map at the top, under the sheet: it slides over them. The
+     wrapper lets the map's touches through between its parts */
+  .phone-float {
+    position: absolute;
+    inset-inline: 0;
+    top: calc(env(safe-area-inset-top) + var(--sheet-top-gap));
+    z-index: var(--layer-surface);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+  }
+
+  .phone-float .shell-search {
+    pointer-events: auto;
     height: 48px;
-    margin: 0;
+    margin: 0 12px;
     background: var(--color-surface-canvas);
     box-shadow: inset 0 0 0 1px var(--field-edge), var(--elevation-floating);
   }
 
-  .sidebar-categories {
-    position: fixed;
-    top: calc(env(safe-area-inset-top) + 68px);
-    inset-inline: 0;
-    z-index: var(--layer-sheet-float);
+  .phone-float .sidebar-categories {
     flex-wrap: nowrap;
     overflow-x: auto;
     padding: 4px 12px 8px;
     scrollbar-width: none;
   }
 
-  .sidebar-categories .category-chip {
+  .phone-float .category-chip {
     flex-shrink: 0;
+    pointer-events: auto;
     box-shadow: var(--elevation-floating);
     border-color: transparent;
+  }
+
+  /* The way back to the map from a full sheet, where dragging down isn't obvious */
+  .sheet-map-pill {
+    position: absolute;
+    inset-inline-start: 50%;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    z-index: var(--layer-control);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 48px;
+    padding: 0 20px;
+    border: 0;
+    border-radius: var(--radius-full);
+    background: var(--color-action-primary-bg);
+    color: var(--color-action-primary-text);
+    box-shadow: var(--elevation-floating);
+    font-family: inherit;
+    font-size: var(--type-body-s-font-size);
+    letter-spacing: var(--type-body-s-letter-spacing);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transform: translate(-50%, 0);
+    transition:
+      opacity var(--motion-component-duration) var(--motion-easing-enter),
+      transform var(--motion-component-duration) var(--motion-easing-enter);
+  }
+
+  .app-shell:not([data-detent="full"]) .sheet-map-pill {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, 12px);
+  }
+
+  /* The list and the details end clear of the pill when the sheet is full */
+  .sidebar-list {
+    padding-bottom: 80px;
+  }
+
+  .details-scroll .spot-details {
+    padding-bottom: 88px;
   }
 
   /* In the sheet, the count comes first, right under the handle */
@@ -2972,9 +3053,9 @@ a.details-group-row:hover .details-group-link {
   .map-controls {
     --map-controls-stack: 108px;
     inset-inline-end: 12px;
-    bottom: min(calc(var(--sheet-height) + 12px), calc(100% - var(--sheet-float-top) - env(safe-area-inset-top) - var(--map-controls-stack)));
+    bottom: min(calc(100% - var(--sheet-y) + 12px), calc(100% - var(--sheet-float-top) - env(safe-area-inset-top) - var(--map-controls-stack)));
     transition:
-      bottom var(--motion-layout-duration) var(--motion-easing-enter),
+      bottom var(--motion-component-duration) var(--motion-easing-enter),
       opacity var(--motion-component-duration) var(--motion-easing-enter);
   }
 
