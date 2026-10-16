@@ -9,8 +9,9 @@ import { SpotAbout, SpotCrowd, SpotFoot, SpotReviews, SpotScores, SpotSummary, S
 interface SpotDetailsProps {
   spot: WorkSpot;
   crowdStatus: CrowdStatus | null;
-  // "back" when the details replace the list in the one card; "close" in the second sheet
-  dismiss: "back" | "close";
+  // "inline" when the details replace the list in the one card: the close sits level with the name,
+  // saving the row above it. "close" in the second sheet, which has a row of its own
+  dismiss: "inline" | "close";
   onDismiss: () => void;
   onRated: () => void;
   onCrowdReported: () => void;
@@ -36,23 +37,25 @@ export default function SpotDetails({ spot, crowdStatus, dismiss, onDismiss, onR
 
   return (
     <article className="spot-details" aria-labelledby={`details-${spot.id}`}>
-      <div className="details-top">
-        {dismiss === "back" ? (
-          <button type="button" className="btn-ghost" onClick={onDismiss}>
-            <Icon name="arrow-left" weight="bold" size={16} />
-            All spots
-          </button>
-        ) : (
+      {dismiss === "close" && (
+        <div className="details-top">
           <button type="button" className="icon-button" aria-label="Close details" onClick={onDismiss}>
             <Icon name="x" weight="bold" size={16} />
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       <header className="details-header">
-        <h2 id={`details-${spot.id}`} ref={headingRef} className="details-name" tabIndex={-1}>
-          {spot.name}
-        </h2>
+        <div className="details-title">
+          <h2 id={`details-${spot.id}`} ref={headingRef} className="details-name" tabIndex={-1}>
+            {spot.name}
+          </h2>
+          {dismiss === "inline" && (
+            <button type="button" className="icon-button details-close" aria-label="Close details, back to all spots" onClick={onDismiss}>
+              <Icon name="x" weight="bold" size={18} />
+            </button>
+          )}
+        </div>
         <div className="details-sub">
           <span className="details-caps">
             {cat?.label ?? spot.category} · {spot.city}
