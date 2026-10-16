@@ -11,7 +11,7 @@ import L from "leaflet";
 // Leaflet's internal camera calls, which flyTo itself uses
 interface MapInternals {
   _stop(): void;
-  _move(center: L.LatLng, zoom: number, data?: { flyTo?: boolean }): MapInternals;
+  _move(center: L.LatLng, zoom: number, data?: { flyTo?: boolean; pinch?: boolean }): MapInternals;
   _moveStart(zoomChanged: boolean, noMoveStart?: boolean): MapInternals;
   _moveEnd(zoomChanged: boolean): MapInternals;
   _flyToFrame?: number;
@@ -187,6 +187,9 @@ function fly(map: L.Map, targetCenter: L.LatLng, targetZoom: number, role: Camer
   frame();
 }
 
+// Markers and the basemap's per-frame sync listen for zoom, which _move fires only when the zoom
+// changes, so a glide marks every step as a pinch to fire it anyway. One that keeps the zoom still
+// skips zoomstart, which would hold the basemap still after a drag cuts the glide short.
 function glide(map: L.Map, targetCenter: L.LatLng, targetZoom: number, role: CameraRole) {
   const m = map as unknown as MapInternals & L.Map;
   m._stop();
@@ -200,9 +203,9 @@ function glide(map: L.Map, targetCenter: L.LatLng, targetZoom: number, role: Cam
     if (t < 1) {
       m._flyToFrame = L.Util.requestAnimFrame(frame);
       const k = role.ease(t);
-      m._move(map.unproject(from.add(to.subtract(from).multiplyBy(k)), startZoom), startZoom + (targetZoom - startZoom) * k, { flyTo: true });
+      m._move(map.unproject(from.add(to.subtract(from).multiplyBy(k)), startZoom), startZoom + (targetZoom - startZoom) * k, { flyTo: true, pinch: true });
     } else {
-      m._move(targetCenter, targetZoom)._moveEnd(startZoom !== targetZoom);
+      m._move(targetCenter, targetZoom, { pinch: true })._moveEnd(startZoom !== targetZoom);
     }
   };
   m._moveStart(startZoom !== targetZoom);
