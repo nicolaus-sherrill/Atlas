@@ -163,6 +163,16 @@ function fly(map: L.Map, targetCenter: L.LatLng, targetZoom: number, role: Camer
   // MapLibre's flyTo duration at the role's speed, held inside the role's clamp
   const duration = Math.min(role.max, Math.max(role.min, (1000 * S) / role.speed));
 
+  // A drag, wheel or pinch stops the fly through _stop, so the frame never reaches _moveEnd and
+  // the zoom it started never ends. The GL basemap holds still while a zoom is under way, so it
+  // would stop following later drags. Whatever stops the fly ends its zoom too.
+  const stop = m._stop;
+  m._stop = () => {
+    m._stop = stop;
+    stop.call(m);
+    m._moveEnd(true);
+  };
+
   const start = performance.now();
   const frame = () => {
     const t = (performance.now() - start) / duration;
@@ -175,6 +185,7 @@ function fly(map: L.Map, targetCenter: L.LatLng, targetZoom: number, role: Camer
         { flyTo: true },
       );
     } else {
+      m._stop = stop;
       m._move(targetCenter, targetZoom)._moveEnd(true);
     }
   };
