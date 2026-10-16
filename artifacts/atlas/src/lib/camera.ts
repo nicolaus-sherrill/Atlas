@@ -30,13 +30,18 @@ interface CameraRole {
 function readRole(): CameraRole {
   const cs = getComputedStyle(document.documentElement);
   const num = (name: string) => parseFloat(cs.getPropertyValue(name));
+  // A CSS time in ms. The production minifier rewrites 1200ms as 1.2s, so read the unit
+  const ms = (name: string) => {
+    const v = cs.getPropertyValue(name).trim();
+    return v.endsWith("ms") ? parseFloat(v) : v.endsWith("s") ? parseFloat(v) * 1000 : parseFloat(v);
+  };
   const bezier = cs.getPropertyValue("--motion-map-camera-easing").match(/[\d.]+/g)?.map(Number) ?? [0.37, 0, 0.63, 1];
   return {
     speed: num("--motion-map-camera-speed"),
     curve: num("--motion-map-camera-curve"),
-    min: num("--motion-map-camera-duration-min"),
-    max: num("--motion-map-camera-duration-max"),
-    pan: num("--motion-map-camera-pan-duration"),
+    min: ms("--motion-map-camera-duration-min"),
+    max: ms("--motion-map-camera-duration-max"),
+    pan: ms("--motion-map-camera-pan-duration"),
     ease: cubicBezier(bezier[0], bezier[1], bezier[2], bezier[3]),
   };
 }
