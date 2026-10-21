@@ -15,7 +15,7 @@ Everything sits on free tiers.
 | API | Pages Functions, `artifacts/atlas/functions/` | `/api/chat` (Plan my day) and `/api/spots/:id/summary` |
 | AI | Cloudflare Workers AI, Gemma 4 26B | Stops for the day at the free 10,000-neuron limit; never bills |
 | Database and sign-in | Supabase | Spots, ratings, edits, reports, crowd levels. Row-level security enforces who can do what |
-| Keep-alive | Worker `atlas-keepalive`, `artifacts/atlas/keepalive/` | One read a day so the free Supabase project never pauses |
+| Keep-alive | Workers `atlas-keepalive` and `atlas-dev-keepalive`, `artifacts/atlas/keepalive/` | One read a day each so the free Supabase projects, live and atlas-dev, never pause |
 | Bot check | Cloudflare Turnstile | Runs before a visitor's first contribution and before admin sign-in; Supabase verifies it |
 | Place search | Photon and OpenStreetMap | Suggests real places while someone types, and pre-fills hours, website and tags |
 | Map | OpenFreeMap | Free vector map tiles |
@@ -37,7 +37,7 @@ artifacts/atlas/        the app
   src/                  React front end (Vite)
   functions/            Cloudflare Pages Functions, routing /api/* to worker/api.ts
   worker/               API handlers and the AI prompts
-  keepalive/            the daily keep-alive Worker
+  keepalive/            the daily keep-alive Workers, one per Supabase project
   wrangler.jsonc        Pages configuration
 supabase/
   migrations/           the database schema, access rules and starter data
@@ -106,6 +106,7 @@ cd artifacts/atlas
 pnpm run deploy --branch=main # build and deploy the site and API to atlas.atmo.studio
 pnpm run deploy               # the same, as a preview at <branch>.atlas-68g.pages.dev
 pnpm run deploy:keepalive     # only when the keep-alive changes
+pnpm run deploy:keepalive:dev # the same Worker for atlas-dev
 ```
 
 The Pages project's production branch is `main`, while this repository's is `master`. Without

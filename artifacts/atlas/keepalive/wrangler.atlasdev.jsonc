@@ -1,0 +1,19 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  // The same keep-alive Worker, pointed at the atlas-dev Supabase project so it never pauses either
+  "name": "atlas-dev-keepalive",
+  "main": "index.ts",
+  "compatibility_date": "2026-09-27",
+  // No web address: it only runs on its schedule
+  "workers_dev": false,
+  "triggers": {
+    "crons": ["47 9 * * *"]
+  },
+  "vars": {
+    "SUPABASE_URL": "https://beuzylmefetngeeyytog.supabase.co",
+    "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_LKrmH_Z5iE2cqmW958PMYQ_paz82jpZ"
+  },
+  "observability": {
+    "enabled": true
+  }
+}
