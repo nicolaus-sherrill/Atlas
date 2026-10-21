@@ -11,7 +11,8 @@
     "typecheck": "node scripts/check-type.mjs && tsc -p tsconfig.json --noEmit && tsc -p worker/tsconfig.json --noEmit",
     "deploy": "test -f public/fonts/Satoshi-Variable.woff2 -a -f public/fonts/Satoshi-VariableItalic.woff2 || { echo 'Satoshi is missing from public/fonts; see README, Fonts' >&2; exit 1; } && node scripts/check-type.mjs && vite build --config vite.config.ts && wrangler pages deploy",
     "api:dev": "wrangler pages dev ./dist/public --port 8787",
-    "deploy:keepalive": "wrangler deploy --config keepalive/wrangler.jsonc"
+    "deploy:keepalive": "wrangler deploy --config keepalive/wrangler.jsonc",
+    "deploy:keepalive:dev": "wrangler deploy --config keepalive/wrangler.atlasdev.jsonc"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260926.1",
