@@ -1,0 +1,34 @@
+# Refreshes atlas-dev from the live spots every Monday, so testing always starts from current data.
+# It can only write to atlas-dev: scripts/src/sync-dev.mjs fixes the project it pushes to.
+#
+# Needs two repository secrets (Settings, Secrets and variables, Actions):
+#   ATLAS_DEV_SUPABASE_ACCESS_TOKEN  a Supabase access token, from supabase.com/dashboard/account/tokens
+#   ATLAS_DEV_DB_PASSWORD            the atlas-dev project's database password
+name: Refresh atlas-dev
+
+on:
+  schedule:
+    - cron: "0 7 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-dev
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Copy the live spots onto atlas-dev
+        run: node scripts/src/sync-dev.mjs
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.ATLAS_DEV_SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.ATLAS_DEV_DB_PASSWORD }}
