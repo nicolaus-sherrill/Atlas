@@ -118,6 +118,14 @@ started by hand from the Actions tab. Run it yourself before testing if the week
 To put a migration on atlas-dev first, push it from a copy of `supabase/` linked to the dev project.
 This repo stays linked to production, so a bare `npx supabase db push` here goes live.
 
+### Checking the admin page without signing in
+
+`vite --mode adminfixture` (launch config `atlas-admin-fixture`) opens `/admin` signed in on made-up
+data held in memory: no account, email link, captcha or database. The moderation buttons work on that
+data and a reload resets it. It swaps `lib/admin-data.ts` and `lib/supabase.ts` for the files in
+`src/dev/`, and nothing in them reaches a production build. When the admin data layer gains a function,
+add it to `src/dev/admin-fixtures.ts` too.
+
 ### Database changes
 
 Add a file to `supabase/migrations/`, add checks to `scripts/src/test-db-permissions.mjs`, run

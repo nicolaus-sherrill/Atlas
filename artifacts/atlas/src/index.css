@@ -3402,6 +3402,12 @@ a.details-group-row:hover .details-group-link {
   text-decoration: none;
 }
 
+.admin-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .admin-account {
   display: flex;
   align-items: center;
@@ -3432,15 +3438,28 @@ a.details-group-row:hover .details-group-link {
   font-weight: 600;
 }
 
+/* Same field as the forms elsewhere. Without a surface and text colour the browser paints its own,
+   which follows the system theme instead of Atlas's, so it went dark on the light theme. */
 .admin-signin input {
-  padding: 10px 12px;
+  min-height: 44px;
+  padding: 0 12px;
   border: 1px solid var(--color-border-control);
   border-radius: var(--radius-sm);
+  background: var(--color-surface-card);
+  color: var(--color-text-primary);
   font: inherit;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
+}
+
+.admin-signin input:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-offset);
 }
 
 .admin-btn {
-  padding: 6px 12px;
+  min-height: 36px;
+  padding: 0 12px;
   border: 1px solid var(--color-border-control);
   border-radius: var(--radius-sm);
   background: var(--color-surface-card);
@@ -3455,6 +3474,35 @@ a.details-group-row:hover .details-group-link {
 
 .admin-btn:hover {
   border-color: var(--color-border-strong);
+}
+
+/* Deletes read as destructive, as the shell's Delete does */
+.admin-btn-danger {
+  border-color: var(--color-action-destructive-border);
+  color: var(--color-action-destructive-text);
+}
+
+.admin-btn-danger:hover {
+  border-color: var(--color-action-destructive-border);
+  background: var(--color-action-destructive-bg-hover);
+  color: var(--color-action-destructive-text-hover);
+}
+
+.admin-btn:focus-visible,
+.admin-tab:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+/* Links are the page's text colour, underlined, as everywhere else in Atlas */
+.admin-page a {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.admin-page .admin-back {
+  text-decoration: none;
 }
 
 .admin-btn-primary {
@@ -3480,7 +3528,8 @@ a.details-group-row:hover .details-group-link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
+  min-height: 36px;
+  padding: 0 14px;
   border: 1px solid var(--color-border-control);
   border-radius: var(--radius-full);
   background: var(--color-surface-card);
@@ -3543,6 +3592,10 @@ a.details-group-row:hover .details-group-link {
   color: var(--color-text-secondary);
 }
 
+.admin-filters + .admin-muted {
+  margin-bottom: 12px;
+}
+
 .admin-empty {
   padding: 40px 0;
   color: var(--color-text-secondary);
@@ -3587,6 +3640,19 @@ a.details-group-row:hover .details-group-link {
   border-collapse: collapse;
 }
 
+/* The diff stays inside its card: columns share the width and long values (a web address) wrap */
+.admin-diff {
+  table-layout: fixed;
+}
+
+.admin-diff th:first-child {
+  width: 26%;
+}
+
+.admin-diff td {
+  overflow-wrap: anywhere;
+}
+
 .admin-diff th,
 .admin-diff td,
 .admin-table th,
@@ -3610,6 +3676,10 @@ a.details-group-row:hover .details-group-link {
   font-weight: 600;
 }
 
+.admin-table {
+  min-width: 720px;
+}
+
 .admin-table-wrap {
   overflow-x: auto;
   border: 1px solid var(--color-border-divider);
@@ -3617,7 +3687,8 @@ a.details-group-row:hover .details-group-link {
   background: var(--color-surface-card);
 }
 
-.admin-row-hidden td {
+/* A hidden row's content is dimmed; its action stays full strength, since it undoes the hiding */
+.admin-row-hidden td:not(:last-child) {
   opacity: 0.5;
 }
 
