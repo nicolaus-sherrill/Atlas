@@ -4,8 +4,20 @@
     {
       "name": "atlas-dev",
       "runtimeExecutable": "sh",
-      "runtimeArgs": ["-c", "cd artifacts/atlas && PORT=5183 npx --no-install vite --mode atlasdev --config vite.config.ts --host 127.0.0.1"],
+      "runtimeArgs": [
+        "-c",
+        "cd artifacts/atlas && PORT=5183 npx --no-install vite --mode atlasdev --config vite.config.ts --host 127.0.0.1"
+      ],
       "port": 5183
+    },
+    {
+      "name": "atlas-admin-fixture",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "cd artifacts/atlas && PORT=5190 npx --no-install vite --mode adminfixture --config vite.config.ts --host 127.0.0.1 --strictPort"
+      ],
+      "port": 5190
     }
   ]
 }

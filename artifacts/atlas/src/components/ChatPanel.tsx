@@ -30,7 +30,7 @@ function AgentAvatar({ size }: { size: "thread" | "hero" }) {
 
 const SUGGESTIONS = [
   { label: "Calls in the morning, focus after lunch", prompt: "I have calls from 9 to 11, then deep focus work until 3. I need fast wifi and good coffee." },
-  { label: "A quiet afternoon with good wifi", prompt: "I need a quiet place to work for 4 hours this afternoon. Good wifi is essential." },
+  { label: "Somewhere to meet a friend this weekend", prompt: "I'm meeting a friend on Saturday afternoon and want somewhere to sit and talk for a couple of hours. A park or a museum would be great, nothing that feels like an office." },
   { label: "Somewhere open late with outlets", prompt: "What are the best spots for someone who needs lots of outlets and wants to work late?" },
 ];
 
@@ -188,7 +188,7 @@ export default function ChatPanel({ spots, onSpotSelect, onClose }: ChatPanelPro
           <div className="chat-empty">
             <AgentAvatar size="hero" />
             <p className="chat-greeting">
-              Where are you working today?
+              Where are you headed today?
               <span>Tell me your day and I'll match it to spots.</span>
             </p>
             <div className="chat-suggestions">

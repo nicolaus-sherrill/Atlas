@@ -1,5 +1,17 @@
 # Changelog
 
+## v2.0.1: Admin polish
+
+### Changed
+- **Plan my day suggests meeting a friend**, in place of a second quiet-afternoon prompt
+- **Plan my day asks where you're headed**, not only where you're working
+
+### Fixed
+- **The admin sign-in box matches the light theme**, instead of turning dark
+- **Admin edit comparisons fit on a phone**, instead of running off the card
+- **Restore on a hidden rating or review looks clickable**, instead of disabled
+- **The admin spots table scrolls sideways on a phone**, instead of squeezing its columns
+
 ## v2.0.0: Third spaces
 
 Atlas now maps any public place you can walk into and stay a while, not only places to work.

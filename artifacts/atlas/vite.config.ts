@@ -12,7 +12,7 @@ if (Number.isNaN(port) || port <= 0) {
 
 const basePath = process.env.BASE_PATH ?? "/";
 
-export default defineConfig({
+export default defineConfig(async ({ mode }) => ({
   base: basePath,
   plugins: [
     react(),
@@ -33,6 +33,13 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
+      // `--mode adminfixture` opens /admin signed in, on in-memory data, with no account or database
+      ...(mode === "adminfixture"
+        ? {
+            "@/lib/admin-data": path.resolve(import.meta.dirname, "src/dev/admin-fixtures.ts"),
+            "@/lib/supabase": path.resolve(import.meta.dirname, "src/dev/supabase-stub.ts"),
+          }
+        : {}),
       "@": path.resolve(import.meta.dirname, "src"),
       "@assets": path.resolve(import.meta.dirname, "..", "..", "attached_assets"),
     },
@@ -64,4 +71,4 @@ export default defineConfig({
     host: "0.0.0.0",
     allowedHosts: true,
   },
-});
+}));

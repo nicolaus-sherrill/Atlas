@@ -27,6 +27,8 @@ import {
 } from "@/lib/admin-data";
 import { FLAG_LABELS, ratingFlags } from "@/lib/rating-flags";
 import { requestSummary } from "@/lib/store";
+import ThemeToggle from "@/components/ThemeToggle";
+import { useTheme } from "@/hooks/use-theme";
 import { CATEGORIES, GOOD_FOR_LABELS, formatWeeklyHours, getTagLabel, SCORE_CATEGORY_LABELS, type GoodFor, type OperatingHours, type RatedCriterion } from "@/lib/types";
 
 type Tab = "edits" | "reports" | "ratings" | "reviews" | "spots";
@@ -78,6 +80,7 @@ export default function AdminPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
+  const { theme, toggle } = useTheme();
 
   useEffect(() => {
     const load = async (s: Session | null) => {
@@ -102,12 +105,15 @@ export default function AdminPage() {
           <a href="/" className="admin-back">&larr; Atlas</a>
           <h1>Admin</h1>
         </div>
-        {session && !session.user.is_anonymous && (
-          <div className="admin-account">
-            <span>{session.user.email}</span>
-            <button type="button" className="admin-btn" onClick={() => signOut()}>Sign out</button>
-          </div>
-        )}
+        <div className="admin-header-actions">
+          {session && !session.user.is_anonymous && (
+            <div className="admin-account">
+              <span>{session.user.email}</span>
+              <button type="button" className="admin-btn" onClick={() => signOut()}>Sign out</button>
+            </div>
+          )}
+          <ThemeToggle theme={theme} onToggle={toggle} />
+        </div>
       </header>
 
       {loading ? (
@@ -329,7 +335,7 @@ function ReportsTab({ reports, act }: { reports: ProblemReport[]; act: Act }) {
             {report.spot && (
               <button
                 type="button"
-                className="admin-btn"
+                className="admin-btn admin-btn-danger"
                 onClick={() => {
                   // The report is deleted with the spot, and the archive keeps a copy of both
                   if (window.confirm(deleteWarning(report.spot!.name))) act(() => deleteSpot(report.spot_id));
@@ -462,7 +468,7 @@ function RatingsTab({ ratings, act }: { ratings: AdminRating[]; act: Act }) {
                     {rating.user_id && rating.status === "visible" && (
                       <button
                         type="button"
-                        className="admin-btn"
+                        className="admin-btn admin-btn-danger"
                         onClick={() => {
                           const n = perRater.get(rating.user_id!) ?? 0;
                           if (window.confirm(`Hide all ${n} rating${n === 1 ? "" : "s"} from rater ${shortId(rating.user_id)}?`)) {
@@ -535,7 +541,7 @@ function SpotsTab({ spots, deleted, act }: { spots: AdminSpot[]; deleted: Delete
                 <tr key={spot.id}>
                   <td>
                     {spot.name}
-                    <div className="admin-muted">{spot.category}, {spot.city}</div>
+                    <div className="admin-muted">{CATEGORIES.find((c) => c.value === spot.category)?.label ?? spot.category}, {spot.city}</div>
                   </td>
                   <td>{spot.address}</td>
                   <td>{spot.rating_count}</td>
@@ -558,7 +564,7 @@ function SpotsTab({ spots, deleted, act }: { spots: AdminSpot[]; deleted: Delete
                     <div className="admin-actions admin-actions-cell">
                     <button
                       type="button"
-                      className="admin-btn"
+                      className="admin-btn admin-btn-danger"
                       onClick={() => {
                         if (window.confirm(deleteWarning(spot.name))) act(() => deleteSpot(spot.id));
                       }}
