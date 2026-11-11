@@ -3,7 +3,8 @@
 //   pnpm --filter @workspace/scripts run sync-dev
 //
 // It reads the live spots with the site's public key, which can only read. It then replaces every
-// spot on atlas-dev with them, through the Supabase command-line tool, which must be signed in.
+// spot on atlas-dev with them, through the Supabase command-line tool, which must be signed in (or,
+// on the weekly GitHub Action, given SUPABASE_ACCESS_TOKEN and SUPABASE_DB_PASSWORD).
 // Everything on atlas-dev that hangs off a spot (ratings, reviews, edits, reports, crowd reports)
 // is cleared, and each spot gets one starter rating from its live scores. Live ratings and reviews
 // are not copied: the public key can't read who gave them.
@@ -15,6 +16,9 @@ import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import path from "node:path";
 
 const DEV_REF = "beuzylmefetngeeyytog";
+if (process.env.CI && (!process.env.SUPABASE_ACCESS_TOKEN || !process.env.SUPABASE_DB_PASSWORD)) {
+  throw new Error("Set the ATLAS_DEV_SUPABASE_ACCESS_TOKEN and ATLAS_DEV_DB_PASSWORD repository secrets; see .github/workflows/sync-dev.yml.");
+}
 const SUPABASE = ["--yes", "supabase@3.1.0"];
 const root = path.resolve(import.meta.dirname, "../..");
 const work = path.join(root, ".dev-sync");

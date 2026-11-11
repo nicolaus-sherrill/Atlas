@@ -111,7 +111,9 @@ atlas-dev is meant to be a copy of the live spots. Refresh it with
 `pnpm --filter @workspace/scripts run sync-dev`, which reads the live spots with the public key and
 replaces atlas-dev's with them. It can only write to atlas-dev, it clears test spots, ratings and
 reviews there, and it pushes any migration atlas-dev is missing. It needs the Supabase command-line
-tool signed in. Run it before testing; nothing runs it on a schedule yet.
+tool signed in. A GitHub Action (`.github/workflows/sync-dev.yml`) runs it every Monday, using
+the repository secrets `ATLAS_DEV_SUPABASE_ACCESS_TOKEN` and `ATLAS_DEV_DB_PASSWORD`, and it can be
+started by hand from the Actions tab. Run it yourself before testing if the week is old.
 
 To put a migration on atlas-dev first, push it from a copy of `supabase/` linked to the dev project.
 This repo stays linked to production, so a bare `npx supabase db push` here goes live.
