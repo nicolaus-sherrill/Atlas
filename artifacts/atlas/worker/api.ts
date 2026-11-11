@@ -5,9 +5,9 @@
 //   GET  /api/health
 // Pages has no scheduled jobs, so the daily Supabase keep-alive is a separate Worker (keepalive/).
 
-import type { CategoryScores, OperatingHours, TagId, WorkSpot, Category } from "../src/lib/types";
+import type { CategoryScores, GoodFor, OperatingHours, TagId, WorkSpot, Category } from "../src/lib/types";
 import { buildPlannerSystemPrompt, buildSummaryPrompt, toPlannerSpot } from "./prompts";
-import { calcScore, getSpotDisplayTags, SCORE_CATEGORY_LABELS, type ScoreCategory } from "../src/lib/types";
+import { GOOD_FOR_LABELS, categoryDef, getSpotDisplayTags, spotScore, spotScoreRows } from "../src/lib/types";
 
 export interface Env {
   AI: Ai;
@@ -22,6 +22,8 @@ interface SpotRow {
   id: string;
   name: string;
   category: Category;
+  good_for: GoodFor[];
+  paid_entry: boolean;
   city: string;
   address: string;
   lat: number;
@@ -34,7 +36,7 @@ interface SpotRow {
   created_at: string;
 }
 
-const SPOT_COLUMNS = "id,name,category,city,address,lat,lng,scores,tags,description,ai_summary,operating_hours,created_at";
+const SPOT_COLUMNS = "id,name,category,good_for,paid_entry,city,address,lat,lng,scores,tags,description,ai_summary,operating_hours,created_at";
 // The planner reads every spot on each message; past this many, keep the best-rated
 const MAX_PLANNER_SPOTS = 150;
 
@@ -55,6 +57,8 @@ function toWorkSpot(r: SpotRow): WorkSpot {
     id: r.id,
     name: r.name,
     category: r.category,
+    goodFor: r.good_for ?? ["work"],
+    paidEntry: !!r.paid_entry,
     city: r.city,
     address: r.address,
     lat: r.lat,
@@ -140,7 +144,7 @@ async function chat(request: Request, env: Env): Promise<Response> {
   const rows = await readSpots(env, "order=created_at.desc&limit=1000");
   const spots = rows
     .map(toWorkSpot)
-    .sort((a, b) => calcScore(b.scores, b.tags) - calcScore(a.scores, a.tags))
+    .sort((a, b) => spotScore(b) - spotScore(a))
     .slice(0, MAX_PLANNER_SPOTS)
     .map(toPlannerSpot);
 
@@ -177,17 +181,19 @@ async function summarize(spotId: string, env: Env): Promise<Response> {
   if (row.ai_summary || !row.description.trim()) return json({ summary: row.ai_summary ?? null });
 
   const spot = toWorkSpot(row);
-  const scoreBreakdown = (Object.keys(spot.scores) as ScoreCategory[])
-    .map((k) => `${SCORE_CATEGORY_LABELS[k]}: ${spot.scores[k]}/5`)
+  const scoreBreakdown = spotScoreRows(spot)
+    .map((r) => `${r.label}: ${r.value}/5`)
     .join(", ");
   const prompt = buildSummaryPrompt({
     name: spot.name,
-    category: spot.category,
+    category: categoryDef(spot.category).label,
+    goodFor: spot.goodFor.map((g) => GOOD_FOR_LABELS[g]),
+    paidEntry: spot.paidEntry,
     city: spot.city,
     description: spot.description,
     tags: getSpotDisplayTags(spot),
     scoreBreakdown,
-    overallScore: calcScore(spot.scores, spot.tags),
+    overallScore: spotScore(spot),
   });
 
   let summary = "";

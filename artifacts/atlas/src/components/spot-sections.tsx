@@ -3,9 +3,9 @@
 // the arrangement differs. Each part owns its own state and modals.
 
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import type { WorkSpot } from "@/lib/types";
+import type { OperatingHours, WorkSpot } from "@/lib/types";
 import { deleteMyReview, fetchReviews, REVIEW_MAX_LENGTH, submitReview, type Review } from "@/lib/reviews";
-import { calcScore, formatWeeklyHours, SCORE_CATEGORY_LABELS } from "@/lib/types";
+import { GOOD_FOR_LABELS, RATED_CRITERIA, getTagsByGroup, hoursStatus, spotScore, weekHoursRows } from "@/lib/types";
 import { BUSYNESS_LEVELS, getBusynessInfo, submitCrowdReport, timeAgo, type CrowdStatus } from "@/lib/crowd";
 import CrowdMark from "./CrowdMark";
 import Icon from "./Icon";
@@ -261,16 +261,7 @@ export function SpotAbout({ spot, onNotice }: { spot: WorkSpot; onNotice: (messa
             <span aria-hidden="true">↗</span>
           </a>
         )}
-        {spot.operatingHours && (
-          <div className="details-group-row details-group-row-top">
-            <Icon name="clock" weight="bold" size={16} />
-            <span className="details-week">
-              {formatWeeklyHours(spot.operatingHours).map((line) => (
-                <span key={line}>{line}</span>
-              ))}
-            </span>
-          </div>
-        )}
+        {spot.operatingHours && <HoursRow hours={spot.operatingHours} />}
       </div>
       {editing && (
         <SuggestEditModal
@@ -286,6 +277,40 @@ export function SpotAbout({ spot, onNotice }: { spot: WorkSpot; onNotice: (messa
   );
 }
 
+// Opening hours the way a map shows them: whether it's open now and when that changes, opening to
+// the full week with today marked
+function HoursRow({ hours }: { hours: OperatingHours }) {
+  const [open, setOpen] = useState(false);
+  const status = hoursStatus(hours);
+  return (
+    <div className="details-group-row details-group-row-top details-hours-row">
+      <Icon name="clock" weight="bold" size={16} />
+      <div className="details-hours-body">
+        <button type="button" className="details-hours-toggle" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+          {status && (
+            <span className={`details-hours-state-line ${status.open ? "open" : "closed"}`}>
+              <span className="hours-dot" aria-hidden="true" />
+              <span className="details-hours-status">{status.open ? "Open" : "Closed"}</span>
+              <span className="details-hours-detail">· {status.detail}</span>
+            </span>
+          )}
+          <Icon name={open ? "caret-up" : "caret-down"} weight="bold" size={16} />
+        </button>
+        {open && (
+          <dl className="details-week">
+            {weekHoursRows(hours).map((row) => (
+              <div key={row.day} className={`details-week-row${row.today ? " today" : ""}`}>
+                <dt>{row.label}</dt>
+                <dd>{row.range}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ---------- Scores: the overall score, each category under it, then rating it yourself ----------
 
 export function SpotScores({ spot, onRated }: { spot: WorkSpot; onRated: () => void }) {
@@ -295,7 +320,7 @@ export function SpotScores({ spot, onRated }: { spot: WorkSpot; onRated: () => v
         <h3>Scores</h3>
       </div>
       <div className="details-overall">
-        <span className="details-overall-score">{calcScore(spot.scores, spot.tags).toFixed(1)}</span>
+        <span className="details-overall-score">{spotScore(spot).toFixed(1)}</span>
         <span className="details-overall-label">
           Overall
           <span className="details-meta">
@@ -304,14 +329,19 @@ export function SpotScores({ spot, onRated }: { spot: WorkSpot; onRated: () => v
         </span>
       </div>
       <div className="details-scores">
-        {(Object.keys(spot.scores) as Array<keyof typeof spot.scores>).map((key) => (
-          <div key={key} className="details-score-row">
-            <span>{SCORE_CATEGORY_LABELS[key]}</span>
-            <ScoreDots score={spot.scores[key]} className="score-dots" />
-          </div>
-        ))}
+        {/* Hours counts toward the overall score but is never a row here: its place is About */}
+        {RATED_CRITERIA.map((sc) => {
+          const value = spot.scores[sc.key];
+          return (
+            <div key={sc.key} className="details-score-row">
+              <span>{sc.label}</span>
+              {/* Unrated is said in words: five empty dots would read as a zero */}
+              {value != null ? <ScoreDots score={value} className="score-dots" /> : <span className="details-unrated">Not rated</span>}
+            </div>
+          );
+        })}
       </div>
-      <RateSpot spotId={spot.id} onRated={onRated} />
+      <RateSpot spotId={spot.id} place={spot} onRated={onRated} />
       <TypicalBusyness spotId={spot.id} />
     </section>
   );
@@ -319,20 +349,51 @@ export function SpotScores({ spot, onRated }: { spot: WorkSpot; onRated: () => v
 
 // ---------- Tags: the full list ----------
 
-export function SpotTags({ tags }: { tags: string[] }) {
-  if (tags.length === 0) return null;
+export function SpotTags({ spot }: { spot: WorkSpot }) {
+  if (spot.tags.length === 0) return null;
+  const groups = getTagsByGroup()
+    .map(({ group, tags }) => ({ group, tags: tags.filter((t) => spot.tags.includes(t.id)) }))
+    .filter((g) => g.tags.length > 0);
   return (
     <section className="details-section">
       <div className="details-section-head">
         <h3>Tags</h3>
       </div>
-      <div className="details-tags">
-        {tags.map((t) => (
-          <span key={t} className="details-tag">{t}</span>
-        ))}
-      </div>
+      {groups.map(({ group, tags }) => (
+        <div key={group.key} className="details-tag-group">
+          <span className="filter-label">{group.label}</span>
+          <div className="details-tags">
+            {tags.map((t) => (
+              <span key={t.id} className="details-tag">{t.label}</span>
+            ))}
+          </div>
+        </div>
+      ))}
     </section>
   );
+}
+
+// ---------- Good for, and whether entry is paid: one line under the header ----------
+
+// Chips like the tags', in a section of its own just above the scores, in the map's details and in
+// the table's open row alike.
+export function SpotGoodFor({ spot }: { spot: WorkSpot }) {
+  const chips = (
+    <>
+      <span className="filter-label">Good for</span>
+      <div className="details-tags">
+        {spot.goodFor.map((g) => (
+          <span key={g} className="details-tag">{GOOD_FOR_LABELS[g]}</span>
+        ))}
+        {spot.paidEntry && (
+          <span className="details-tag details-paid">
+            <Icon name="ticket" weight="bold" size={16} /> Paid entry
+          </span>
+        )}
+      </div>
+    </>
+  );
+  return <section className="details-section details-good-for">{chips}</section>;
 }
 
 // ---------- The foot: Report a problem, and the admin delete, last ----------
@@ -360,7 +421,7 @@ export function SpotFoot({ spot, onNotice, onDelete, lead }: SpotFootProps) {
         <button type="button" className="details-link" onClick={() => setReporting(true)}>
           Report a problem
         </button>
-        <span className="details-hint">Closed for good, unsafe, or not a work spot</span>
+        <span className="details-hint">Closed for good, unsafe, or not open to walk-ins</span>
       </div>
       {onDelete && (
         <div className="details-delete">

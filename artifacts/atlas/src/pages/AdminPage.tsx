@@ -27,7 +27,7 @@ import {
 } from "@/lib/admin-data";
 import { FLAG_LABELS, ratingFlags } from "@/lib/rating-flags";
 import { requestSummary } from "@/lib/store";
-import { formatWeeklyHours, getTagLabel, SCORE_CATEGORY_LABELS, type OperatingHours, type ScoreCategory } from "@/lib/types";
+import { CATEGORIES, GOOD_FOR_LABELS, formatWeeklyHours, getTagLabel, SCORE_CATEGORY_LABELS, type GoodFor, type OperatingHours, type RatedCriterion } from "@/lib/types";
 
 type Tab = "edits" | "reports" | "ratings" | "reviews" | "spots";
 
@@ -42,6 +42,8 @@ const REPORT_REASONS: Record<ProblemReport["reason"], string> = {
 const FIELD_LABELS: Record<string, string> = {
   name: "Name",
   category: "Category",
+  good_for: "Good for",
+  paid_entry: "Paid entry",
   city: "City",
   address: "Address",
   lat: "Latitude",
@@ -59,6 +61,9 @@ function formatDate(iso: string): string {
 function formatField(key: string, value: unknown): string {
   if (value === null || value === undefined || value === "") return "None";
   if (key === "tags" && Array.isArray(value)) return value.map((t) => getTagLabel(String(t))).join(", ") || "None";
+  if (key === "category") return CATEGORIES.find((c) => c.value === value)?.label ?? String(value);
+  if (key === "good_for" && Array.isArray(value)) return value.map((g) => GOOD_FOR_LABELS[g as GoodFor] ?? String(g)).join(", ");
+  if (key === "paid_entry") return value ? "Yes" : "No";
   if (key === "operating_hours") return formatWeeklyHours(value as OperatingHours).join(", ");
   return String(value);
 }
@@ -425,7 +430,7 @@ function RatingsTab({ ratings, act }: { ratings: AdminRating[]; act: Act }) {
                   <td>{rating.spot?.name ?? "Deleted spot"}</td>
                   <td>
                     <div className="admin-scores">
-                      {(Object.keys(rating.scores) as ScoreCategory[]).map((k) => (
+                      {(Object.keys(rating.scores) as RatedCriterion[]).map((k) => (
                         <span key={k} title={SCORE_CATEGORY_LABELS[k]}>
                           {SCORE_CATEGORY_LABELS[k]} {rating.scores[k]}
                         </span>

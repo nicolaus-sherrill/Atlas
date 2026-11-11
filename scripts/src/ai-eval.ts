@@ -17,13 +17,13 @@ import OpenAI from "openai";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { buildPlannerSystemPrompt, buildSummaryPrompt, toPlannerSpot as toSpotData } from "../../artifacts/atlas/worker/prompts";
-import { SEED_DATA } from "../../artifacts/atlas/src/lib/seed-data";
 import { splitFollowUps } from "../../artifacts/atlas/src/lib/follow-ups";
 import {
-  SCORE_CATEGORY_LABELS,
-  calcScore,
+  spotScoreRows,
+  categoryDef,
+  GOOD_FOR_LABELS,
+  spotScore,
   getSpotDisplayTags,
-  type ScoreCategory,
   type WorkSpot,
 } from "../../artifacts/atlas/src/lib/types";
 
@@ -77,13 +77,50 @@ function clientFor(provider: Candidate["provider"]): OpenAI | null {
 
 // ---------- test data ----------
 
+// The eval runs on the spots that are live on Atlas, read with the site's public key, so what
+// gets tested is what the planner sees.
+async function fetchLiveSpots(): Promise<WorkSpot[]> {
+  const env = Object.fromEntries(
+    readFileSync(path.resolve(import.meta.dirname, "../../artifacts/atlas/.env"), "utf8")
+      .split("\n")
+      .filter((l) => l.includes("="))
+      .map((l) => [l.slice(0, l.indexOf("=")).trim(), l.slice(l.indexOf("=") + 1).trim()]),
+  );
+  const key = env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const res = await fetch(`${env.VITE_SUPABASE_URL}/rest/v1/spots?select=*&order=created_at.asc`, {
+    headers: { apikey: key, authorization: `Bearer ${key}` },
+  });
+  if (!res.ok) throw new Error(`Couldn't read live spots: ${res.status}`);
+  const rows = (await res.json()) as Record<string, any>[];
+  if (rows.length < 3) throw new Error("The eval needs at least three live spots.");
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    category: r.category,
+    goodFor: r.good_for ?? ["work"],
+    paidEntry: !!r.paid_entry,
+    city: r.city,
+    address: r.address,
+    lat: r.lat,
+    lng: r.lng,
+    scores: r.scores,
+    tags: r.tags,
+    description: r.description,
+    aiSummary: r.ai_summary ?? undefined,
+    operatingHours: r.operating_hours ?? undefined,
+    submittedAt: r.created_at,
+  }));
+}
+
+const LIVE_SPOTS = await fetchLiveSpots();
+
 // Deterministic filler spots so the scale test is repeatable
 function syntheticSpots(count: number): WorkSpot[] {
-  const cats = ["cafe", "library", "coworking", "park"] as const;
+  const cats = ["cafe", "library", "coworking", "park", "museum", "hotel"] as const;
   const words = ["Juniper", "Harbor", "Pecan", "Cinder", "Oak", "Lumen", "Mesa", "Bluebonnet", "Kettle", "Atlas"];
   const nouns = ["Coffee", "Commons", "Reading Room", "Works", "House", "Studio", "Grounds", "Hall"];
   return Array.from({ length: count }, (_, i) => {
-    const base = SEED_DATA[i % SEED_DATA.length];
+    const base = LIVE_SPOTS[i % LIVE_SPOTS.length];
     const name = `${words[i % words.length]} ${nouns[(i * 7) % nouns.length]} ${String(i + 1).padStart(3, "0")}`;
     return {
       ...base,
@@ -179,18 +216,20 @@ function summaryCase(id: string, spot: WorkSpot, extra: (o: string) => Check[] =
     id,
     task: "summary",
     run: () => {
-      const scoreBreakdown = (Object.keys(spot.scores) as ScoreCategory[])
-        .map((k) => `${SCORE_CATEGORY_LABELS[k]}: ${spot.scores[k]}/5`)
+      const scoreBreakdown = spotScoreRows(spot)
+        .map((r) => `${r.label}: ${r.value}/5`)
         .join(", ");
       return {
         user: buildSummaryPrompt({
           name: spot.name,
-          category: spot.category,
+          category: categoryDef(spot.category).label,
+          goodFor: spot.goodFor.map((g) => GOOD_FOR_LABELS[g]),
+          paidEntry: spot.paidEntry,
           city: spot.city,
           description: spot.description,
           tags: getSpotDisplayTags(spot),
           scoreBreakdown,
-          overallScore: calcScore(spot.scores, spot.tags),
+          overallScore: spotScore(spot),
         }),
         maxTokens: 150,
       };
@@ -208,7 +247,7 @@ function summaryCase(id: string, spot: WorkSpot, extra: (o: string) => Check[] =
   };
 }
 
-const seeds = SEED_DATA;
+const seeds = LIVE_SPOTS;
 const base = seeds[0];
 
 const CASES: Case[] = [
@@ -221,7 +260,7 @@ const CASES: Case[] = [
       ...base,
       name: "Loudhouse Diner",
       description: "Very loud, no outlets anywhere, wifi drops constantly, staff ask laptop users to leave at lunch.",
-      scores: { wifi: 1, outlets: 1, atmosphere: 1, hours: 2, food: 3, access: 2 },
+      scores: { seating: 2, wifi: 1, outlets: 1, atmosphere: 1, food: 3, access: 2 },
       tags: [],
     },
     (o) => [{ name: "doesn't oversell", pass: !/\b(great|perfect|ideal|excellent)\b/i.test(o) }],

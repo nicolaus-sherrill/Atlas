@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
 import { fetchMyRating, submitRating } from "@/lib/ratings";
-import { EMPTY_SCORES, SCORE_CATEGORIES, type CategoryScores, type ScoreCategory } from "@/lib/types";
+import { SCORE_CATEGORY_LABELS, missingCriteria, type CategoryScores, type RatedPlace } from "@/lib/types";
+import RatingRows from "./RatingRows";
 
 interface RateSpotProps {
   spotId: string;
+  // The kind of place and what it is good for decide which criteria may be left blank
+  place: RatedPlace;
   // Called after a rating saves, so the spot's new average can be loaded
   onRated: () => void;
 }
 
 // Lets anyone add their rating to a spot, or change the one they gave. One rating per person.
-export default function RateSpot({ spotId, onRated }: RateSpotProps) {
+export default function RateSpot({ spotId, place, onRated }: RateSpotProps) {
   const [open, setOpen] = useState(false);
-  const [scores, setScores] = useState<CategoryScores>({ ...EMPTY_SCORES });
+  const [scores, setScores] = useState<CategoryScores>({});
   const [hasRated, setHasRated] = useState(false);
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +23,9 @@ export default function RateSpot({ spotId, onRated }: RateSpotProps) {
     let cancelled = false;
     fetchMyRating(spotId).then((mine) => {
       if (cancelled || !mine) return;
-      setScores(mine);
+      // An older rating may carry a rated hours number, which no longer counts
+      const { hours: _hours, ...rated } = mine as CategoryScores & { hours?: number };
+      setScores(rated);
       setHasRated(true);
     });
     return () => {
@@ -44,6 +49,8 @@ export default function RateSpot({ spotId, onRated }: RateSpotProps) {
     }
   };
 
+  const missing = missingCriteria(place, scores);
+
   if (!open) {
     return (
       <div className="rate-spot">
@@ -57,28 +64,11 @@ export default function RateSpot({ spotId, onRated }: RateSpotProps) {
 
   return (
     <div className="rate-spot rate-spot-open" onClick={(e) => e.stopPropagation()}>
-      <div className="score-categories">
-        {SCORE_CATEGORIES.map((sc) => (
-          <div key={sc.key} className="score-category-row">
-            <span className="score-category-name">{sc.label}</span>
-            <span className="score-dots-input">
-              {[1, 2, 3, 4, 5].map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  className={`score-dot-char ${scores[sc.key as ScoreCategory] >= v ? "filled" : ""}`}
-                  onClick={() => setScores((prev) => ({ ...prev, [sc.key]: v }))}
-                  aria-label={`${sc.label} ${v} of 5`}
-                  aria-pressed={scores[sc.key as ScoreCategory] === v}
-                />
-              ))}
-            </span>
-          </div>
-        ))}
-      </div>
+      <RatingRows place={place} scores={scores} onChange={setScores} />
+      {missing.length > 0 && <p className="rate-spot-note">Still to rate: {missing.map((k) => SCORE_CATEGORY_LABELS[k].toLowerCase()).join(", ")}.</p>}
       {error && <p className="rate-spot-error">{error}</p>}
       <div className="rate-spot-actions">
-        <button type="button" className="btn-solid btn-compact" onClick={save} disabled={status === "saving"}>
+        <button type="button" className="btn-solid btn-compact" onClick={save} disabled={status === "saving" || missing.length > 0}>
           {status === "saving" ? "Saving..." : hasRated ? "Update rating" : "Submit rating"}
         </button>
         <button type="button" className="btn-ghost btn-compact" onClick={() => setOpen(false)}>

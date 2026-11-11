@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
 import type { WorkSpot } from "@/lib/types";
-import { CATEGORIES, calcScore, getSpotDisplayTags, isOpenNow, getTodayHoursLabel } from "@/lib/types";
-import { getGoogleMapsUrl, getAppleMapsUrl } from "@/lib/export";
+import { categoryDef, spotScore, isOpenNow, getTodayHoursLabel } from "@/lib/types";
+import { getGoogleMapsUrl, getAppleMapsUrl } from "@/lib/directions";
 import type { CrowdStatus } from "@/lib/crowd";
 import Icon from "./Icon";
-import { SpotAbout, SpotCrowd, SpotFoot, SpotReviews, SpotScores, SpotSummary, SpotTags } from "./spot-sections";
+import { SpotAbout, SpotCrowd, SpotFoot, SpotGoodFor, SpotReviews, SpotScores, SpotSummary, SpotTags } from "./spot-sections";
 
 interface SpotDetailsProps {
   spot: WorkSpot;
@@ -26,8 +26,8 @@ interface SpotDetailsProps {
 export default function SpotDetails({ spot, crowdStatus, dismiss, onDismiss, onRated, onCrowdReported, onNotice, onDelete }: SpotDetailsProps) {
   const headingRef = useRef<HTMLHeadingElement>(null);
 
-  const cat = CATEGORIES.find((c) => c.value === spot.category);
-  const score = calcScore(spot.scores, spot.tags);
+  const cat = categoryDef(spot.category);
+  const score = spotScore(spot);
   const open = spot.operatingHours ? isOpenNow(spot.operatingHours) : null;
 
   // A new spot starts the details from the top
@@ -58,7 +58,7 @@ export default function SpotDetails({ spot, crowdStatus, dismiss, onDismiss, onR
         </div>
         <div className="details-sub">
           <span className="details-caps">
-            {cat?.label ?? spot.category} · {spot.city}
+            {cat.label} · {spot.city}
           </span>
           <span className="details-score">{score.toFixed(1)}</span>
           {spot.ratingCount !== undefined && (
@@ -90,8 +90,9 @@ export default function SpotDetails({ spot, crowdStatus, dismiss, onDismiss, onR
       </div>
 
       <SpotAbout spot={spot} onNotice={onNotice} />
+      <SpotGoodFor spot={spot} />
       <SpotScores spot={spot} onRated={onRated} />
-      <SpotTags tags={getSpotDisplayTags(spot)} />
+      <SpotTags spot={spot} />
       <SpotReviews spot={spot} />
       <SpotFoot spot={spot} onNotice={onNotice} onDelete={onDelete} />
     </article>

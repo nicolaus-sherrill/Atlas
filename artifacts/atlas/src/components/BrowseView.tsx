@@ -1,9 +1,11 @@
 import { useState, useMemo, Fragment } from "react";
 import type { WorkSpot, Category } from "@/lib/types";
-import { CATEGORIES, calcScore, getSpotDisplayTags, TAGS, isOpenNow, getTodayHoursLabel } from "@/lib/types";
+import { categoryDef, spotScore, getSpotDisplayTags, TAGS, isOpenNow, getTodayHoursLabel } from "@/lib/types";
 import SpotReveal from "./SpotReveal";
 import MultiSelectDropdown from "./MultiSelectDropdown";
 import Icon from "./Icon";
+import { SpotFilterChips } from "./Sidebar";
+import { matchesFilters, type SpotFilters } from "@/lib/filters";
 import MadeBy from "./MadeBy";
 import PlaceResults from "./PlaceResults";
 import type { GeocodingResult } from "@/lib/geocode";
@@ -11,6 +13,9 @@ import { matchesQuery } from "@/lib/search";
 import type { CrowdStatus } from "@/lib/crowd";
 
 interface BrowseViewProps {
+  // The same filters the map view uses, held by the app so they carry between the two views
+  filters: SpotFilters;
+  onFiltersChange: (filters: SpotFilters) => void;
   spots: WorkSpot[];
   onSpotSelect: (id: string) => void;
   onRated: () => void;
@@ -33,9 +38,8 @@ const ALL_FILTER_TAGS = TAGS.map((t) => t.label);
 // The row previews this many tags and counts the rest; the full list is in the open row's details
 const ROW_TAGS = 3;
 
-export default function BrowseView({ spots, onSpotSelect, onRated, onNotice, crowdStatuses, onCrowdReported, query, places, placesLoading, onPickPlace, themeToggle, onDeleteSpot }: BrowseViewProps) {
+export default function BrowseView({ spots, filters, onFiltersChange, onSpotSelect, onRated, onNotice, crowdStatuses, onCrowdReported, query, places, placesLoading, onPickPlace, themeToggle, onDeleteSpot }: BrowseViewProps) {
   const [activeCities, setActiveCities] = useState<Set<string>>(new Set());
-  const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [activeTags, setActiveTags] = useState<Set<string>>(new Set());
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -48,12 +52,11 @@ export default function BrowseView({ spots, onSpotSelect, onRated, onNotice, cro
     return spots.filter((spot) => {
       const matchesSearch = matchesQuery(spot, query);
       const matchesCity = activeCities.size === 0 || activeCities.has(spot.city);
-      const matchesCategory = !activeCategory || spot.category === activeCategory;
       const spotTagLabels = getSpotDisplayTags(spot);
       const matchesTags = activeTags.size === 0 || Array.from(activeTags).every((t) => spotTagLabels.includes(t));
-      return matchesSearch && matchesCity && matchesCategory && matchesTags;
+      return matchesSearch && matchesCity && matchesFilters(spot, filters) && matchesTags;
     });
-  }, [spots, query, activeCities, activeCategory, activeTags]);
+  }, [spots, query, activeCities, filters, activeTags]);
 
   const toggleCity = (city: string) => {
     setActiveCities((prev) => {
@@ -77,35 +80,20 @@ export default function BrowseView({ spots, onSpotSelect, onRated, onNotice, cro
     <div className="browse-view">
       <header className="browse-header">
         <div className="browse-header-left">
-          <p className="browse-tagline">Community-powered spots for remote work, handpicked by the internet.</p>
+          <p className="browse-tagline">Community powered map of third spaces around the world for working, gathering, and creating.</p>
         </div>
       </header>
 
+      {/* Every filter in one row: what it's good for, its category, the city and the tags */}
       <div className="browse-chips-section">
+        <SpotFilterChips filters={filters} onChange={onFiltersChange} spots={spots} floating={false} inline />
+
         <MultiSelectDropdown
           label="City"
           options={cities}
           selected={activeCities}
           onToggle={toggleCity}
         />
-
-        <div className="browse-chip-row">
-          <button
-            className={`browse-chip ${activeCategory === null ? "active" : ""}`}
-            onClick={() => setActiveCategory(null)}
-          >
-            All
-          </button>
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.value}
-              className={`browse-chip ${activeCategory === cat.value ? "active" : ""}`}
-              onClick={() => setActiveCategory(activeCategory === cat.value ? null : cat.value)}
-            >
-              <Icon name={cat.icon} weight="bold" size={14} /> {cat.label}
-            </button>
-          ))}
-        </div>
 
         <MultiSelectDropdown
           label="Tags"
@@ -129,7 +117,7 @@ export default function BrowseView({ spots, onSpotSelect, onRated, onNotice, cro
               <th className="col-num">#</th>
               <th className="col-name">Spot</th>
               <th className="col-city">City</th>
-              <th className="col-category">Type</th>
+              <th className="col-category">Category</th>
               <th className="col-today">Today</th>
               <th className="col-tags">Tags</th>
               <th className="col-score">Score</th>
@@ -138,8 +126,8 @@ export default function BrowseView({ spots, onSpotSelect, onRated, onNotice, cro
           </thead>
           <tbody>
             {filtered.map((spot, i) => {
-              const cat = CATEGORIES.find((c) => c.value === spot.category);
-              const score = calcScore(spot.scores, spot.tags);
+              const cat = categoryDef(spot.category);
+              const score = spotScore(spot);
               const allTags = getSpotDisplayTags(spot);
               const isExpanded = expandedId === spot.id;
               const open = spot.operatingHours ? isOpenNow(spot.operatingHours) : null;
@@ -162,7 +150,7 @@ export default function BrowseView({ spots, onSpotSelect, onRated, onNotice, cro
                     <td className="col-name">{spot.name}</td>
                     <td className="col-city">{spot.city}</td>
                     <td className="col-category">
-                      <span className="browse-category-badge">{cat && <Icon name={cat.icon} weight="bold" size={16} />} {cat?.label}</span>
+                      <span className="browse-category-badge"><Icon name={cat.icon} weight="bold" size={16} /> {cat.label}</span>
                     </td>
                     <td className="col-today">
                       {spot.operatingHours ? (
@@ -196,7 +184,7 @@ export default function BrowseView({ spots, onSpotSelect, onRated, onNotice, cro
                           onSpotSelect(spot.id);
                         }}
                       >
-                        <span className="browse-coord">{spot.lat.toFixed(4)}, {spot.lng.toFixed(4)}</span>
+                        <span className="browse-coord">{spot.lat.toFixed(3)}, {spot.lng.toFixed(3)}</span>
                         <Icon name="arrow-right" weight="bold" size={16} />
                       </button>
                     </td>
@@ -206,7 +194,6 @@ export default function BrowseView({ spots, onSpotSelect, onRated, onNotice, cro
                       <td colSpan={8}>
                         <SpotReveal
                           spot={spot}
-                          allTags={allTags}
                           crowdStatus={crowdStatuses[spot.id] ?? null}
                           onShowOnMap={() => onSpotSelect(spot.id)}
                           onRated={onRated}

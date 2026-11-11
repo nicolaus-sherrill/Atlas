@@ -65,3 +65,6 @@ Thumbs.db
 
 # Satoshi: licensed for use on the site, not for a public server
 artifacts/atlas/public/fonts/
+
+# Scratch copy the atlas-dev sync pushes from
+.dev-sync/

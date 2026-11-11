@@ -13,6 +13,30 @@ import BriefcaseFill from "@phosphor-icons/core/assets/fill/briefcase-fill.svg?r
 import TreeBold from "@phosphor-icons/core/assets/bold/tree-bold.svg?raw";
 import TreeRegular from "@phosphor-icons/core/assets/regular/tree.svg?raw";
 import TreeFill from "@phosphor-icons/core/assets/fill/tree-fill.svg?raw";
+import WineBold from "@phosphor-icons/core/assets/bold/wine-bold.svg?raw";
+import WineRegular from "@phosphor-icons/core/assets/regular/wine.svg?raw";
+import WineFill from "@phosphor-icons/core/assets/fill/wine-fill.svg?raw";
+import ForkKnifeBold from "@phosphor-icons/core/assets/bold/fork-knife-bold.svg?raw";
+import ForkKnifeRegular from "@phosphor-icons/core/assets/regular/fork-knife.svg?raw";
+import ForkKnifeFill from "@phosphor-icons/core/assets/fill/fork-knife-fill.svg?raw";
+import BankBold from "@phosphor-icons/core/assets/bold/bank-bold.svg?raw";
+import BankRegular from "@phosphor-icons/core/assets/regular/bank.svg?raw";
+import BankFill from "@phosphor-icons/core/assets/fill/bank-fill.svg?raw";
+import BookOpenBold from "@phosphor-icons/core/assets/bold/book-open-bold.svg?raw";
+import BookOpenRegular from "@phosphor-icons/core/assets/regular/book-open.svg?raw";
+import BookOpenFill from "@phosphor-icons/core/assets/fill/book-open-fill.svg?raw";
+import HammerBold from "@phosphor-icons/core/assets/bold/hammer-bold.svg?raw";
+import HammerRegular from "@phosphor-icons/core/assets/regular/hammer.svg?raw";
+import HammerFill from "@phosphor-icons/core/assets/fill/hammer-fill.svg?raw";
+import BedBold from "@phosphor-icons/core/assets/bold/bed-bold.svg?raw";
+import BedRegular from "@phosphor-icons/core/assets/regular/bed.svg?raw";
+import BedFill from "@phosphor-icons/core/assets/fill/bed-fill.svg?raw";
+import UsersThreeRegular from "@phosphor-icons/core/assets/regular/users-three.svg?raw";
+import UsersThreeFill from "@phosphor-icons/core/assets/fill/users-three-fill.svg?raw";
+import TicketBold from "@phosphor-icons/core/assets/bold/ticket-bold.svg?raw";
+import UsersBold from "@phosphor-icons/core/assets/bold/users-bold.svg?raw";
+import UsersRegular from "@phosphor-icons/core/assets/regular/users.svg?raw";
+import UsersFill from "@phosphor-icons/core/assets/fill/users-fill.svg?raw";
 import MapPinBold from "@phosphor-icons/core/assets/bold/map-pin-bold.svg?raw";
 import MapPinFill from "@phosphor-icons/core/assets/fill/map-pin-fill.svg?raw";
 import PlusBold from "@phosphor-icons/core/assets/bold/plus-bold.svg?raw";
@@ -22,6 +46,8 @@ import MapTrifoldBold from "@phosphor-icons/core/assets/bold/map-trifold-bold.sv
 import MagnifyingGlassBold from "@phosphor-icons/core/assets/bold/magnifying-glass-bold.svg?raw";
 import MinusBold from "@phosphor-icons/core/assets/bold/minus-bold.svg?raw";
 import CrosshairBold from "@phosphor-icons/core/assets/bold/crosshair-bold.svg?raw";
+import CaretDownBold from "@phosphor-icons/core/assets/bold/caret-down-bold.svg?raw";
+import CaretUpBold from "@phosphor-icons/core/assets/bold/caret-up-bold.svg?raw";
 import ArrowLeftBold from "@phosphor-icons/core/assets/bold/arrow-left-bold.svg?raw";
 import XBold from "@phosphor-icons/core/assets/bold/x-bold.svg?raw";
 import CopyBold from "@phosphor-icons/core/assets/bold/copy-bold.svg?raw";
@@ -57,6 +83,30 @@ const SVGS: Partial<Record<`${IconName}/${IconWeight}`, string>> = {
   "tree/bold": TreeBold,
   "tree/regular": TreeRegular,
   "tree/fill": TreeFill,
+  "wine/bold": WineBold,
+  "wine/regular": WineRegular,
+  "wine/fill": WineFill,
+  "fork-knife/bold": ForkKnifeBold,
+  "fork-knife/regular": ForkKnifeRegular,
+  "fork-knife/fill": ForkKnifeFill,
+  "bank/bold": BankBold,
+  "bank/regular": BankRegular,
+  "bank/fill": BankFill,
+  "book-open/bold": BookOpenBold,
+  "book-open/regular": BookOpenRegular,
+  "book-open/fill": BookOpenFill,
+  "hammer/bold": HammerBold,
+  "hammer/regular": HammerRegular,
+  "hammer/fill": HammerFill,
+  "bed/bold": BedBold,
+  "bed/regular": BedRegular,
+  "bed/fill": BedFill,
+  "users-three/regular": UsersThreeRegular,
+  "users-three/fill": UsersThreeFill,
+  "ticket/bold": TicketBold,
+  "users/bold": UsersBold,
+  "users/regular": UsersRegular,
+  "users/fill": UsersFill,
   "map-pin/bold": MapPinBold,
   "map-pin/fill": MapPinFill,
   "plus/bold": PlusBold,
@@ -73,6 +123,8 @@ const SVGS: Partial<Record<`${IconName}/${IconWeight}`, string>> = {
   "check/bold": CheckBold,
   "circle-notch/bold": CircleNotchBold,
   "arrow-left/bold": ArrowLeftBold,
+  "caret-down/bold": CaretDownBold,
+  "caret-up/bold": CaretUpBold,
   "x/bold": XBold,
   "copy/bold": CopyBold,
   "globe/bold": GlobeBold,

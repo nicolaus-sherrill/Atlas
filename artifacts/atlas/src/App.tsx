@@ -1,6 +1,7 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import MapView from "@/components/MapView";
-import Sidebar, { CategoryChips } from "@/components/Sidebar";
+import Sidebar, { SpotFilterChips } from "@/components/Sidebar";
+import { NO_FILTERS, matchesFilters, type SpotFilters } from "@/lib/filters";
 import BrowseSubmitModal from "@/components/BrowseSubmitModal";
 import BrowseView from "@/components/BrowseView";
 import ChatPanel from "@/components/ChatPanel";
@@ -16,9 +17,11 @@ import { useBottomSheet, detentHeights, type Detent } from "@/hooks/use-bottom-s
 import type L from "leaflet";
 import { usePlaceSearch } from "@/hooks/use-place-search";
 import type { GeocodingResult } from "@/lib/geocode";
-import { fetchSpots, addSpot, deleteSpot, requestSummary, DuplicatePlaceError } from "@/lib/store";
+import { fetchSpots, addSpot, deleteSpot, findSpotByPlace, requestSummary, DuplicatePlaceError } from "@/lib/store";
+import { submitRating } from "@/lib/ratings";
+import { submitReview } from "@/lib/reviews";
 import { useIsAdmin } from "@/lib/admin";
-import type { Category, WorkSpot } from "@/lib/types";
+import type { CategoryScores, WorkSpot } from "@/lib/types";
 
 function App() {
   const [spots, setSpots] = useState<WorkSpot[]>([]);
@@ -63,7 +66,7 @@ function App() {
   const liftSheet = useCallback((from: Detent[] = ["peek"]) => {
     setDetent((d) => (from.includes(d) ? "half" : d));
   }, []);
-  const [category, setCategory] = useState<Category | null>(null);
+  const [filters, setFilters] = useState<SpotFilters>(NO_FILTERS);
   const [crowdStatuses, setCrowdStatuses] = useState<Record<string, CrowdStatus>>({});
   const reloadCrowd = useCallback(() => {
     fetchAllCrowdStatuses().then(setCrowdStatuses);
@@ -121,6 +124,8 @@ function App() {
 
   // The last spot shown stays in the sheet while it slides away
   const detailsSpot = spots.find((s) => s.id === selectedSpotId) ?? null;
+  // The filters narrow the map with the list. The selected spot stays on the map either way.
+  const mapSpots = useMemo(() => spots.filter((s) => s.id === selectedSpotId || matchesFilters(s, filters)), [spots, filters, selectedSpotId]);
   const lastDetailsSpot = useRef<typeof detailsSpot>(null);
   if (detailsSpot) lastDetailsSpot.current = detailsSpot;
   const detailsOpen = showMap && !!detailsSpot;
@@ -169,6 +174,30 @@ function App() {
     return { left, top: 0, right: size.x, bottom: size.y };
   }, [isPhone, mapOpen, sheetOpen, detent]);
 
+  // Adding a place that's already on the map counts as one more rating of it, with the notes as the
+  // person's review. Rating again replaces their earlier rating, as it does on the spot's page.
+  // Resolves true when it saved.
+  const addToExisting = async (existing: WorkSpot, scores: CategoryScores, notes: string): Promise<boolean> => {
+    try {
+      await submitRating(existing.id, scores);
+      if (notes.trim()) await submitReview(existing.id, notes);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      setNotice(
+        message.includes("Too many")
+          ? "You've added a lot this hour. Try again a little later."
+          : `Couldn't add your rating to ${existing.name}. Open it and rate it there.`,
+      );
+      return false;
+    }
+    await reloadSpots();
+    setIsAddOpen(false);
+    select(existing.id);
+    liftSheet(["peek", "full"]);
+    setNotice(`Thanks. Your rating is on ${existing.name}.`);
+    return true;
+  };
+
   // Resolves true when the spot saved, so a form can stay open (keeping what was typed) on failure
   const handleSubmit = async (spot: Omit<WorkSpot, "id" | "submittedAt">): Promise<boolean> => {
     try {
@@ -184,10 +213,15 @@ function App() {
       }
       return true;
     } catch (err) {
+      // Someone added the same place after this page loaded: fall in with it as one more rating
+      if (err instanceof DuplicatePlaceError && spot.osmType && spot.osmId) {
+        const existing = await findSpotByPlace(spot.osmType, spot.osmId).catch(() => null);
+        if (existing) return addToExisting(existing, spot.scores, spot.description);
+      }
       const message = err instanceof Error ? err.message : "";
       setNotice(
         err instanceof DuplicatePlaceError
-          ? "That place is already on Atlas. Search the list to find it."
+          ? "Couldn't add that place. Search for it and rate it there."
           : message.includes("Too many")
             ? "You've added a lot of spots this hour. Try again a little later."
             : "Couldn't save that spot. Check the details and try again.",
@@ -226,7 +260,7 @@ function App() {
       {/* The map is always mounted, under the list card, so switching views never rebuilds it */}
       <div className="shell-map">
         <MapView
-          spots={spots}
+          spots={mapSpots}
           selection={selection}
           centreEveryPick={!isWide}
           getClearArea={getClearArea}
@@ -261,7 +295,7 @@ function App() {
       {isPhone && (
         <div ref={floatRef} className="phone-float" inert={detent === "full"}>
           {searchBox}
-          <CategoryChips active={category} onChange={setCategory} />
+          <SpotFilterChips filters={filters} onChange={setFilters} spots={spots} floating />
         </div>
       )}
 
@@ -318,6 +352,8 @@ function App() {
           <div className="list-card-pane pane-table" inert={showMap}>
             <BrowseView
               spots={spots}
+              filters={filters}
+              onFiltersChange={setFilters}
               onSpotSelect={handleListSelect}
               onRated={reloadSpots}
               onNotice={setNotice}
@@ -339,8 +375,8 @@ function App() {
                 spots={spots}
                 onSpotSelect={handleListSelect}
                 selectedSpotId={selectedSpotId}
-                activeCategory={category}
-                onCategoryChange={setCategory}
+                filters={filters}
+                onFiltersChange={setFilters}
                 floatingChips={isPhone}
                 onAddClick={() => setIsAddOpen(true)}
                 query={query}
@@ -391,8 +427,12 @@ function App() {
 
       {isAddOpen && (
         <BrowseSubmitModal
+          spots={spots}
           onSubmit={async (spot) => {
             await handleSubmit(spot);
+          }}
+          onAddToExisting={async (existing, scores, notes) => {
+            await addToExisting(existing, scores, notes);
           }}
           onClose={() => setIsAddOpen(false)}
         />

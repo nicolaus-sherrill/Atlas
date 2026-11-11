@@ -1,11 +1,10 @@
 import type { WorkSpot } from "@/lib/types";
 import type { CrowdStatus } from "@/lib/crowd";
 import Icon from "./Icon";
-import { SpotAbout, SpotCrowd, SpotFoot, SpotReviews, SpotScores, SpotSummary, SpotTags } from "./spot-sections";
+import { SpotAbout, SpotCrowd, SpotFoot, SpotReviews, SpotScores, SpotGoodFor, SpotSummary, SpotTags } from "./spot-sections";
 
 interface SpotRevealProps {
   spot: WorkSpot;
-  allTags: string[];
   crowdStatus: CrowdStatus | null;
   onShowOnMap: () => void;
   onRated: () => void;
@@ -20,7 +19,7 @@ interface SpotRevealProps {
 // spare on the right: the place (summary, crowd, About, the full tag list) and the scores, with
 // rating it yourself as the main thing to do. Under both, full width, what people say, then the
 // foot. Show on map is secondary there: the row's coordinates already do it.
-export default function SpotReveal({ spot, allTags, crowdStatus, onShowOnMap, onRated, onCrowdReported, onNotice, onDelete }: SpotRevealProps) {
+export default function SpotReveal({ spot, crowdStatus, onShowOnMap, onRated, onCrowdReported, onNotice, onDelete }: SpotRevealProps) {
   return (
     <div className="reveal" onClick={(e) => e.stopPropagation()}>
       <div className="reveal-columns">
@@ -28,9 +27,10 @@ export default function SpotReveal({ spot, allTags, crowdStatus, onShowOnMap, on
           <SpotSummary spot={spot} />
           <SpotCrowd spot={spot} crowdStatus={crowdStatus} onCrowdReported={onCrowdReported} onNotice={onNotice} />
           <SpotAbout spot={spot} onNotice={onNotice} />
-          <SpotTags tags={allTags} />
+          <SpotTags spot={spot} />
         </div>
         <div className="reveal-side">
+          <SpotGoodFor spot={spot} />
           <SpotScores spot={spot} onRated={onRated} />
         </div>
       </div>

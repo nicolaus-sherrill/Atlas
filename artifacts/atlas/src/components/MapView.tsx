@@ -9,7 +9,7 @@ import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&ur
 // The production bundle has to ship MapLibre's worker itself; the dev server resolves it on its own.
 if (import.meta.env.PROD) setWorkerUrl(maplibreWorkerUrl);
 import type { WorkSpot } from "@/lib/types";
-import { CATEGORIES, calcScore } from "@/lib/types";
+import { categoryDef, spotScore } from "@/lib/types";
 import { iconSvg } from "@/lib/icons";
 import { moveCamera, nudgeIntoView, comfortablyInView, type ClearArea } from "@/lib/camera";
 
@@ -31,14 +31,14 @@ function escapeHtml(text: string): string {
 // width, that opens it. The stroke meets the pill's outline at two corners. Its point is the spot.
 const TIP = `<svg class="pin-tip" viewBox="0 0 14 8" aria-hidden="true"><polygon class="pin-tip-o" points="0,0 14,0 7,7"/><polygon class="pin-tip-i" points="2.83,0 11.17,0 7,4.17"/></svg>`;
 
-// The score pill (Decision 5, direction 4). At rest: the category's colour, its icon and the score.
+// The score pill (Decision 5, direction 4). At rest: the family's colour, the kind's icon and the score.
 // Selected: the card's surface with the category as the stroke, the icon in the neutral ink, then
 // the name, then the score in the list's chip. Hover shows the name above. Colours come from the
 // --pin-* Patterns tokens, which follow the theme.
 function createMarkerIcon(spot: WorkSpot, selected = false): L.DivIcon {
-  const cat = CATEGORIES.find((c) => c.value === spot.category);
-  const score = calcScore(spot.scores, spot.tags).toFixed(1);
-  const icon = iconSvg(cat?.icon ?? "map-pin", "fill", selected ? 16 : 12);
+  const cat = categoryDef(spot.category);
+  const score = spotScore(spot).toFixed(1);
+  const icon = iconSvg(cat.icon, "fill", selected ? 16 : 12);
   const name = escapeHtml(spot.name);
   const body = selected
     ? `${icon}<span class="pin-name">${name}</span><span class="pin-chip">${score}</span>`
@@ -47,7 +47,7 @@ function createMarkerIcon(spot: WorkSpot, selected = false): L.DivIcon {
     className: "atlas-marker",
     // No size: the pin sizes itself, and CSS lifts it so the tip's point sits on the spot
     iconSize: undefined,
-    html: `<div class="pin pin-${spot.category}${selected ? " is-selected" : ""}"><span class="pin-label">${name}</span><span class="pin-pill">${body}${TIP}</span></div>`,
+    html: `<div class="pin pin-${cat.family}${selected ? " is-selected" : ""}"><span class="pin-label">${name}</span><span class="pin-pill">${body}${TIP}</span></div>`,
   });
 }
 
