@@ -2,23 +2,28 @@ import { useState } from "react";
 import type { WorkSpot, Category, GoodFor } from "@/lib/types";
 import { CATEGORIES, GOOD_FOR, GOOD_FOR_LABELS, categoryDef, spotScore, isOpenNow, getTodayHoursLabel } from "@/lib/types";
 import { matchesFilters, type SpotFilters } from "@/lib/filters";
-import { spotsToGeoJSON, spotsToKML, downloadFile } from "@/lib/export";
 import type { GeocodingResult } from "@/lib/geocode";
 import { matchesQuery } from "@/lib/search";
 import Icon from "./Icon";
 import MadeBy from "./MadeBy";
 import PlaceResults from "./PlaceResults";
+import MultiSelectDropdown from "./MultiSelectDropdown";
 
 // The filters: what a place is good for, and its category. One set of categories, shown the same
-// way everywhere: labelled rows in the list and the table, and one scrolling row over the map on a
-// phone, where "Good for" swaps the row in place to show its three choices.
-export function SpotFilterChips({ filters, onChange, spots, floating }: { filters: SpotFilters; onChange: (filters: SpotFilters) => void; spots: WorkSpot[]; floating: boolean }) {
+// way everywhere. In the narrow list the categories are pills in one row that scrolls sideways
+// when they overflow; in the table they are one dropdown, in one row with the other filters. Over the map on a phone it is one
+// scrolling row, where "Good for" swaps the row in place to show its three choices.
+// "inline" is the table's: the good-for chips and a category dropdown with no labels, to sit in one
+// row with the table's other filters.
+export function SpotFilterChips({ filters, onChange, spots, floating, inline = false }: { filters: SpotFilters; onChange: (filters: SpotFilters) => void; spots: WorkSpot[]; floating: boolean; inline?: boolean }) {
   const [goodForOpen, setGoodForOpen] = useState(false);
   const hasSpots = (category: Category) => spots.some((s) => s.category === category);
 
   const toggleGoodFor = (g: GoodFor) =>
     onChange({ ...filters, goodFor: filters.goodFor.includes(g) ? filters.goodFor.filter((x) => x !== g) : [...filters.goodFor, g] });
-  const pickCategory = (category: Category | null) => onChange({ ...filters, category: filters.category === category ? null : category });
+  const toggleCategory = (category: Category) =>
+    onChange({ ...filters, categories: filters.categories.includes(category) ? filters.categories.filter((c) => c !== category) : [...filters.categories, category] });
+  const clearCategories = () => onChange({ ...filters, categories: [] });
 
   const goodForChips = GOOD_FOR.map((g) => (
     <button key={g.value} className={`category-chip ${filters.goodFor.includes(g.value) ? "active" : ""}`} aria-pressed={filters.goodFor.includes(g.value)} onClick={() => toggleGoodFor(g.value)}>
@@ -29,9 +34,9 @@ export function SpotFilterChips({ filters, onChange, spots, floating }: { filter
   const categoryChips = CATEGORIES.map((cat) => (
     <button
       key={cat.value}
-      className={`category-chip ${filters.category === cat.value ? "active" : ""}${hasSpots(cat.value) ? "" : " is-empty"}`}
-      aria-pressed={filters.category === cat.value}
-      onClick={() => pickCategory(cat.value)}
+      className={`category-chip ${filters.categories.includes(cat.value) ? "active" : ""}${hasSpots(cat.value) ? "" : " is-empty"}`}
+      aria-pressed={filters.categories.includes(cat.value)}
+      onClick={() => toggleCategory(cat.value)}
     >
       <Icon name={cat.icon} weight="bold" size={16} /> {cat.label}
     </button>
@@ -60,6 +65,31 @@ export function SpotFilterChips({ filters, onChange, spots, floating }: { filter
     );
   }
 
+  if (inline) {
+    const chosen = filters.categories.map((c) => categoryDef(c).label);
+    return (
+      <>
+        <div className="filter-inline-group">
+          <span className="filter-label">Good for</span>
+          <div className="sidebar-categories" role="group" aria-label="Good for">
+            {goodForChips}
+          </div>
+        </div>
+        <span className="filter-divider" aria-hidden="true" />
+        <MultiSelectDropdown
+          label="Category"
+          options={CATEGORIES.map((c) => c.label)}
+          selected={new Set(chosen)}
+          onToggle={(label) => {
+            const cat = CATEGORIES.find((c) => c.label === label);
+            if (cat) toggleCategory(cat.value);
+          }}
+          formatTrigger={(sel) => (sel.size === 0 ? "Category ▾" : sel.size <= 2 ? `${Array.from(sel).join(", ")} ▾` : `${sel.size} categories ▾`)}
+        />
+      </>
+    );
+  }
+
   return (
     <div className="filter-block">
       <div className="filter-row">
@@ -70,8 +100,8 @@ export function SpotFilterChips({ filters, onChange, spots, floating }: { filter
       </div>
       <div className="filter-row">
         <span className="filter-label">Category</span>
-        <div className="sidebar-categories" role="group" aria-label="Category">
-          <button className={`category-chip ${filters.category === null ? "active" : ""}`} aria-pressed={filters.category === null} onClick={() => pickCategory(null)}>
+        <div className="sidebar-categories sidebar-categories-scroll" role="group" aria-label="Category" tabIndex={0}>
+          <button className={`category-chip ${filters.categories.length === 0 ? "active" : ""}`} aria-pressed={filters.categories.length === 0} onClick={clearCategories}>
             All
           </button>
           {categoryChips}
@@ -102,9 +132,8 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ spots, onSpotSelect, selectedSpotId, filters, onFiltersChange, floatingChips, onAddClick, query, places, placesLoading, onPickPlace, themeToggle }: SidebarProps) {
-  const [showExport, setShowExport] = useState(false);
   const filtered = spots.filter((spot) => matchesFilters(spot, filters) && matchesQuery(spot, query));
-  const emptyCategory = filters.category ? categoryDef(filters.category).label.toLowerCase() : null;
+  const emptyCategory = filters.categories.length === 1 ? categoryDef(filters.categories[0]).label.toLowerCase() : null;
 
   return (
     <aside className="sidebar">
@@ -114,34 +143,7 @@ export default function Sidebar({ spots, onSpotSelect, selectedSpotId, filters, 
         <button className="btn-primary sidebar-add" onClick={onAddClick}>
           + Add a spot
         </button>
-        <button className="btn-secondary" onClick={() => setShowExport(!showExport)}>
-          Export
-        </button>
       </div>
-
-      {showExport && (
-        <div className="export-panel">
-          <p>Export your spots to use in other map apps:</p>
-          <div className="export-buttons">
-            <button
-              onClick={() => {
-                downloadFile(spotsToGeoJSON(filtered), "atlas-spots.geojson", "application/geo+json");
-                setShowExport(false);
-              }}
-            >
-              GeoJSON
-            </button>
-            <button
-              onClick={() => {
-                downloadFile(spotsToKML(filtered), "atlas-spots.kml", "application/vnd.google-earth.kml+xml");
-                setShowExport(false);
-              }}
-            >
-              KML (Google Earth)
-            </button>
-          </div>
-        </div>
-      )}
 
       <div className="sidebar-count">
         {filtered.length} spot{filtered.length !== 1 ? "s" : ""}

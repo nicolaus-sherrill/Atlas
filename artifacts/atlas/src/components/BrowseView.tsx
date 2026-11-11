@@ -1,6 +1,6 @@
 import { useState, useMemo, Fragment } from "react";
 import type { WorkSpot, Category } from "@/lib/types";
-import { GOOD_FOR_LABELS, categoryDef, spotScore, getSpotDisplayTags, TAGS, isOpenNow, getTodayHoursLabel } from "@/lib/types";
+import { categoryDef, spotScore, getSpotDisplayTags, TAGS, isOpenNow, getTodayHoursLabel } from "@/lib/types";
 import SpotReveal from "./SpotReveal";
 import MultiSelectDropdown from "./MultiSelectDropdown";
 import Icon from "./Icon";
@@ -80,13 +80,14 @@ export default function BrowseView({ spots, filters, onFiltersChange, onSpotSele
     <div className="browse-view">
       <header className="browse-header">
         <div className="browse-header-left">
-          <p className="browse-tagline">Third spaces, rated by the people who use them.</p>
+          <p className="browse-tagline">Community powered map of third spaces around the world for working, gathering, and creating.</p>
         </div>
       </header>
 
-      <SpotFilterChips filters={filters} onChange={onFiltersChange} spots={spots} floating={false} />
-
+      {/* Every filter in one row: what it's good for, its category, the city and the tags */}
       <div className="browse-chips-section">
+        <SpotFilterChips filters={filters} onChange={onFiltersChange} spots={spots} floating={false} inline />
+
         <MultiSelectDropdown
           label="City"
           options={cities}
@@ -117,7 +118,6 @@ export default function BrowseView({ spots, filters, onFiltersChange, onSpotSele
               <th className="col-name">Spot</th>
               <th className="col-city">City</th>
               <th className="col-category">Category</th>
-              <th className="col-good-for">Good for</th>
               <th className="col-today">Today</th>
               <th className="col-tags">Tags</th>
               <th className="col-score">Score</th>
@@ -152,7 +152,6 @@ export default function BrowseView({ spots, filters, onFiltersChange, onSpotSele
                     <td className="col-category">
                       <span className="browse-category-badge"><Icon name={cat.icon} weight="bold" size={16} /> {cat.label}</span>
                     </td>
-                    <td className="col-good-for">{spot.goodFor.map((g) => GOOD_FOR_LABELS[g]).join(", ")}</td>
                     <td className="col-today">
                       {spot.operatingHours ? (
                         <span className={`details-hours ${open ? "open" : "closed"}`}>
@@ -185,14 +184,14 @@ export default function BrowseView({ spots, filters, onFiltersChange, onSpotSele
                           onSpotSelect(spot.id);
                         }}
                       >
-                        <span className="browse-coord">{spot.lat.toFixed(4)}, {spot.lng.toFixed(4)}</span>
+                        <span className="browse-coord">{spot.lat.toFixed(3)}, {spot.lng.toFixed(3)}</span>
                         <Icon name="arrow-right" weight="bold" size={16} />
                       </button>
                     </td>
                   </tr>
                   {isExpanded && (
                     <tr className="browse-detail-row">
-                      <td colSpan={9}>
+                      <td colSpan={8}>
                         <SpotReveal
                           spot={spot}
                           crowdStatus={crowdStatuses[spot.id] ?? null}

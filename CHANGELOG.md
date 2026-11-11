@@ -5,25 +5,35 @@
 Atlas now maps any public place you can walk into and stay a while, not only places to work.
 
 ### New
-- **Add hotels, museums, bookstores, makerspaces, bars, food halls and community centers**, alongside cafes, libraries, parks and coworking
-- **Every spot says what it's good for: work, gather or create**, and the map filters by it
-- **Filter by category**, with the same eleven in the list and on the map
+- **Add hotels, museums, bookstores, makerspaces, bars, markets and community centers**, alongside cafes, libraries, parks and coworking
+- **Every spot says what it's good for: working, gathering or creating**, and the map filters by it
+- **Filter by one or more categories**, with the same choices in the list and on the map
+- **Find a place to add by its name or its address**, from one search field
+- **Adding a place already on Atlas puts your rating and notes on it**, instead of being turned away
+- **Opening hours read like a map's**: open or closed now, when that changes, and the full week
 - **Paid entry is marked on a spot's page**, for a ticket or a day pass
 - **Rate a spot on seating and comfort**
 - **Tag a spot with restrooms, drinking water, shade, dog-friendly or kid-friendly**
 - **Place search finds hotels, galleries, markets, gardens and squares**
 
 ### Changed
-- **A place is scored only on what it should offer.** Parks skip wifi and power, and only food and drink places are rated on food
+- **A place is scored only on what it should offer.** Parks skip wifi and outlets, and only food and drink places are rated on food
 - **Libraries and bookstores no longer lose points for serving no food**
-- **The hours score now comes from a spot's opening hours**, so longer hours score higher without anyone rating them
+- **Opening hours now count toward a spot's score without being rated**, so longer hours score higher
+- **Ratings say Outlets and Accessibility**, where they said Power and Access
 - **Tags no longer change a spot's score**
-- **Adding a spot is four short steps**, and it starts with what belongs on Atlas
+- **Adding a spot has fewer, shorter steps**, and it starts with what belongs on Atlas
+- **In the list, every filter sits in one row**, and the coordinates line up in one column
+- **What a spot is good for shows as chips above its scores**, in the list and on the map
 - **Filters narrow the map as well as the list**
 - **Pins carry an icon for the category**, in a colour shared by related categories
 - **A criterion nobody has rated says Not rated**, instead of showing as a low score
-- **Plan my day suggests laptop work only at spots marked good for work**
+- **Plan my day suggests laptop work only at spots marked good for working**
 - **The Carpenter Hotel is now a hotel and First Light Book Shop a bookstore**
+- **The sidebar's Export button and its file downloads are removed**
+
+### Fixed
+- **The theme switch at the foot of the list can be clicked again**, instead of sitting under the Atlas button
 
 ## v1.1.2: Smooth map moves
 

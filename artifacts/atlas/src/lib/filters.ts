@@ -4,12 +4,13 @@ import type { Category, GoodFor, WorkSpot } from "./types";
 export interface SpotFilters {
   // Any of these; empty means no narrowing
   goodFor: GoodFor[];
-  category: Category | null;
+  // Any of these; empty means no narrowing
+  categories: Category[];
 }
 
-export const NO_FILTERS: SpotFilters = { goodFor: [], category: null };
+export const NO_FILTERS: SpotFilters = { goodFor: [], categories: [] };
 
 export function matchesFilters(spot: WorkSpot, f: SpotFilters): boolean {
   if (f.goodFor.length > 0 && !f.goodFor.some((g) => spot.goodFor.includes(g))) return false;
-  return !f.category || spot.category === f.category;
+  return f.categories.length === 0 || f.categories.includes(spot.category);
 }

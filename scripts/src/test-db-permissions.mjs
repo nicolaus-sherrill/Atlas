@@ -256,6 +256,22 @@ await db.query("select public.review_spot_edit((select id from public.spot_edits
 const edited = (await rows("select category, good_for, paid_entry from public.spots where id='seed-3'"))[0];
 ok("an approved edit changes kind, good for and paid entry", edited.category === "bookstore" && edited.good_for.join() === "work,gather" && edited.paid_entry === true, JSON.stringify(edited));
 
+// ---------- adding a place that is already on the map ----------
+// The app turns a duplicate into one more rating and review of the existing spot, with no new
+// database rules: the second insert is refused, and the rating and review go in the ordinary way.
+await asRater(raterA, "10.0.0.1");
+await db.query(`insert into public.spots (name, category, lat, lng, scores, osm_type, osm_id, good_for) values ('Already Here', 'cafe', 30.4, -97.7, ${scores}, 'node', 987654321, array['work'])`);
+const already = (await rows("select id from public.spots where name='Already Here'"))[0].id;
+await asRater(raterB, "10.0.0.2");
+const dupe = await throws(`insert into public.spots (name, category, lat, lng, scores, osm_type, osm_id, good_for) values ('Already Here', 'cafe', 30.4, -97.7, ${scores}, 'node', 987654321, array['work'])`);
+ok("the same real place can't be added twice", !!dupe && dupe.includes("spots_osm_place_unique"), String(dupe));
+ok("a second person's rating adds to the existing spot", !(await throws(rate(already, 5))) && (await spotRow(already)).rating_count === 2);
+await asRater(raterB, "10.0.0.2");
+ok("their notes go in as a review of it", !(await throws(review(already, "Plenty of outlets by the window"))) && (await reviewsOf(already)).length === 1);
+ok("adding the same place again replaces their rating, not adds one", !(await throws(rate(already, 2))) && (await spotRow(already)).rating_count === 2);
+await asRater(raterB, "10.0.0.2");
+ok("a rating still has to cover what the existing spot needs", !!(await throws(`insert into public.ratings (spot_id, scores) values ('${already}', '{"seating":3,"atmosphere":3,"access":3}'::jsonb) on conflict (spot_id, user_id) do update set scores = excluded.scores`)));
+
 // ---------- server key ----------
 await db.exec(`reset role; select set_config('request.jwt.claim.role','service_role',false), set_config('request.jwt.claim.sub','',false); set role service_role;`);
 const serverWrite = await throws("update public.spots set ai_summary = 'server test' where id = 'seed-2'");

@@ -66,6 +66,13 @@ export async function fetchSpots(): Promise<WorkSpot[]> {
   return (data as SpotRow[]).map(fromRow);
 }
 
+// The published spot already linked to this real place, if there is one
+export async function findSpotByPlace(osmType: "node" | "way" | "relation", osmId: number): Promise<WorkSpot | null> {
+  const { data, error } = await supabase.from("spots").select(SPOT_COLUMNS).eq("osm_type", osmType).eq("osm_id", osmId).maybeSingle();
+  if (error) throw error;
+  return data ? fromRow(data as SpotRow) : null;
+}
+
 export async function addSpot(spot: Omit<WorkSpot, "id" | "submittedAt">): Promise<WorkSpot> {
   // The adder's scores become the spot's first rating, credited to them
   await ensureSession();

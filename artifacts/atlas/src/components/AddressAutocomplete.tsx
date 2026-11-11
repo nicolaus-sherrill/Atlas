@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { searchAddress, searchPlaces, type GeocodingResult } from "@/lib/geocode";
+import { searchAddress, searchPlaceOrAddress, searchPlaces, type GeocodingResult } from "@/lib/geocode";
 
 interface AddressAutocompleteProps {
   value: string;
@@ -7,8 +7,9 @@ interface AddressAutocompleteProps {
   onSelect: (result: GeocodingResult) => void;
   placeholder?: string;
   id?: string;
-  // "place" suggests named businesses, libraries and parks; "address" suggests street addresses
-  mode?: "address" | "place";
+  // "place" suggests named businesses, libraries and parks; "address" suggests street addresses;
+  // "any" suggests both, from one field
+  mode?: "address" | "place" | "any";
   autoFocus?: boolean;
 }
 
@@ -48,7 +49,7 @@ export default function AddressAutocomplete({
         const controller = new AbortController();
         abortRef.current = controller;
         try {
-          const search = mode === "place" ? searchPlaces : searchAddress;
+          const search = mode === "place" ? searchPlaces : mode === "any" ? searchPlaceOrAddress : searchAddress;
           const data = await search(val.trim(), controller.signal);
           if (!controller.signal.aborted) {
             setResults(data);
@@ -137,7 +138,7 @@ export default function AddressAutocomplete({
               )}
             </button>
           ))}
-          {mode === "place" && (
+          {mode !== "address" && (
             <div className="geocode-credit">Search by Photon, data © OpenStreetMap contributors</div>
           )}
         </div>

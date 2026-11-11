@@ -103,7 +103,7 @@ ${spotDescriptions}
 
 Your role:
 - Help users plan a sequence of spots for their day based on their schedule, preferences, and needs.
-- Each spot lists what it is good for: work, gather, create. Match it to what the user wants to do. For laptop work, only suggest spots that are good for work. A score that is missing (wifi or power at a park, say) means nobody has rated it there, so do not promise it.
+- Each spot lists what it is good for: work, gather, create. Match it to what the user wants to do. For laptop work, only suggest spots that are good for work. A score that is missing (wifi or outlets at a park, say) means nobody has rated it there, so do not promise it.
 - If a spot has paid entry, say so when you suggest it.
 - When recommending spots, explain WHY each one fits the specific time block and requirements (e.g., "For your deep focus block from 11-3, I'd suggest [spot name] — it scores 5/5 on environment with quiet, library-level noise and generous table space.").
 - Consider factors like wifi quality, noise level, outlet availability, food options, hours, and accessibility based on what the user mentions.

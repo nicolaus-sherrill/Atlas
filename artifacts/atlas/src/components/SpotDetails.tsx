@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { WorkSpot } from "@/lib/types";
 import { categoryDef, spotScore, isOpenNow, getTodayHoursLabel } from "@/lib/types";
-import { getGoogleMapsUrl, getAppleMapsUrl } from "@/lib/export";
+import { getGoogleMapsUrl, getAppleMapsUrl } from "@/lib/directions";
 import type { CrowdStatus } from "@/lib/crowd";
 import Icon from "./Icon";
 import { SpotAbout, SpotCrowd, SpotFoot, SpotGoodFor, SpotReviews, SpotScores, SpotSummary, SpotTags } from "./spot-sections";
@@ -65,7 +65,6 @@ export default function SpotDetails({ spot, crowdStatus, dismiss, onDismiss, onR
             <span className="details-meta">{spot.ratingCount === 1 ? "1 rating" : `${spot.ratingCount} ratings`}</span>
           )}
         </div>
-        <SpotGoodFor spot={spot} />
         {spot.operatingHours && (
           <div className={`details-hours ${open ? "open" : "closed"}`}>
             <span className="hours-dot" aria-hidden="true" />
@@ -91,6 +90,7 @@ export default function SpotDetails({ spot, crowdStatus, dismiss, onDismiss, onR
       </div>
 
       <SpotAbout spot={spot} onNotice={onNotice} />
+      <SpotGoodFor spot={spot} />
       <SpotScores spot={spot} onRated={onRated} />
       <SpotTags spot={spot} />
       <SpotReviews spot={spot} />

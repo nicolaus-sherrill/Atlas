@@ -27,10 +27,10 @@ export default function SpotReveal({ spot, crowdStatus, onShowOnMap, onRated, on
           <SpotSummary spot={spot} />
           <SpotCrowd spot={spot} crowdStatus={crowdStatus} onCrowdReported={onCrowdReported} onNotice={onNotice} />
           <SpotAbout spot={spot} onNotice={onNotice} />
-          <SpotGoodFor spot={spot} />
           <SpotTags spot={spot} />
         </div>
         <div className="reveal-side">
+          <SpotGoodFor spot={spot} />
           <SpotScores spot={spot} onRated={onRated} />
         </div>
       </div>

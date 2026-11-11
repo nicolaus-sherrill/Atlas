@@ -202,6 +202,15 @@ export async function searchMap(query: string, signal?: AbortSignal, near = DEFA
   return nearbyFirst(await photonSearch(baseParams(query, near), true, signal), near);
 }
 
+// One field for either: named places first, then street addresses the places don't already cover.
+// Like a map's search box, it answers both "Cenote" and "1010 E Cesar Chavez".
+export async function searchPlaceOrAddress(query: string, signal?: AbortSignal, near = DEFAULT_BIAS): Promise<GeocodingResult[]> {
+  if (!query || query.trim().length < 3) return [];
+  const [places, addresses] = await Promise.all([searchPlaces(query, signal, near), searchAddress(query, signal, near).catch(() => [])]);
+  const seen = new Set(places.map((r) => r.address));
+  return [...places, ...addresses.filter((r) => r.address && !seen.has(r.address))].slice(0, 8);
+}
+
 export async function searchAddress(query: string, signal?: AbortSignal, near?: { lat: number; lng: number }): Promise<GeocodingResult[]> {
   if (!query || query.trim().length < 3) return [];
   return photonSearch(baseParams(query, near), false, signal);

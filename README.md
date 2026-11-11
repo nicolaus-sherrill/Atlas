@@ -29,10 +29,10 @@ Everything sits on free tiers.
   icon. Related categories share a pin colour (a family), which is never a filter.
 - **Good for:** work, gather, create. At least one. It is a filter, not a separate map.
 - **Paid entry**, yes or no: a ticket or a day pass. Members-only places don't belong on Atlas.
-- **A score** from seven criteria: seating and comfort 25%, wifi 20%, power 15%, access 15%,
+- **A score** from seven criteria: seating and comfort 25%, wifi 20%, outlets 15%, accessibility 15%,
   atmosphere 10%, hours 10%, food and drink 5%. Six are rated by visitors; hours is worked out
   from the opening hours. Food and drink is expected only at food and drink places; wifi and
-  power only where a spot is good for work, and never outdoors. Anything else is optional, and
+  outlets only where a spot is good for work, and never outdoors. Anything else is optional, and
   a criterion with no number is left out of the average.
 - **Tags**, which are plain facts and don't affect the score.
 

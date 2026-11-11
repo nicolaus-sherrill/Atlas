@@ -46,6 +46,8 @@ import MapTrifoldBold from "@phosphor-icons/core/assets/bold/map-trifold-bold.sv
 import MagnifyingGlassBold from "@phosphor-icons/core/assets/bold/magnifying-glass-bold.svg?raw";
 import MinusBold from "@phosphor-icons/core/assets/bold/minus-bold.svg?raw";
 import CrosshairBold from "@phosphor-icons/core/assets/bold/crosshair-bold.svg?raw";
+import CaretDownBold from "@phosphor-icons/core/assets/bold/caret-down-bold.svg?raw";
+import CaretUpBold from "@phosphor-icons/core/assets/bold/caret-up-bold.svg?raw";
 import ArrowLeftBold from "@phosphor-icons/core/assets/bold/arrow-left-bold.svg?raw";
 import XBold from "@phosphor-icons/core/assets/bold/x-bold.svg?raw";
 import CopyBold from "@phosphor-icons/core/assets/bold/copy-bold.svg?raw";
@@ -121,6 +123,8 @@ const SVGS: Partial<Record<`${IconName}/${IconWeight}`, string>> = {
   "check/bold": CheckBold,
   "circle-notch/bold": CircleNotchBold,
   "arrow-left/bold": ArrowLeftBold,
+  "caret-down/bold": CaretDownBold,
+  "caret-up/bold": CaretUpBold,
   "x/bold": XBold,
   "copy/bold": CopyBold,
   "globe/bold": GlobeBold,

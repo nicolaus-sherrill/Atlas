@@ -46,9 +46,9 @@ export function categoryDef(category: Category) {
 export type GoodFor = "work" | "gather" | "create";
 
 export const GOOD_FOR: { value: GoodFor; label: string; hint: string }[] = [
-  { value: "work", label: "Work", hint: "Laptop or notebook, an hour or an afternoon" },
-  { value: "gather", label: "Gather", hint: "Meeting people, or being around them" },
-  { value: "create", label: "Create", hint: "Making things: craft, art, tools" },
+  { value: "work", label: "Working", hint: "Suits a remote-work session: a laptop, a few hours" },
+  { value: "gather", label: "Gathering", hint: "Public, cultural places, like museums and parks, to exist in public" },
+  { value: "create", label: "Creating", hint: "Work that isn't remote or laptop work: making, craft, art, tools" },
 ];
 
 export const GOOD_FOR_LABELS = Object.fromEntries(GOOD_FOR.map((g) => [g.value, g.label])) as Record<GoodFor, string>;
@@ -71,8 +71,8 @@ export interface ScoreCategoryDef {
 export const SCORE_CATEGORIES: ScoreCategoryDef[] = [
   { key: "seating", label: "Seating & comfort", baseWeight: 0.25 },
   { key: "wifi", label: "WiFi", baseWeight: 0.20 },
-  { key: "outlets", label: "Power", baseWeight: 0.15 },
-  { key: "access", label: "Access", baseWeight: 0.15 },
+  { key: "outlets", label: "Outlets", baseWeight: 0.15 },
+  { key: "access", label: "Accessibility", baseWeight: 0.15 },
   { key: "atmosphere", label: "Atmosphere", baseWeight: 0.10 },
   { key: "hours", label: "Hours", baseWeight: 0.10 },
   { key: "food", label: "Food & drink", baseWeight: 0.05 },
@@ -83,7 +83,7 @@ export const RATED_CRITERIA = SCORE_CATEGORIES.filter((sc) => sc.key !== "hours"
 export const SCORE_CATEGORY_LABELS = Object.fromEntries(SCORE_CATEGORIES.map((sc) => [sc.key, sc.label])) as Record<ScoreCategory, string>;
 
 // What a rating must cover follows from what the place is. Seating, atmosphere and access are
-// expected everywhere. Food and drink is expected only at food and drink places. Wifi and power
+// expected everywhere. Food and drink is expected only at food and drink places. Wifi and outlets
 // are expected only where the spot is good for work, and never outdoors. Anything else is
 // optional: left blank it doesn't count against the place, and rated it counts for it.
 // The database enforces the same rule (private.enforce_score_rules).
@@ -254,6 +254,39 @@ export function getTodayHoursLabel(hours: OperatingHours): string {
   return `${formatTime12h(dh.open)}–${formatTime12h(dh.close)}`;
 }
 
+// Where a place stands right now, as Google Maps says it: "Open" with when it closes, or "Closed"
+// with when it next opens. Null when the week holds no open hours at all.
+export function hoursStatus(hours: OperatingHours): { open: boolean; detail: string } | null {
+  const open = isOpenNow(hours);
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const today = getCurrentDay();
+  if (open) {
+    const dh = hours[today];
+    const openMin = timeToMinutes(dh.open);
+    const closeMin = timeToMinutes(dh.close);
+    const inToday = !dh.closed && (isOvernightSchedule(openMin, closeMin) ? nowMin >= openMin : nowMin >= openMin && nowMin < closeMin);
+    // Otherwise it's still inside last night's overnight hours
+    return { open: true, detail: `Closes ${formatTime12h(inToday ? dh.close : hours[getPreviousDay(today)].close)}` };
+  }
+  const todayHours = hours[today];
+  if (!todayHours.closed && nowMin < timeToMinutes(todayHours.open)) return { open: false, detail: `Opens ${formatTime12h(todayHours.open)}` };
+  for (let i = 1; i <= 7; i++) {
+    const day = DAYS_OF_WEEK[(DAYS_OF_WEEK.indexOf(today) + i) % 7];
+    if (!hours[day].closed) return { open: false, detail: `Opens ${i === 1 ? "tomorrow " : `${DAY_LABELS[day]} `}${formatTime12h(hours[day].open)}` };
+  }
+  return null;
+}
+
+// One row per day, Monday first, for the full week
+export function weekHoursRows(hours: OperatingHours): { day: DayOfWeek; label: string; range: string; today: boolean }[] {
+  const today = getCurrentDay();
+  return DAYS_OF_WEEK.map((day) => {
+    const dh = hours[day];
+    return { day, label: DAY_LABELS_FULL[day], range: dh.closed ? "Closed" : `${formatTime12h(dh.open)} – ${formatTime12h(dh.close)}`, today: day === today };
+  });
+}
+
 export function formatWeeklyHours(hours: OperatingHours): string[] {
   const lines: string[] = [];
   let i = 0;
@@ -339,10 +372,10 @@ export function spotScore(spot: Pick<WorkSpot, "scores" | "operatingHours">): nu
   return calcScore(spot.scores, spot.operatingHours);
 }
 
-// Each criterion's number for a spot, hours included, in display order. Unrated ones are absent.
-export function spotScoreRows(spot: Pick<WorkSpot, "scores" | "operatingHours">): { key: ScoreCategory; label: string; value: number }[] {
-  const values: Partial<Record<ScoreCategory, number>> = { ...spot.scores, hours: hoursScore(spot.operatingHours) };
-  return SCORE_CATEGORIES.filter((sc) => values[sc.key] != null).map((sc) => ({ key: sc.key, label: sc.label, value: values[sc.key]! }));
+// Each rated criterion's number for a spot, in display order. Unrated ones are absent. Hours is
+// left out on purpose: it counts toward the overall score but is shown as opening hours, not a rating.
+export function spotScoreRows(spot: Pick<WorkSpot, "scores">): { key: RatedCriterion; label: string; value: number }[] {
+  return RATED_CRITERIA.filter((sc) => spot.scores[sc.key] != null).map((sc) => ({ key: sc.key, label: sc.label, value: spot.scores[sc.key]! }));
 }
 
 export function getTagLabel(tagId: string): string {

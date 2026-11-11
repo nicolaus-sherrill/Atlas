@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { WorkSpot, Category, GoodFor, TagId, CategoryScores } from "@/lib/types";
-import { SCORE_CATEGORY_LABELS, missingCriteria } from "@/lib/types";
+import { missingCriteria } from "@/lib/types";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import type { GeocodingResult } from "@/lib/geocode";
 import PlaceLinkCard from "@/components/PlaceLinkCard";
@@ -10,16 +10,25 @@ import RatingRows from "./RatingRows";
 import { GoodForPicker, INCLUSION_TEST, CategoryPicker, PaidEntryPicker, TagPicker } from "./SpotFormFields";
 
 interface BrowseSubmitModalProps {
+  // The spots already on the map, so a place that's there can take a rating instead of a copy
+  spots: WorkSpot[];
   onSubmit: (spot: Omit<WorkSpot, "id" | "submittedAt">) => void;
+  // A place already on the map: the rating, and the notes as a review
+  onAddToExisting: (spot: WorkSpot, scores: CategoryScores, notes: string) => void;
   onClose: () => void;
 }
 
-const STEPS = ["The place", "What it is", "Rate it", "Details"] as const;
+type StepId = "place" | "what" | "rate" | "details";
+const STEP_TITLES: Record<StepId, string> = { place: "The place", what: "What it is", rate: "Rate it", details: "Details" };
 
 // Adding a spot, in four steps: where it is, what it is, the adder's rating, then tags and notes.
 // A spot never reaches the map without a rating, so the rating is a step here, not an afterthought.
-export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitModalProps) {
-  const [step, setStep] = useState(0);
+// A place already on the map skips "What it is" and the tags: it keeps what it is, and the adder's
+// rating and notes are added to it.
+export default function BrowseSubmitModal({ spots, onSubmit, onAddToExisting, onClose }: BrowseSubmitModalProps) {
+  const [stepIndex, setStepIndex] = useState(0);
+  // What's typed in the one search field, which finds a place by name or by address
+  const [query, setQuery] = useState("");
   const [name, setName] = useState("");
   const [category, setCategory] = useState<Category | null>(null);
   const [goodFor, setGoodFor] = useState<GoodFor[]>([]);
@@ -37,9 +46,12 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
     if (details.suggestedTags.length) setSelectedTags((prev) => new Set([...prev, ...details.suggestedTags]));
   });
 
-  const handleNameSelect = (result: GeocodingResult) => {
-    setName(result.name ?? result.displayName);
-    setAddress(result.address);
+  // Picking a result from the search: a named place fills in its name, and an address alone leaves
+  // the name to the contributor
+  const handlePick = (result: GeocodingResult) => {
+    setQuery(result.name ?? result.address ?? result.displayName);
+    setName(result.name ?? "");
+    setAddress(result.address || result.displayName);
     setCity(result.city);
     setLocation({ lat: result.lat, lng: result.lng });
     if (result.category) setCategory(result.category);
@@ -47,11 +59,24 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
     else clear();
   };
 
-  const handleAddressSelect = (result: GeocodingResult) => {
-    setAddress(result.address || result.displayName);
-    setCity(result.city);
-    setLocation({ lat: result.lat, lng: result.lng });
+  // Typing again after a pick starts the search over
+  const handleQueryChange = (value: string) => {
+    setQuery(value);
+    if (location) {
+      setLocation(null);
+      setName("");
+      setAddress("");
+      setCity("");
+      clear();
+    }
   };
+
+  const existing = link
+    ? spots.find((s) => s.osmType === link.place.osmType && s.osmId === link.place.osmId) ?? null
+    : null;
+  const steps: StepId[] = existing ? ["place", "rate", "details"] : ["place", "what", "rate", "details"];
+  const step = steps[Math.min(stepIndex, steps.length - 1)];
+  const last = stepIndex >= steps.length - 1;
 
   const toggleTag = (tagId: TagId) => {
     setSelectedTags((prev) => {
@@ -62,23 +87,27 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
     });
   };
 
-  const place = category ? { category, goodFor } : null;
+  // What a rating must cover follows from what the place is: the one already on the map, or the
+  // category and good-for chosen here
+  const place = existing ? { category: existing.category, goodFor: existing.goodFor } : category ? { category, goodFor } : null;
   const missing = place ? missingCriteria(place, scores) : [];
-  // What still stands between this step and the next, said in words under the button
-  const blocker = [
-    !name.trim() ? "Give the place a name." : !location ? "Pick the place from the suggestions, or choose an address, so Atlas knows where it is." : null,
-    !category ? "Choose a category." : goodFor.length === 0 ? "Choose at least one thing it's good for." : null,
-    missing.length > 0 ? `Still to rate: ${missing.map((k) => SCORE_CATEGORY_LABELS[k].toLowerCase()).join(", ")}.` : null,
-    null,
-  ][step];
-
-  const last = step === STEPS.length - 1;
+  // Whether this step is done. The steps say what they need themselves, so no line of copy repeats it.
+  const blocked = {
+    place: !location || !name.trim(),
+    what: !category || goodFor.length === 0,
+    rate: missing.length > 0,
+    details: false,
+  }[step];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (blocker) return;
+    if (blocked) return;
     if (!last) {
-      setStep(step + 1);
+      setStepIndex(stepIndex + 1);
+      return;
+    }
+    if (existing) {
+      onAddToExisting(existing, scores, description);
       return;
     }
     if (!location || !category) return;
@@ -110,15 +139,14 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
       onSubmit={handleSubmit}
       footer={
         <>
-          {blocker && <p className="modal-hint">{blocker}</p>}
           <div className="modal-steps-actions">
-            {step > 0 && (
-              <button type="button" className="btn-outline" onClick={() => setStep(step - 1)}>
+            {stepIndex > 0 && (
+              <button type="button" className="btn-outline" onClick={() => setStepIndex(stepIndex - 1)}>
                 Back
               </button>
             )}
-            <button type="submit" className="btn-submit" disabled={!!blocker}>
-              {last ? "Add spot" : "Next"}
+            <button type="submit" className="btn-submit" disabled={blocked}>
+              {last ? (existing ? "Add rating" : "Add spot") : "Next"}
             </button>
           </div>
         </>
@@ -126,43 +154,52 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
     >
       <p className="modal-step" aria-live="polite">
         <span className="filter-label">
-          Step {step + 1} of {STEPS.length}
+          Step {stepIndex + 1} of {steps.length}
         </span>
-        <span className="modal-step-title">{STEPS[step]}</span>
+        <span className="modal-step-title">{STEP_TITLES[step]}</span>
       </p>
 
-      {step === 0 && (
+      {step === "place" && (
         <>
           <p className="modal-intro">{INCLUSION_TEST}</p>
           <div className="form-group">
-            <label htmlFor="browse-name">Name</label>
+            <label htmlFor="browse-search">Name or address</label>
             <AddressAutocomplete
-              id="browse-name"
-              mode="place"
-              value={name}
-              onChange={setName}
-              onSelect={handleNameSelect}
-              placeholder="Start typing the place's name"
+              id="browse-search"
+              mode="any"
+              value={query}
+              onChange={handleQueryChange}
+              onSelect={handlePick}
+              placeholder="Search by name or address"
               autoFocus
             />
-            {link && <PlaceLinkCard link={link} onClear={clear} />}
+            {link && !existing && <PlaceLinkCard link={link} onClear={clear} />}
           </div>
 
-          <div className="form-group">
-            <label htmlFor="browse-address">Address</label>
-            <AddressAutocomplete id="browse-address" value={address} onChange={setAddress} onSelect={handleAddressSelect} placeholder="123 Main St, Austin, TX" />
-          </div>
-
-          {city && (
+          {/* An address on its own has no name to borrow, so the contributor gives one */}
+          {location && !link && (
             <div className="form-group">
-              <label>City</label>
-              <div className="city-display">{city}</div>
+              <label htmlFor="browse-name">Name</label>
+              <input id="browse-name" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="What's the place called?" autoComplete="off" />
             </div>
+          )}
+
+          {location && (
+            <div className="form-group">
+              <label>Address</label>
+              <div className="city-display">{address}</div>
+            </div>
+          )}
+
+          {existing && (
+            <p className="modal-hint" role="status">
+              {existing.name} is already on Atlas. Your rating and notes will be added to it.
+            </p>
           )}
         </>
       )}
 
-      {step === 1 && (
+      {step === "what" && (
         <>
           <div className="form-group">
             <label>Category</label>
@@ -170,33 +207,31 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
           </div>
           <div className="form-group">
             <label>Good for</label>
-            <p className="modal-hint">Pick everything that fits.</p>
             <GoodForPicker value={goodFor} onChange={setGoodFor} />
           </div>
           <div className="form-group">
             <label>Entry</label>
-            <p className="modal-hint">Paid entry means a ticket or a day pass. Buying a coffee doesn't count.</p>
             <PaidEntryPicker value={paidEntry} onChange={setPaidEntry} />
           </div>
         </>
       )}
 
-      {step === 2 && place && (
+      {step === "rate" && place && (
         <div className="form-group">
           <label>Your rating</label>
           <RatingRows place={place} scores={scores} onChange={setScores} />
-          <p className="modal-hint">Hours aren't rated. Atlas scores them from the opening hours.</p>
         </div>
       )}
 
-      {step === 3 && (
+      {step === "details" && (
         <>
+          {!existing && (
+            <div className="form-group">
+              <TagPicker value={Array.from(selectedTags)} onToggle={toggleTag} />
+            </div>
+          )}
           <div className="form-group">
-            <label>Tags</label>
-            <TagPicker value={Array.from(selectedTags)} onToggle={toggleTag} />
-          </div>
-          <div className="form-group">
-            <label htmlFor="browse-description">Notes (optional)</label>
+            <label htmlFor="browse-description">{existing ? "Your review (optional)" : "Notes (optional)"}</label>
             <textarea
               id="browse-description"
               placeholder="What should someone know before they go?"

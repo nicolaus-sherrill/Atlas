@@ -52,11 +52,7 @@ export default function MultiSelectDropdown({
         <div className="dropdown-panel">
           {options.map((opt) => (
             <label key={opt} className="dropdown-item">
-              <input
-                type="checkbox"
-                checked={selected.has(opt)}
-                onChange={() => onToggle(opt)}
-              />
+              <input type="checkbox" checked={selected.has(opt)} onChange={() => onToggle(opt)} />
               <span>{opt}</span>
             </label>
           ))}

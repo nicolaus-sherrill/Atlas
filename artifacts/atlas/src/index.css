@@ -61,7 +61,7 @@ html, body, #root {
   font-size: var(--type-body-m-font-size);
   letter-spacing: var(--type-body-m-letter-spacing);
   color: var(--color-text-secondary);
-  max-width: 400px;
+  max-width: 560px;
   line-height: var(--type-body-m-line-height);
 }
 
@@ -72,6 +72,34 @@ html, body, #root {
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+/* The table's filters share this row; its good-for chips sit in it without their own padding */
+.browse-chips-section .sidebar-categories {
+  padding: 0;
+}
+
+.filter-inline-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-inline-group .filter-label {
+  padding: 0;
+  white-space: nowrap;
+}
+
+/* A hairline between the good-for chips and the dropdowns */
+.filter-divider {
+  align-self: stretch;
+  width: 1px;
+  margin-inline: 8px;
+  background: var(--color-border-divider);
+}
+
+.browse-chips-section .dropdown-trigger {
+  padding-block: 6px;
 }
 
 .browse-chip-row {
@@ -261,11 +289,6 @@ html, body, #root {
   white-space: nowrap;
 }
 
-.col-good-for {
-  white-space: nowrap;
-  color: var(--color-text-secondary);
-}
-
 .col-today {
   white-space: nowrap;
 }
@@ -376,9 +399,13 @@ html, body, #root {
   cursor: pointer;
 }
 
+/* Three decimals, in a chip of one width, so every coordinate and → lines up down the column */
 .browse-coord {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  box-sizing: content-box;
+  width: 6.75rem;
   height: 24px;
   padding: 0 6px;
   border-radius: var(--radius-sm);
@@ -1069,30 +1096,13 @@ a.details-group-row:hover .details-group-link {
   justify-content: space-between;
 }
 
-/* Good for, and paid entry when it applies: one line under the kind and score */
-.details-good-for {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 6px;
-  margin: 0;
-  font-size: var(--type-body-s-font-size);
-  letter-spacing: var(--type-body-s-letter-spacing);
-  color: var(--color-text-primary);
-}
-
-.details-good-for-label {
-  color: var(--color-text-secondary);
+/* Good for, and paid entry when it applies: chips like the tags, under a small label */
+.details-good-for .filter-label {
+  padding-inline: 0;
 }
 
 .details-paid {
-  display: inline-flex;
-  align-items: center;
   gap: 4px;
-  margin-inline-start: 8px;
-  padding: 2px 8px;
-  border: 1px solid var(--color-border-control);
-  border-radius: var(--radius-full);
 }
 
 .details-unrated {
@@ -1324,10 +1334,69 @@ a.details-group-row:hover .details-group-link {
   margin-top: 2px;
 }
 
+.details-hours-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.details-hours-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.details-hours-toggle .icon {
+  margin-inline-start: auto;
+}
+
+.details-hours-status {
+  font-weight: var(--font-weight-medium);
+}
+
+.details-hours-state-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.details-hours-state-line.open .hours-dot { background: var(--color-dot-open); }
+.details-hours-state-line.closed .hours-dot { box-shadow: inset 0 0 0 1.5px var(--color-dot-closed); }
+
+.details-hours-detail {
+  color: var(--color-text-secondary);
+}
+
 .details-week {
   display: flex;
   flex-direction: column;
+  gap: 4px;
+  margin: 8px 0 0;
   font-feature-settings: var(--font-feature-settings-numeric);
+}
+
+.details-week-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  color: var(--color-text-secondary);
+}
+
+.details-week-row dt,
+.details-week-row dd {
+  margin: 0;
+}
+
+.details-week-row.today {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
 }
 
 /* The foot: whatever leads it, then Report a problem, then the admin delete */
@@ -1353,6 +1422,9 @@ a.details-group-row:hover .details-group-link {
 /* The map's own buttons, bottom right, clear of the map's credits. Shadow and no border: a
    floating control takes elevation, not both */
 .map-controls {
+  /* The column is only as clickable as its buttons: the gaps and the hidden zoom group must not
+     swallow clicks meant for what's underneath, such as the theme switch in the table's footer */
+  pointer-events: none;
   position: absolute;
   inset-inline-end: var(--shell-gutter);
   bottom: calc(var(--shell-gutter) + var(--map-credit-height));
@@ -1371,8 +1443,13 @@ a.details-group-row:hover .details-group-link {
   transition: opacity var(--motion-component-duration) var(--motion-easing-enter);
 }
 
+.map-controls button {
+  pointer-events: auto;
+}
+
 /* Zoom and locate leave with the map; the chat button stays */
-.map-closed .map-controls-map {
+.map-closed .map-controls-map,
+.map-closed .map-controls-map button {
   opacity: 0;
   pointer-events: none;
   transition-duration: var(--motion-component-duration-exit);
@@ -1550,6 +1627,17 @@ a.details-group-row:hover .details-group-link {
   box-shadow: var(--elevation-overlay);
 }
 
+/* In a form the suggestions sit in the flow and push what's below down, so the modal's own
+   scrolling body never clips them */
+.browse-modal .geocode-dropdown {
+  position: static;
+  margin-top: 4px;
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-lg);
+  max-height: none;
+  box-shadow: none;
+}
+
 .geocode-result {
   display: flex;
   align-items: flex-start;
@@ -1623,6 +1711,22 @@ a.details-group-row:hover .details-group-link {
   padding-bottom: 8px;
 }
 
+/* One row, however many categories: it scrolls sideways instead of wrapping */
+.sidebar-categories-scroll {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.sidebar-categories-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.sidebar-categories-scroll .category-chip {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 .filter-label {
   display: block;
   padding: 0 var(--shell-gutter) 6px;
@@ -1660,63 +1764,6 @@ a.details-group-row:hover .details-group-link {
 
 .btn-primary:hover {
   background: var(--color-action-primary-bg-hover);
-}
-
-.btn-secondary {
-  padding: 10px 16px;
-  border: 1px solid var(--color-border-control);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface-card);
-  color: var(--color-text-primary);
-  font-size: var(--type-body-s-font-size);
-  letter-spacing: var(--type-body-s-letter-spacing);
-  font-family: inherit;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), border-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
-}
-
-.btn-secondary:hover {
-  border-color: var(--color-border-strong);
-}
-
-.export-panel {
-  margin: 0 24px 12px;
-  padding: 12px 14px;
-  background: var(--color-surface-card);
-  border: 1px solid var(--color-border-divider);
-  border-radius: var(--radius-lg);
-}
-
-.export-panel p {
-  font-size: var(--type-body-s-font-size);
-  letter-spacing: var(--type-body-s-letter-spacing);
-  color: var(--color-text-secondary);
-  margin-bottom: 8px;
-}
-
-.export-buttons {
-  display: flex;
-  gap: 6px;
-}
-
-.export-buttons button {
-  flex: 1;
-  padding: 8px;
-  border: 1px solid var(--color-border-control);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface-card);
-  color: var(--color-text-primary);
-  font-size: var(--type-body-s-font-size);
-  letter-spacing: var(--type-body-s-letter-spacing);
-  font-family: inherit;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color var(--motion-feedback-duration) var(--motion-easing-enter), border-color var(--motion-feedback-duration) var(--motion-easing-enter), color var(--motion-feedback-duration) var(--motion-easing-enter);
-}
-
-.export-buttons button:hover {
-  border-color: var(--color-border-strong);
 }
 
 .sidebar-count {
@@ -2897,21 +2944,21 @@ a.details-group-row:hover .details-group-link {
 
 /* The list: columns leave where the table's own width runs out, least-needed first: tags, city,
    the map chip, then today's hours. Each threshold is the table's measured minimum with that
-   column, in Satoshi, plus a few px of slack (2026-10-04) */
+   column, in Satoshi, plus a few px of slack (2026-10-04; re-measured 2026-11-10 after the Good for column went and
+   the coordinates took a fixed width) */
 .browse-table-wrapper {
   container: browse-table / inline-size;
 }
-@container browse-table (max-width: 1116px) {
-  .col-tags,
-  .col-good-for { display: none; }
+@container browse-table (max-width: 1140px) {
+  .col-tags { display: none; }
 }
-@container browse-table (max-width: 754px) {
+@container browse-table (max-width: 775px) {
   .col-city { display: none; }
 }
-@container browse-table (max-width: 664px) {
+@container browse-table (max-width: 685px) {
   .col-map { display: none; }
 }
-@container browse-table (max-width: 493px) {
+@container browse-table (max-width: 513px) {
   .col-today { display: none; }
 }
 @container browse-table (max-width: 411px) {
