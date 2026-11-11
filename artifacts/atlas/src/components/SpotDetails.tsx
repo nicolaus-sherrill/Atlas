@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
 import type { WorkSpot } from "@/lib/types";
-import { CATEGORIES, calcScore, getSpotDisplayTags, isOpenNow, getTodayHoursLabel } from "@/lib/types";
+import { categoryDef, spotScore, isOpenNow, getTodayHoursLabel } from "@/lib/types";
 import { getGoogleMapsUrl, getAppleMapsUrl } from "@/lib/export";
 import type { CrowdStatus } from "@/lib/crowd";
 import Icon from "./Icon";
-import { SpotAbout, SpotCrowd, SpotFoot, SpotReviews, SpotScores, SpotSummary, SpotTags } from "./spot-sections";
+import { SpotAbout, SpotCrowd, SpotFoot, SpotGoodFor, SpotReviews, SpotScores, SpotSummary, SpotTags } from "./spot-sections";
 
 interface SpotDetailsProps {
   spot: WorkSpot;
@@ -26,8 +26,8 @@ interface SpotDetailsProps {
 export default function SpotDetails({ spot, crowdStatus, dismiss, onDismiss, onRated, onCrowdReported, onNotice, onDelete }: SpotDetailsProps) {
   const headingRef = useRef<HTMLHeadingElement>(null);
 
-  const cat = CATEGORIES.find((c) => c.value === spot.category);
-  const score = calcScore(spot.scores, spot.tags);
+  const cat = categoryDef(spot.category);
+  const score = spotScore(spot);
   const open = spot.operatingHours ? isOpenNow(spot.operatingHours) : null;
 
   // A new spot starts the details from the top
@@ -58,13 +58,14 @@ export default function SpotDetails({ spot, crowdStatus, dismiss, onDismiss, onR
         </div>
         <div className="details-sub">
           <span className="details-caps">
-            {cat?.label ?? spot.category} · {spot.city}
+            {cat.label} · {spot.city}
           </span>
           <span className="details-score">{score.toFixed(1)}</span>
           {spot.ratingCount !== undefined && (
             <span className="details-meta">{spot.ratingCount === 1 ? "1 rating" : `${spot.ratingCount} ratings`}</span>
           )}
         </div>
+        <SpotGoodFor spot={spot} />
         {spot.operatingHours && (
           <div className={`details-hours ${open ? "open" : "closed"}`}>
             <span className="hours-dot" aria-hidden="true" />
@@ -91,7 +92,7 @@ export default function SpotDetails({ spot, crowdStatus, dismiss, onDismiss, onR
 
       <SpotAbout spot={spot} onNotice={onNotice} />
       <SpotScores spot={spot} onRated={onRated} />
-      <SpotTags tags={getSpotDisplayTags(spot)} />
+      <SpotTags spot={spot} />
       <SpotReviews spot={spot} />
       <SpotFoot spot={spot} onNotice={onNotice} onDelete={onDelete} />
     </article>

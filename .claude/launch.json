@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "atlas-dev",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "cd artifacts/atlas && PORT=5183 npx --no-install vite --mode atlasdev --config vite.config.ts --host 127.0.0.1"],
+      "port": 5183
+    }
+  ]
+}

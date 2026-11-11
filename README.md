@@ -1,7 +1,9 @@
 # Atlas
 
-A community-built map of places to work: cafes, libraries, coworking spaces and parks. Anyone can
-add a spot, rate it, suggest an edit or report a problem. An Atmo Studio product.
+A community-built map of public third spaces: places anyone can walk into, with no membership or
+invitation, where staying an hour or more is normal. Cafes, libraries, parks, museums, bookstores,
+makerspaces, hotel lobbies and more. Anyone can add a spot, rate it, suggest an edit or report a
+problem. An Atmo Studio product.
 
 **Live at [atlas.atmo.studio](https://atlas.atmo.studio).**
 
@@ -19,6 +21,23 @@ Everything sits on free tiers.
 | Bot check | Cloudflare Turnstile | Runs before a visitor's first contribution and before admin sign-in; Supabase verifies it |
 | Place search | Photon and OpenStreetMap | Suggests real places while someone types, and pre-fills hours, website and tags |
 | Map | OpenFreeMap | Free vector map tiles |
+
+## What a spot holds
+
+- **One category**, from eleven, each with a one-word label: cafe, bar, market, library,
+  community, museum, bookstore, makerspace, park, coworking, hotel. The category sets the pin's
+  icon. Related categories share a pin colour (a family), which is never a filter.
+- **Good for:** work, gather, create. At least one. It is a filter, not a separate map.
+- **Paid entry**, yes or no: a ticket or a day pass. Members-only places don't belong on Atlas.
+- **A score** from seven criteria: seating and comfort 25%, wifi 20%, power 15%, access 15%,
+  atmosphere 10%, hours 10%, food and drink 5%. Six are rated by visitors; hours is worked out
+  from the opening hours. Food and drink is expected only at food and drink places; wifi and
+  power only where a spot is good for work, and never outdoors. Anything else is optional, and
+  a criterion with no number is left out of the average.
+- **Tags**, which are plain facts and don't affect the score.
+
+The vocabulary lives in `artifacts/atlas/src/lib/types.ts`, and the database enforces the same
+rules in `supabase/migrations/`.
 
 ## Who can do what
 
@@ -44,7 +63,7 @@ supabase/
   config.toml           Supabase settings, mirrored from the live project
 scripts/src/
   test-db-permissions.mjs   runs every migration in memory and checks the access rules
-  ai-eval.ts                compares AI models on Atlas's real prompts
+  ai-eval.ts                compares AI models on Atlas's real prompts, using the live spots
 LICENSE-DATA.md         the data licence
 ```
 
@@ -87,6 +106,12 @@ the app against it with `vite --mode atlasdev`, which loads `artifacts/atlas/.en
 of `.env`. Every value in that file is public by design: the dev project's URL and publishable key,
 and Cloudflare's always-pass Turnstile test sitekey, so contributing works from localhost. The dev
 project's captcha setting holds the matching test secret.
+
+atlas-dev is meant to be a copy of the live spots. Refresh it with
+`pnpm --filter @workspace/scripts run sync-dev`, which reads the live spots with the public key and
+replaces atlas-dev's with them. It can only write to atlas-dev, it clears test spots, ratings and
+reviews there, and it pushes any migration atlas-dev is missing. It needs the Supabase command-line
+tool signed in. Run it before testing; nothing runs it on a schedule yet.
 
 To put a migration on atlas-dev first, push it from a copy of `supabase/` linked to the dev project.
 This repo stays linked to production, so a bare `npx supabase db push` here goes live.

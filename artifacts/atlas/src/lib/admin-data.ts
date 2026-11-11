@@ -8,6 +8,8 @@ import type { CategoryScores, OperatingHours, TagId } from "./types";
 export interface SpotSnapshot {
   name: string;
   category: string;
+  good_for?: string[];
+  paid_entry?: boolean;
   city: string;
   address: string;
   lat: number;
@@ -60,7 +62,7 @@ export interface AdminSpot {
   created_at: string;
 }
 
-const SNAPSHOT = "name, category, city, address, lat, lng, tags, description, operating_hours, website";
+const SNAPSHOT = "name, category, good_for, paid_entry, city, address, lat, lng, tags, description, operating_hours, website";
 
 function check<T>(result: { data: T | null; error: { message: string } | null }): T {
   if (result.error) throw new Error(result.error.message);

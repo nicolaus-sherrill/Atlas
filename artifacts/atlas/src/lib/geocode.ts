@@ -28,22 +28,37 @@ export interface GeocodingResult {
   place?: PlaceRef;
 }
 
-// Kinds of places a work spot can be. Photon includes a result only if it matches one of these.
+// Kinds of places a third space can be. Photon includes a result only if it matches one of these.
 const PLACE_TAGS = [
   "amenity:cafe",
-  "amenity:library",
-  "amenity:coworking_space",
-  "office:coworking",
-  "leisure:park",
-  "amenity:restaurant",
+  "shop:coffee",
   "amenity:bar",
   "amenity:pub",
+  "amenity:biergarten",
+  "craft:brewery",
+  "amenity:food_court",
+  "amenity:marketplace",
+  "amenity:restaurant",
   "amenity:fast_food",
+  "amenity:library",
   "amenity:community_centre",
+  "amenity:social_centre",
+  "tourism:museum",
+  "tourism:gallery",
   "amenity:arts_centre",
   "shop:books",
-  "shop:coffee",
-  "tourism:museum",
+  "shop:art",
+  "shop:music",
+  "leisure:hackerspace",
+  "amenity:studio",
+  "craft:pottery",
+  "leisure:park",
+  "leisure:garden",
+  "place:square",
+  "amenity:coworking_space",
+  "office:coworking",
+  "tourism:hotel",
+  "tourism:hostel",
   "amenity:university",
   "amenity:college",
 ];
@@ -70,13 +85,41 @@ interface PhotonFeature {
   };
 }
 
+// Where OpenStreetMap's own kind maps cleanly onto one of Atlas's. Restaurants and universities
+// are searchable but left for the contributor to place.
+const OSM_CATEGORY: Record<string, Category> = {
+  "amenity:cafe": "cafe",
+  "shop:coffee": "cafe",
+  "amenity:bar": "bar",
+  "amenity:pub": "bar",
+  "amenity:biergarten": "bar",
+  "craft:brewery": "bar",
+  "amenity:food_court": "food_hall",
+  "amenity:marketplace": "food_hall",
+  "amenity:library": "library",
+  "amenity:community_centre": "community_center",
+  "amenity:social_centre": "community_center",
+  "tourism:museum": "museum",
+  "tourism:gallery": "museum",
+  "amenity:arts_centre": "museum",
+  "shop:books": "bookstore",
+  "shop:art": "bookstore",
+  "shop:music": "bookstore",
+  "leisure:hackerspace": "makerspace",
+  "amenity:studio": "makerspace",
+  "craft:pottery": "makerspace",
+  "leisure:park": "park",
+  "leisure:garden": "park",
+  "place:square": "park",
+  "amenity:coworking_space": "coworking",
+  "office:coworking": "coworking",
+  "tourism:hotel": "hotel",
+  "tourism:hostel": "hotel",
+};
+
 export function categoryFromOsm(key?: string, value?: string): Category | undefined {
-  if (key === "amenity" && value === "cafe") return "cafe";
-  if (key === "shop" && value === "coffee") return "cafe";
-  if (key === "amenity" && value === "library") return "library";
-  if ((key === "amenity" && value === "coworking_space") || (key === "office" && value === "coworking")) return "coworking";
-  if (key === "leisure" && value === "park") return "park";
-  return undefined;
+  if (!key || !value) return undefined;
+  return OSM_CATEGORY[`${key}:${value}`];
 }
 
 function toResult(f: PhotonFeature, isPlace: boolean): GeocodingResult {

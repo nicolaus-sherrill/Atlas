@@ -3,12 +3,14 @@
 
 import { supabase } from "./supabase";
 import { ensureSession } from "./session";
-import type { Category, OperatingHours, TagId } from "./types";
+import type { Category, GoodFor, OperatingHours, TagId } from "./types";
 
 // The fields a suggested edit may change. Scores come from ratings, so they aren't here.
 export interface EditableFields {
   name: string;
   category: Category;
+  good_for: GoodFor[];
+  paid_entry: boolean;
   address: string;
   city: string;
   lat: number;

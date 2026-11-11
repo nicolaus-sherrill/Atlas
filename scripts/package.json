@@ -7,8 +7,8 @@
     "hello": "tsx ./src/hello.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "ai-eval": "tsx ./src/ai-eval.ts",
-    "export-seed-sql": "tsx ./src/export-seed-sql.ts",
-    "test-db": "node ./src/test-db-permissions.mjs"
+    "test-db": "node ./src/test-db-permissions.mjs",
+    "sync-dev": "node ./src/sync-dev.mjs"
   },
   "devDependencies": {
     "@types/node": "catalog:",

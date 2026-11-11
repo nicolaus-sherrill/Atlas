@@ -1,55 +1,66 @@
 import type { IconName } from "./icon-names";
 
-export type Category = "cafe" | "library" | "coworking" | "park";
+// Atlas maps public third spaces: anywhere anyone can walk into without a membership or an
+// invitation, where staying an hour or more is normal.
 
-export const CATEGORIES: { value: Category; label: string; icon: IconName }[] = [
-  { value: "cafe", label: "Cafe", icon: "coffee" },
-  { value: "library", label: "Library", icon: "books" },
-  { value: "coworking", label: "Coworking", icon: "briefcase" },
-  { value: "park", label: "Park", icon: "tree" },
+export type Category =
+  | "cafe" | "bar" | "food_hall"
+  | "library" | "community_center"
+  | "museum" | "bookstore" | "makerspace"
+  | "park"
+  | "coworking" | "hotel";
+
+// A family groups categories. It only sets the pin colour; the filters list the categories themselves.
+export type Family = "food_drink" | "civic" | "culture" | "outdoors" | "work_stay";
+
+export const FAMILIES: { value: Family; label: string }[] = [
+  { value: "food_drink", label: "Food & drink" },
+  { value: "civic", label: "Civic" },
+  { value: "culture", label: "Culture" },
+  { value: "outdoors", label: "Outdoors" },
+  { value: "work_stay", label: "Work & stay" },
 ];
 
-export type ScoreCategory = "wifi" | "outlets" | "food" | "atmosphere" | "hours" | "access";
+// Every category has a one-word label, and a spot has exactly one category.
+export const CATEGORIES: { value: Category; label: string; icon: IconName; family: Family }[] = [
+  { value: "cafe", label: "Cafe", icon: "coffee", family: "food_drink" },
+  { value: "bar", label: "Bar", icon: "wine", family: "food_drink" },
+  { value: "food_hall", label: "Market", icon: "fork-knife", family: "food_drink" },
+  { value: "library", label: "Library", icon: "books", family: "civic" },
+  { value: "community_center", label: "Community", icon: "users", family: "civic" },
+  { value: "museum", label: "Museum", icon: "bank", family: "culture" },
+  { value: "bookstore", label: "Bookstore", icon: "book-open", family: "culture" },
+  { value: "makerspace", label: "Makerspace", icon: "hammer", family: "culture" },
+  { value: "park", label: "Park", icon: "tree", family: "outdoors" },
+  { value: "coworking", label: "Coworking", icon: "briefcase", family: "work_stay" },
+  { value: "hotel", label: "Hotel", icon: "bed", family: "work_stay" },
+];
 
-export type CategoryScores = Record<ScoreCategory, number>;
+const CATEGORY_MAP = Object.fromEntries(CATEGORIES.map((c) => [c.value, c])) as Record<Category, (typeof CATEGORIES)[number]>;
 
-export const EMPTY_SCORES: CategoryScores = {
-  wifi: 1,
-  outlets: 1,
-  food: 1,
-  atmosphere: 1,
-  hours: 1,
-  access: 1,
-};
-
-export type TagId =
-  | "natural_lighting" | "open_late" | "quiet" | "food" | "alcohol"
-  | "ada_accessible" | "bike_racks" | "transit_nearby" | "outdoor_seating"
-  | "free_parking" | "laptop_friendly" | "wifi_portal" | "no_wifi_password"
-  | "generous_seating";
-
-export interface TagDefinition {
-  id: TagId;
-  label: string;
-  category: ScoreCategory;
+export function categoryDef(category: Category) {
+  return CATEGORY_MAP[category] ?? CATEGORIES[0];
 }
 
-export const TAGS: TagDefinition[] = [
-  { id: "wifi_portal", label: "WiFi Network Portal", category: "wifi" },
-  { id: "no_wifi_password", label: "No WiFi Password", category: "wifi" },
-  { id: "natural_lighting", label: "Natural Lighting", category: "atmosphere" },
-  { id: "quiet", label: "Quiet", category: "atmosphere" },
-  { id: "outdoor_seating", label: "Outdoor Seating", category: "atmosphere" },
-  { id: "laptop_friendly", label: "Laptop-Friendly", category: "atmosphere" },
-  { id: "generous_seating", label: "Generous Seating", category: "atmosphere" },
-  { id: "open_late", label: "Open Late", category: "hours" },
-  { id: "food", label: "Food", category: "food" },
-  { id: "alcohol", label: "Alcohol", category: "food" },
-  { id: "ada_accessible", label: "ADA Accessible", category: "access" },
-  { id: "bike_racks", label: "Bike Racks Available", category: "access" },
-  { id: "transit_nearby", label: "Transit Stop Nearby", category: "access" },
-  { id: "free_parking", label: "Free Parking Nearby", category: "access" },
+// What a place is good for. Every spot has at least one.
+export type GoodFor = "work" | "gather" | "create";
+
+export const GOOD_FOR: { value: GoodFor; label: string; hint: string }[] = [
+  { value: "work", label: "Work", hint: "Laptop or notebook, an hour or an afternoon" },
+  { value: "gather", label: "Gather", hint: "Meeting people, or being around them" },
+  { value: "create", label: "Create", hint: "Making things: craft, art, tools" },
 ];
+
+export const GOOD_FOR_LABELS = Object.fromEntries(GOOD_FOR.map((g) => [g.value, g.label])) as Record<GoodFor, string>;
+
+// The criteria a visitor rates, 1 to 5. Hours is scored too, from the spot's opening hours.
+export type RatedCriterion = "seating" | "wifi" | "outlets" | "food" | "atmosphere" | "access";
+export type ScoreCategory = RatedCriterion | "hours";
+
+// A criterion nobody has rated is absent, never a low number
+export type CategoryScores = Partial<Record<RatedCriterion, number>>;
+
+export const EMPTY_SCORES: CategoryScores = {};
 
 export interface ScoreCategoryDef {
   key: ScoreCategory;
@@ -58,19 +69,84 @@ export interface ScoreCategoryDef {
 }
 
 export const SCORE_CATEGORIES: ScoreCategoryDef[] = [
-  { key: "wifi", label: "WiFi", baseWeight: 0.25 },
-  { key: "outlets", label: "Outlets", baseWeight: 0.20 },
-  { key: "atmosphere", label: "Atmosphere", baseWeight: 0.20 },
-  { key: "hours", label: "Hours", baseWeight: 0.15 },
-  { key: "food", label: "Food & Beverage", baseWeight: 0.10 },
-  { key: "access", label: "Accessibility", baseWeight: 0.10 },
+  { key: "seating", label: "Seating & comfort", baseWeight: 0.25 },
+  { key: "wifi", label: "WiFi", baseWeight: 0.20 },
+  { key: "outlets", label: "Power", baseWeight: 0.15 },
+  { key: "access", label: "Access", baseWeight: 0.15 },
+  { key: "atmosphere", label: "Atmosphere", baseWeight: 0.10 },
+  { key: "hours", label: "Hours", baseWeight: 0.10 },
+  { key: "food", label: "Food & drink", baseWeight: 0.05 },
+];
+
+export const RATED_CRITERIA = SCORE_CATEGORIES.filter((sc) => sc.key !== "hours") as (ScoreCategoryDef & { key: RatedCriterion })[];
+
+export const SCORE_CATEGORY_LABELS = Object.fromEntries(SCORE_CATEGORIES.map((sc) => [sc.key, sc.label])) as Record<ScoreCategory, string>;
+
+// What a rating must cover follows from what the place is. Seating, atmosphere and access are
+// expected everywhere. Food and drink is expected only at food and drink places. Wifi and power
+// are expected only where the spot is good for work, and never outdoors. Anything else is
+// optional: left blank it doesn't count against the place, and rated it counts for it.
+// The database enforces the same rule (private.enforce_score_rules).
+export type RatedPlace = { category: Category; goodFor: GoodFor[] };
+
+export function isOptionalCriterion(place: RatedPlace, key: RatedCriterion): boolean {
+  const family = categoryDef(place.category).family;
+  if (key === "food") return family !== "food_drink";
+  if (key === "wifi" || key === "outlets") return family === "outdoors" || !place.goodFor.includes("work");
+  return false;
+}
+
+export function missingCriteria(place: RatedPlace, scores: CategoryScores): RatedCriterion[] {
+  return RATED_CRITERIA.map((sc) => sc.key).filter((k) => scores[k] == null && !isOptionalCriterion(place, k));
+}
+
+export type TagId =
+  | "natural_lighting" | "open_late" | "quiet" | "food" | "alcohol"
+  | "ada_accessible" | "bike_racks" | "transit_nearby" | "outdoor_seating"
+  | "free_parking" | "laptop_friendly" | "wifi_portal" | "no_wifi_password"
+  | "generous_seating" | "restrooms" | "drinking_water" | "shade"
+  | "dog_friendly" | "kid_friendly";
+
+export type TagGroup = "space" | "amenities" | "access";
+
+export const TAG_GROUPS: { key: TagGroup; label: string }[] = [
+  { key: "space", label: "The space" },
+  { key: "amenities", label: "Amenities" },
+  { key: "access", label: "Getting there" },
+];
+
+export interface TagDefinition {
+  id: TagId;
+  label: string;
+  group: TagGroup;
+}
+
+// Tags are plain facts about a place. They don't change its score.
+export const TAGS: TagDefinition[] = [
+  { id: "natural_lighting", label: "Natural Lighting", group: "space" },
+  { id: "quiet", label: "Quiet", group: "space" },
+  { id: "generous_seating", label: "Generous Seating", group: "space" },
+  { id: "outdoor_seating", label: "Outdoor Seating", group: "space" },
+  { id: "shade", label: "Shade or Cover", group: "space" },
+  { id: "laptop_friendly", label: "Laptop-Friendly", group: "space" },
+  { id: "dog_friendly", label: "Dog-Friendly", group: "space" },
+  { id: "kid_friendly", label: "Kid-Friendly", group: "space" },
+  { id: "open_late", label: "Open Late", group: "space" },
+  { id: "wifi_portal", label: "WiFi Network Portal", group: "amenities" },
+  { id: "no_wifi_password", label: "No WiFi Password", group: "amenities" },
+  { id: "restrooms", label: "Public Restrooms", group: "amenities" },
+  { id: "drinking_water", label: "Drinking Water", group: "amenities" },
+  { id: "food", label: "Food", group: "amenities" },
+  { id: "alcohol", label: "Alcohol", group: "amenities" },
+  { id: "ada_accessible", label: "ADA Accessible", group: "access" },
+  { id: "transit_nearby", label: "Transit Stop Nearby", group: "access" },
+  { id: "bike_racks", label: "Bike Racks Available", group: "access" },
+  { id: "free_parking", label: "Free Parking Nearby", group: "access" },
 ];
 
 const TAG_LABEL_MAP: Record<string, string> = {};
-const TAG_CATEGORY_MAP: Record<string, ScoreCategory> = {};
 TAGS.forEach((tag) => {
   TAG_LABEL_MAP[tag.id] = tag.label;
-  TAG_CATEGORY_MAP[tag.id] = tag.category;
 });
 
 export type DayOfWeek = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
@@ -203,6 +279,10 @@ export interface WorkSpot {
   id: string;
   name: string;
   category: Category;
+  // What the place is good for; never empty
+  goodFor: GoodFor[];
+  // True where getting in costs money: a ticket, a day pass
+  paidEntry: boolean;
   city: string;
   address: string;
   lat: number;
@@ -221,47 +301,48 @@ export interface WorkSpot {
   submittedAt: string;
 }
 
-const TAG_WEIGHT_BONUS = 0.03;
-
-export function calcScore(tagsOrScores: TagId[] | CategoryScores, tags?: TagId[]): number {
-  let actualScores: CategoryScores;
-  let actualTags: TagId[];
-
-  if (Array.isArray(tagsOrScores)) {
-    actualTags = tagsOrScores;
-    actualScores = { wifi: 0, outlets: 0, food: 0, atmosphere: 0, hours: 0, access: 0 };
-    actualTags.forEach((t) => {
-      const cat = TAG_CATEGORY_MAP[t];
-      if (cat) actualScores[cat] = Math.min(5, actualScores[cat] + 1);
-    });
-  } else {
-    actualScores = tagsOrScores;
-    actualTags = tags || [];
+// Weekly opening hours as a 1 to 5 score: the more of the week a place is open, the more
+// schedules it fits. 16 hours a day or more earns a 5; under 35 hours a week earns a 1.
+export function hoursScore(hours?: OperatingHours): number | undefined {
+  if (!hours) return undefined;
+  let weekly = 0;
+  for (const d of DAYS_OF_WEEK) {
+    const h = hours[d];
+    if (!h || h.closed) continue;
+    const open = timeToMinutes(h.open);
+    const close = timeToMinutes(h.close);
+    weekly += (close <= open ? close + 1440 - open : close - open) / 60;
   }
+  if (weekly >= 112) return 5;
+  if (weekly >= 84) return 4;
+  if (weekly >= 56) return 3;
+  if (weekly >= 35) return 2;
+  return 1;
+}
 
-  const tagCounts: Record<ScoreCategory, number> = {
-    wifi: 0, outlets: 0, food: 0, atmosphere: 0, hours: 0, access: 0,
-  };
-  actualTags.forEach((t) => {
-    const cat = TAG_CATEGORY_MAP[t];
-    if (cat) tagCounts[cat]++;
-  });
+// The overall score: a weighted average of every criterion that has a number. A criterion with
+// no number (unrated wifi in a park, hours nobody has entered) is left out and the rest scale up.
+export function calcScore(scores: CategoryScores, hours?: OperatingHours): number {
+  const values: Partial<Record<ScoreCategory, number>> = { ...scores, hours: hoursScore(hours) };
+  let total = 0;
+  let weight = 0;
+  for (const sc of SCORE_CATEGORIES) {
+    const v = values[sc.key];
+    if (v == null) continue;
+    total += sc.baseWeight * v;
+    weight += sc.baseWeight;
+  }
+  return weight === 0 ? 0 : Math.round((total / weight) * 10) / 10;
+}
 
-  const rawWeights: Record<ScoreCategory, number> = {} as any;
-  let totalWeight = 0;
-  SCORE_CATEGORIES.forEach((sc) => {
-    const w = sc.baseWeight + tagCounts[sc.key] * TAG_WEIGHT_BONUS;
-    rawWeights[sc.key] = w;
-    totalWeight += w;
-  });
+export function spotScore(spot: Pick<WorkSpot, "scores" | "operatingHours">): number {
+  return calcScore(spot.scores, spot.operatingHours);
+}
 
-  let result = 0;
-  SCORE_CATEGORIES.forEach((sc) => {
-    const normalizedWeight = rawWeights[sc.key] / totalWeight;
-    result += normalizedWeight * actualScores[sc.key];
-  });
-
-  return Math.round(result * 10) / 10;
+// Each criterion's number for a spot, hours included, in display order. Unrated ones are absent.
+export function spotScoreRows(spot: Pick<WorkSpot, "scores" | "operatingHours">): { key: ScoreCategory; label: string; value: number }[] {
+  const values: Partial<Record<ScoreCategory, number>> = { ...spot.scores, hours: hoursScore(spot.operatingHours) };
+  return SCORE_CATEGORIES.filter((sc) => values[sc.key] != null).map((sc) => ({ key: sc.key, label: sc.label, value: values[sc.key]! }));
 }
 
 export function getTagLabel(tagId: string): string {
@@ -270,28 +351,12 @@ export function getTagLabel(tagId: string): string {
 
 const TAG_ORDER: Record<string, number> = Object.fromEntries(TAGS.map((t, i) => [t.id, i]));
 
-export function getSpotDisplayTags(spot: WorkSpot): string[] {
+export function getSpotDisplayTags(spot: Pick<WorkSpot, "tags">): string[] {
   return [...spot.tags]
     .sort((a, b) => (TAG_ORDER[a] ?? 999) - (TAG_ORDER[b] ?? 999))
     .map((t) => TAG_LABEL_MAP[t] || t);
 }
 
-export function getTagsGroupedByCategory(): { category: ScoreCategoryDef; tags: TagDefinition[] }[] {
-  const groups: { category: ScoreCategoryDef; tags: TagDefinition[] }[] = [];
-  SCORE_CATEGORIES.forEach((sc) => {
-    const catTags = TAGS.filter((t) => t.category === sc.key);
-    if (catTags.length > 0) {
-      groups.push({ category: sc, tags: catTags });
-    }
-  });
-  return groups;
+export function getTagsByGroup(): { group: (typeof TAG_GROUPS)[number]; tags: TagDefinition[] }[] {
+  return TAG_GROUPS.map((group) => ({ group, tags: TAGS.filter((t) => t.group === group.key) }));
 }
-
-export const SCORE_CATEGORY_LABELS: Record<ScoreCategory, string> = {
-  wifi: "WiFi",
-  outlets: "Outlets",
-  food: "Food & Beverage",
-  atmosphere: "Atmosphere",
-  hours: "Hours",
-  access: "Accessibility",
-};

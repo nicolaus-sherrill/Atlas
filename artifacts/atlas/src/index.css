@@ -261,6 +261,11 @@ html, body, #root {
   white-space: nowrap;
 }
 
+.col-good-for {
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+}
+
 .col-today {
   white-space: nowrap;
 }
@@ -1064,6 +1069,46 @@ a.details-group-row:hover .details-group-link {
   justify-content: space-between;
 }
 
+/* Good for, and paid entry when it applies: one line under the kind and score */
+.details-good-for {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  margin: 0;
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
+  color: var(--color-text-primary);
+}
+
+.details-good-for-label {
+  color: var(--color-text-secondary);
+}
+
+.details-paid {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-inline-start: 8px;
+  padding: 2px 8px;
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-full);
+}
+
+.details-unrated {
+  font-size: var(--type-body-s-font-size);
+  letter-spacing: var(--type-body-s-letter-spacing);
+  color: var(--color-text-tertiary);
+}
+
+.details-tag-group + .details-tag-group {
+  margin-top: 12px;
+}
+
+.details-tag-group .filter-label {
+  padding-inline: 0;
+}
+
 .details-tags {
   display: flex;
   flex-wrap: wrap;
@@ -1564,6 +1609,32 @@ a.details-group-row:hover .details-group-link {
   background: var(--color-selected-bg);
   color: var(--color-selected-text);
   border-color: var(--color-selected-bg);
+}
+
+/* The filters in the list: a labelled row for what a place is good for, one for its kind */
+.filter-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 4px;
+}
+
+.filter-row .sidebar-categories {
+  padding-bottom: 8px;
+}
+
+.filter-label {
+  display: block;
+  padding: 0 var(--shell-gutter) 6px;
+  font-size: var(--type-label-font-size);
+  letter-spacing: var(--text-tracking-plus-6);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+/* A family with no spots yet stays in place and can still be picked; it only reads quieter */
+.category-chip.is-empty:not(.active) {
+  color: var(--color-text-tertiary);
 }
 
 .sidebar-actions {
@@ -2593,7 +2664,7 @@ a.details-group-row:hover .details-group-link {
    Leaflet places the marker element on the spot with no size; the pin inside lifts itself by its
    own width and height so the tip's point lands on the spot. Colours are the --pin-* Patterns */
 .pin {
-  --fill: var(--pin-cafe);
+  --fill: var(--pin-food-drink);
   position: absolute;
   left: 0;
   top: 0;
@@ -2607,10 +2678,11 @@ a.details-group-row:hover .details-group-link {
   transition: transform var(--motion-feedback-duration) var(--motion-easing-enter);
 }
 
-.pin-cafe { --fill: var(--pin-cafe); }
-.pin-library { --fill: var(--pin-library); }
-.pin-coworking { --fill: var(--pin-coworking); }
-.pin-park { --fill: var(--pin-park); }
+.pin-food_drink { --fill: var(--pin-food-drink); }
+.pin-civic { --fill: var(--pin-civic); }
+.pin-culture { --fill: var(--pin-culture); }
+.pin-outdoors { --fill: var(--pin-outdoors); }
+.pin-work_stay { --fill: var(--pin-work-stay); }
 
 .pin-pill {
   position: relative;
@@ -2830,7 +2902,8 @@ a.details-group-row:hover .details-group-link {
   container: browse-table / inline-size;
 }
 @container browse-table (max-width: 1116px) {
-  .col-tags { display: none; }
+  .col-tags,
+  .col-good-for { display: none; }
 }
 @container browse-table (max-width: 754px) {
   .col-city { display: none; }
@@ -3739,4 +3812,83 @@ select,
   display: inline-flex;
   flex-shrink: 0;
   vertical-align: -0.125em;
+}
+
+/* ========== ADD A SPOT, IN STEPS ========== */
+
+.modal-step {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0 0 16px;
+}
+
+.modal-step .filter-label,
+.kind-family .filter-label,
+.tag-picker .filter-label,
+.score-optional-head {
+  padding-inline: 0;
+}
+
+.modal-step-title {
+  font-size: var(--type-body-l-font-size);
+  letter-spacing: var(--type-body-l-letter-spacing);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+/* Back sits beside Next; the primary action keeps the width */
+.modal-steps-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.modal-steps-actions .btn-outline {
+  flex: 0 0 auto;
+  min-height: 48px;
+}
+
+.kind-picker,
+.tag-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.good-for-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* A purpose and the line that says what it covers, stacked */
+.category-option.good-for-option {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  min-height: 56px;
+  padding-block: 8px;
+  text-align: start;
+}
+
+.good-for-name {
+  font-weight: var(--font-weight-medium);
+}
+
+.good-for-option:not(.active) .good-for-hint {
+  color: var(--color-text-secondary);
+}
+
+.form-group .modal-hint + .category-select {
+  margin-top: 8px;
+}
+
+.score-optional-head {
+  margin-top: 16px;
+}
+
+.score-categories .modal-hint {
+  margin: 0 0 4px;
 }

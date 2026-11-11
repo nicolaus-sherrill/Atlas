@@ -1,11 +1,13 @@
 import { supabase } from "./supabase";
 import { ensureSession } from "./session";
-import type { Category, CategoryScores, OperatingHours, TagId, WorkSpot } from "./types";
+import type { Category, CategoryScores, GoodFor, OperatingHours, TagId, WorkSpot } from "./types";
 
 interface SpotRow {
   id: string;
   name: string;
   category: Category;
+  good_for: GoodFor[];
+  paid_entry: boolean;
   city: string;
   address: string;
   lat: number;
@@ -23,13 +25,15 @@ interface SpotRow {
 }
 
 const SPOT_COLUMNS =
-  "id, name, category, city, address, lat, lng, scores, tags, description, ai_summary, operating_hours, website, osm_type, osm_id, rating_count, created_at";
+  "id, name, category, good_for, paid_entry, city, address, lat, lng, scores, tags, description, ai_summary, operating_hours, website, osm_type, osm_id, rating_count, created_at";
 
 function fromRow(r: SpotRow): WorkSpot {
   return {
     id: r.id,
     name: r.name,
     category: r.category,
+    goodFor: r.good_for,
+    paidEntry: r.paid_entry,
     city: r.city,
     address: r.address,
     lat: r.lat,
@@ -70,6 +74,8 @@ export async function addSpot(spot: Omit<WorkSpot, "id" | "submittedAt">): Promi
     .insert({
       name: spot.name,
       category: spot.category,
+      good_for: spot.goodFor,
+      paid_entry: spot.paidEntry,
       city: spot.city,
       address: spot.address,
       lat: spot.lat,

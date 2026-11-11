@@ -5,7 +5,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import type { WorkSpot } from "@/lib/types";
 import { deleteMyReview, fetchReviews, REVIEW_MAX_LENGTH, submitReview, type Review } from "@/lib/reviews";
-import { calcScore, formatWeeklyHours, SCORE_CATEGORY_LABELS } from "@/lib/types";
+import { GOOD_FOR_LABELS, SCORE_CATEGORIES, getTagsByGroup, hoursScore, spotScore, formatWeeklyHours } from "@/lib/types";
 import { BUSYNESS_LEVELS, getBusynessInfo, submitCrowdReport, timeAgo, type CrowdStatus } from "@/lib/crowd";
 import CrowdMark from "./CrowdMark";
 import Icon from "./Icon";
@@ -295,7 +295,7 @@ export function SpotScores({ spot, onRated }: { spot: WorkSpot; onRated: () => v
         <h3>Scores</h3>
       </div>
       <div className="details-overall">
-        <span className="details-overall-score">{calcScore(spot.scores, spot.tags).toFixed(1)}</span>
+        <span className="details-overall-score">{spotScore(spot).toFixed(1)}</span>
         <span className="details-overall-label">
           Overall
           <span className="details-meta">
@@ -304,14 +304,21 @@ export function SpotScores({ spot, onRated }: { spot: WorkSpot; onRated: () => v
         </span>
       </div>
       <div className="details-scores">
-        {(Object.keys(spot.scores) as Array<keyof typeof spot.scores>).map((key) => (
-          <div key={key} className="details-score-row">
-            <span>{SCORE_CATEGORY_LABELS[key]}</span>
-            <ScoreDots score={spot.scores[key]} className="score-dots" />
-          </div>
-        ))}
+        {SCORE_CATEGORIES.map((sc) => {
+          const value = sc.key === "hours" ? hoursScore(spot.operatingHours) : spot.scores[sc.key];
+          return (
+            <div key={sc.key} className="details-score-row">
+              <span>
+                {sc.label}
+                {sc.key === "hours" && value != null && <span className="details-meta"> from opening hours</span>}
+              </span>
+              {/* Unrated is said in words: five empty dots would read as a zero */}
+              {value != null ? <ScoreDots score={value} className="score-dots" /> : <span className="details-unrated">{sc.key === "hours" ? "No hours yet" : "Not rated"}</span>}
+            </div>
+          );
+        })}
       </div>
-      <RateSpot spotId={spot.id} onRated={onRated} />
+      <RateSpot spotId={spot.id} place={spot} onRated={onRated} />
       <TypicalBusyness spotId={spot.id} />
     </section>
   );
@@ -319,19 +326,42 @@ export function SpotScores({ spot, onRated }: { spot: WorkSpot; onRated: () => v
 
 // ---------- Tags: the full list ----------
 
-export function SpotTags({ tags }: { tags: string[] }) {
-  if (tags.length === 0) return null;
+export function SpotTags({ spot }: { spot: WorkSpot }) {
+  if (spot.tags.length === 0) return null;
+  const groups = getTagsByGroup()
+    .map(({ group, tags }) => ({ group, tags: tags.filter((t) => spot.tags.includes(t.id)) }))
+    .filter((g) => g.tags.length > 0);
   return (
     <section className="details-section">
       <div className="details-section-head">
         <h3>Tags</h3>
       </div>
-      <div className="details-tags">
-        {tags.map((t) => (
-          <span key={t} className="details-tag">{t}</span>
-        ))}
-      </div>
+      {groups.map(({ group, tags }) => (
+        <div key={group.key} className="details-tag-group">
+          <span className="filter-label">{group.label}</span>
+          <div className="details-tags">
+            {tags.map((t) => (
+              <span key={t.id} className="details-tag">{t.label}</span>
+            ))}
+          </div>
+        </div>
+      ))}
     </section>
+  );
+}
+
+// ---------- Good for, and whether entry is paid: one line under the header ----------
+
+export function SpotGoodFor({ spot }: { spot: WorkSpot }) {
+  return (
+    <p className="details-good-for">
+      <span className="details-good-for-label">Good for</span> {spot.goodFor.map((g) => GOOD_FOR_LABELS[g]).join(", ")}
+      {spot.paidEntry && (
+        <span className="details-paid">
+          <Icon name="ticket" weight="bold" size={16} /> Paid entry
+        </span>
+      )}
+    </p>
   );
 }
 
@@ -360,7 +390,7 @@ export function SpotFoot({ spot, onNotice, onDelete, lead }: SpotFootProps) {
         <button type="button" className="details-link" onClick={() => setReporting(true)}>
           Report a problem
         </button>
-        <span className="details-hint">Closed for good, unsafe, or not a work spot</span>
+        <span className="details-hint">Closed for good, unsafe, or not open to walk-ins</span>
       </div>
       {onDelete && (
         <div className="details-delete">

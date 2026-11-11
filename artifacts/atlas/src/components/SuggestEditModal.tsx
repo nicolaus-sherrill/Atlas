@@ -3,8 +3,8 @@ import AddressAutocomplete from "@/components/AddressAutocomplete";
 import HoursEditor from "@/components/HoursEditor";
 import { suggestEdit, type EditableFields } from "@/lib/contributions";
 import type { GeocodingResult } from "@/lib/geocode";
-import { CATEGORIES, TAGS, type TagId, type WorkSpot } from "@/lib/types";
-import Icon from "./Icon";
+import type { TagId, WorkSpot } from "@/lib/types";
+import { GoodForPicker, CategoryPicker, PaidEntryPicker, TagPicker } from "./SpotFormFields";
 import ModalShell from "./ModalShell";
 
 interface SuggestEditModalProps {
@@ -17,6 +17,8 @@ function current(spot: WorkSpot): EditableFields {
   return {
     name: spot.name,
     category: spot.category,
+    good_for: [...spot.goodFor],
+    paid_entry: spot.paidEntry,
     address: spot.address,
     city: spot.city,
     lat: spot.lat,
@@ -61,7 +63,7 @@ export default function SuggestEditModal({ spot, onClose, onSent }: SuggestEditM
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (changedCount === 0 || websiteInvalid) return;
+    if (changedCount === 0 || websiteInvalid || fields.good_for.length === 0) return;
     setSending(true);
     setError(null);
     try {
@@ -82,7 +84,7 @@ export default function SuggestEditModal({ spot, onClose, onSent }: SuggestEditM
       footer={
         <>
           {error && <p className="modal-error">{error}</p>}
-          <button type="submit" className="btn-submit" disabled={changedCount === 0 || websiteInvalid || sending}>
+          <button type="submit" className="btn-submit" disabled={changedCount === 0 || websiteInvalid || fields.good_for.length === 0 || sending}>
             {sending
               ? "Sending..."
               : changedCount === 0
@@ -109,19 +111,18 @@ export default function SuggestEditModal({ spot, onClose, onSent }: SuggestEditM
 
       <div className="form-group">
         <label>Category</label>
-        <div className="category-select">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.value}
-              type="button"
-              className={`category-option ${fields.category === cat.value ? "active" : ""}`}
-              onClick={() => set("category", cat.value)}
-            >
-              <Icon name={cat.icon} weight="bold" size={16} />
-              <span>{cat.label}</span>
-            </button>
-          ))}
-        </div>
+        <CategoryPicker value={fields.category} onChange={(kind) => set("category", kind)} />
+      </div>
+
+      <div className="form-group">
+        <label>Good for</label>
+        <GoodForPicker value={fields.good_for} onChange={(g) => set("good_for", g)} />
+        {fields.good_for.length === 0 && <p className="modal-error">Choose at least one.</p>}
+      </div>
+
+      <div className="form-group">
+        <label>Entry</label>
+        <PaidEntryPicker value={fields.paid_entry} onChange={(paid) => set("paid_entry", paid)} />
       </div>
 
       <div className="form-group">
@@ -143,18 +144,7 @@ export default function SuggestEditModal({ spot, onClose, onSent }: SuggestEditM
 
       <div className="form-group">
         <label>Tags</label>
-        <div className="tag-chip-grid">
-          {TAGS.map((tag) => (
-            <button
-              key={tag.id}
-              type="button"
-              className={`tag-chip ${fields.tags.includes(tag.id) ? "active" : ""}`}
-              onClick={() => toggleTag(tag.id)}
-            >
-              {tag.label}
-            </button>
-          ))}
-        </div>
+        <TagPicker value={fields.tags} onToggle={toggleTag} />
       </div>
 
       <div className="form-group">

@@ -1,5 +1,5 @@
 import type { WorkSpot } from "./types";
-import { CATEGORIES, calcScore, getSpotDisplayTags } from "./types";
+import { CATEGORIES, spotScore, getSpotDisplayTags } from "./types";
 
 export function spotsToGeoJSON(spots: WorkSpot[]): string {
   const features = spots.map((spot) => ({
@@ -11,10 +11,12 @@ export function spotsToGeoJSON(spots: WorkSpot[]): string {
     properties: {
       name: spot.name,
       category: spot.category,
+      good_for: spot.goodFor,
+      paid_entry: spot.paidEntry,
       city: spot.city,
       address: spot.address,
       description: spot.description,
-      score: calcScore(spot.scores, spot.tags),
+      score: spotScore(spot),
       scores: spot.scores,
       tags: spot.tags,
     },
@@ -31,7 +33,7 @@ export function spotsToKML(spots: WorkSpot[]): string {
   const placemarks = spots
     .map((spot) => {
       const cat = CATEGORIES.find((c) => c.value === spot.category);
-      const score = calcScore(spot.scores, spot.tags);
+      const score = spotScore(spot);
       const tagLabels = getSpotDisplayTags(spot).join(", ");
       return `    <Placemark>
       <name>${escapeXml(spot.name)}</name>
@@ -48,8 +50,8 @@ export function spotsToKML(spots: WorkSpot[]): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
   <Document>
-    <name>Atlas - Work Spots</name>
-    <description>Remote work spots exported from Atlas</description>
+    <name>Atlas - Third Spaces</name>
+    <description>Public third spaces exported from Atlas</description>
 ${placemarks}
   </Document>
 </kml>`;

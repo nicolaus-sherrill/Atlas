@@ -1,11 +1,13 @@
 // Prompt builders for Atlas's two AI tasks. The Worker and the model eval (scripts/src/ai-eval.ts)
 // both import from here, so what gets tested is what ships.
 
-import { DAYS_OF_WEEK, calcScore, getSpotDisplayTags, type WorkSpot } from "../src/lib/types";
+import { DAYS_OF_WEEK, GOOD_FOR_LABELS, categoryDef, spotScore, spotScoreRows, getSpotDisplayTags, type WorkSpot } from "../src/lib/types";
 
 export interface SpotData {
   name: string;
   category: string;
+  goodFor: string[];
+  paidEntry: boolean;
   city: string;
   address: string;
   tags: string[];
@@ -20,6 +22,8 @@ export interface SpotData {
 export interface SummaryInput {
   name: string;
   category?: string;
+  goodFor?: string[];
+  paidEntry?: boolean;
   city?: string;
   description: string;
   tags?: string[];
@@ -30,14 +34,17 @@ export interface SummaryInput {
 export function buildSummaryPrompt(input: SummaryInput): string {
   const tagList = Array.isArray(input.tags) ? input.tags.join(", ") : "none";
 
-  return `Generate a concise 1-2 sentence summary for a remote work spot. Be informative and helpful, focusing on what makes this place good or bad for working remotely.
+  const goodFor = input.goodFor?.length ? input.goodFor.join(", ").toLowerCase() : "unknown";
+
+  return `Generate a concise 1-2 sentence summary of a public third space: a place anyone can walk into and stay a while. Be informative and helpful, focusing on what makes this place good or bad for what people come here to do. Only mention working remotely if the place is listed as good for work.
 
 Spot: ${input.name}
 Category: ${input.category || "unknown"}
+Good for: ${goodFor}${input.paidEntry ? "\nEntry: paid (a ticket or day pass)" : ""}
 City: ${input.city || "unknown"}
 Description from users: ${input.description}
 Category scores: ${input.scoreBreakdown || "unknown"}
-Overall workability score: ${typeof input.overallScore === "number" ? `${input.overallScore.toFixed(1)}/5.0` : "unknown"}
+Overall score: ${typeof input.overallScore === "number" ? `${input.overallScore.toFixed(1)}/5.0` : "unknown"}
 Features: ${tagList}
 
 Write a natural, helpful summary in 1-2 sentences. Do not use bullet points.`;
@@ -74,6 +81,7 @@ export function buildPlannerSystemPrompt(spots: SpotData[], now?: Date): string 
       const today = s.hours && dayAbbr ? hoursToday(s.hours, dayAbbr) : undefined;
       return `${i + 1}. ${s.name}
    Category: ${s.category}
+   Good for: ${s.goodFor.join(", ")}${s.paidEntry ? "\n   Entry: paid (a ticket or day pass)" : ""}
    City: ${s.city}
    Address: ${s.address}
    Overall Score: ${s.overallScore}/5
@@ -87,14 +95,16 @@ export function buildPlannerSystemPrompt(spots: SpotData[], now?: Date): string 
     ? `\nToday is ${now.toLocaleDateString("en-US", { weekday: "long", timeZone: "America/Chicago" })}. Each spot's "Today" line gives its hours for today.\n`
     : "";
 
-  return `You are Atlas Planner, an AI assistant that helps remote workers plan their workday itinerary using spots from the Atlas database.
+  return `You are Atlas Planner, an AI assistant that helps people plan a day out of the house across public third spaces: cafes, libraries, parks, museums, makerspaces, hotel lobbies and more, using spots from the Atlas database. Most people ask about a workday, and some ask where to meet people or make things.
 ${today}
-You have access to the following ${spots.length} work spots:
+You have access to the following ${spots.length} spots:
 
 ${spotDescriptions}
 
 Your role:
-- Help users plan a sequence of spots for their workday based on their schedule, preferences, and needs.
+- Help users plan a sequence of spots for their day based on their schedule, preferences, and needs.
+- Each spot lists what it is good for: work, gather, create. Match it to what the user wants to do. For laptop work, only suggest spots that are good for work. A score that is missing (wifi or power at a park, say) means nobody has rated it there, so do not promise it.
+- If a spot has paid entry, say so when you suggest it.
 - When recommending spots, explain WHY each one fits the specific time block and requirements (e.g., "For your deep focus block from 11-3, I'd suggest [spot name] — it scores 5/5 on environment with quiet, library-level noise and generous table space.").
 - Consider factors like wifi quality, noise level, outlet availability, food options, hours, and accessibility based on what the user mentions.
 - If the user has constraints (e.g., "near downtown", "needs good coffee"), filter your recommendations accordingly.
@@ -122,12 +132,14 @@ export function hoursLine(spot: WorkSpot): string | undefined {
 export function toPlannerSpot(spot: WorkSpot): SpotData {
   return {
     name: spot.name,
-    category: spot.category,
+    category: categoryDef(spot.category).label,
+    goodFor: spot.goodFor.map((g) => GOOD_FOR_LABELS[g]),
+    paidEntry: spot.paidEntry,
     city: spot.city,
     address: spot.address,
     tags: getSpotDisplayTags(spot),
-    scores: spot.scores,
-    overallScore: calcScore(spot.scores, spot.tags),
+    scores: Object.fromEntries(spotScoreRows(spot).map((r) => [r.label, r.value])),
+    overallScore: spotScore(spot),
     description: spot.description,
     aiSummary: spot.aiSummary,
     hours: hoursLine(spot),

@@ -1,30 +1,39 @@
 import { useState } from "react";
-import type { WorkSpot, Category, TagId, CategoryScores, ScoreCategory } from "@/lib/types";
-import { CATEGORIES, TAGS, SCORE_CATEGORIES, EMPTY_SCORES } from "@/lib/types";
+import type { WorkSpot, Category, GoodFor, TagId, CategoryScores } from "@/lib/types";
+import { SCORE_CATEGORY_LABELS, missingCriteria } from "@/lib/types";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
 import type { GeocodingResult } from "@/lib/geocode";
 import PlaceLinkCard from "@/components/PlaceLinkCard";
 import { usePlaceLink } from "@/hooks/use-place-link";
-import Icon from "./Icon";
 import ModalShell from "./ModalShell";
+import RatingRows from "./RatingRows";
+import { GoodForPicker, INCLUSION_TEST, CategoryPicker, PaidEntryPicker, TagPicker } from "./SpotFormFields";
 
 interface BrowseSubmitModalProps {
   onSubmit: (spot: Omit<WorkSpot, "id" | "submittedAt">) => void;
   onClose: () => void;
 }
 
+const STEPS = ["The place", "What it is", "Rate it", "Details"] as const;
+
+// Adding a spot, in four steps: where it is, what it is, the adder's rating, then tags and notes.
+// A spot never reaches the map without a rating, so the rating is a step here, not an afterthought.
 export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitModalProps) {
+  const [step, setStep] = useState(0);
   const [name, setName] = useState("");
-  const [category, setCategory] = useState<Category>("cafe");
+  const [category, setCategory] = useState<Category | null>(null);
+  const [goodFor, setGoodFor] = useState<GoodFor[]>([]);
+  const [paidEntry, setPaidEntry] = useState(false);
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [description, setDescription] = useState("");
-  const [scores, setScores] = useState<CategoryScores>({ ...EMPTY_SCORES });
+  const [scores, setScores] = useState<CategoryScores>({});
   const [selectedTags, setSelectedTags] = useState<Set<TagId>>(new Set());
 
   const { link, select, clear } = usePlaceLink((details) => {
     if (details.category) setCategory(details.category);
+    if (details.paidEntry) setPaidEntry(true);
     if (details.suggestedTags.length) setSelectedTags((prev) => new Set([...prev, ...details.suggestedTags]));
   });
 
@@ -38,8 +47,10 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
     else clear();
   };
 
-  const setScore = (key: ScoreCategory, value: number) => {
-    setScores((prev) => ({ ...prev, [key]: value }));
+  const handleAddressSelect = (result: GeocodingResult) => {
+    setAddress(result.address || result.displayName);
+    setCity(result.city);
+    setLocation({ lat: result.lat, lng: result.lng });
   };
 
   const toggleTag = (tagId: TagId) => {
@@ -51,21 +62,33 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
     });
   };
 
+  const place = category ? { category, goodFor } : null;
+  const missing = place ? missingCriteria(place, scores) : [];
+  // What still stands between this step and the next, said in words under the button
+  const blocker = [
+    !name.trim() ? "Give the place a name." : !location ? "Pick the place from the suggestions, or choose an address, so Atlas knows where it is." : null,
+    !category ? "Choose a category." : goodFor.length === 0 ? "Choose at least one thing it's good for." : null,
+    missing.length > 0 ? `Still to rate: ${missing.map((k) => SCORE_CATEGORY_LABELS[k].toLowerCase()).join(", ")}.` : null,
+    null,
+  ][step];
 
-  const handleAddressSelect = (result: GeocodingResult) => {
-    setAddress(result.address || result.displayName);
-    setCity(result.city);
-    setLocation({ lat: result.lat, lng: result.lng });
-  };
+  const last = step === STEPS.length - 1;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !location) return;
+    if (blocker) return;
+    if (!last) {
+      setStep(step + 1);
+      return;
+    }
+    if (!location || !category) return;
     const details = link && !link.loading ? link.details : null;
 
     onSubmit({
       name: name.trim(),
       category,
+      goodFor,
+      paidEntry,
       city: city || "Unknown",
       address: address.trim() || "No address provided",
       lat: location.lat,
@@ -83,118 +106,107 @@ export default function BrowseSubmitModal({ onSubmit, onClose }: BrowseSubmitMod
   return (
     <ModalShell
       title="Add a spot"
-      intro="Find it by name, or give its address. Atlas fills in what it can."
       onClose={onClose}
       onSubmit={handleSubmit}
       footer={
         <>
-          {name.trim() && !location && (
-            <p className="modal-hint">Pick the place from the suggestions, or choose an address, so Atlas knows where it is.</p>
-          )}
-          <button type="submit" className="btn-submit" disabled={!name.trim() || !location}>
-            Add spot
-          </button>
+          {blocker && <p className="modal-hint">{blocker}</p>}
+          <div className="modal-steps-actions">
+            {step > 0 && (
+              <button type="button" className="btn-outline" onClick={() => setStep(step - 1)}>
+                Back
+              </button>
+            )}
+            <button type="submit" className="btn-submit" disabled={!!blocker}>
+              {last ? "Add spot" : "Next"}
+            </button>
+          </div>
         </>
       }
     >
-      <div className="form-group">
-        <label htmlFor="browse-name">Name</label>
-        <AddressAutocomplete
-          id="browse-name"
-          mode="place"
-          value={name}
-          onChange={setName}
-          onSelect={handleNameSelect}
-          placeholder="Start typing the place's name"
-          autoFocus
-        />
-        {link && <PlaceLinkCard link={link} onClear={clear} />}
-      </div>
+      <p className="modal-step" aria-live="polite">
+        <span className="filter-label">
+          Step {step + 1} of {STEPS.length}
+        </span>
+        <span className="modal-step-title">{STEPS[step]}</span>
+      </p>
 
-      <div className="form-group">
-        <label htmlFor="browse-address">Address</label>
-        <AddressAutocomplete
-          id="browse-address"
-          value={address}
-          onChange={setAddress}
-          onSelect={handleAddressSelect}
-          placeholder="123 Main St, Austin, TX"
-        />
-      </div>
+      {step === 0 && (
+        <>
+          <p className="modal-intro">{INCLUSION_TEST}</p>
+          <div className="form-group">
+            <label htmlFor="browse-name">Name</label>
+            <AddressAutocomplete
+              id="browse-name"
+              mode="place"
+              value={name}
+              onChange={setName}
+              onSelect={handleNameSelect}
+              placeholder="Start typing the place's name"
+              autoFocus
+            />
+            {link && <PlaceLinkCard link={link} onClear={clear} />}
+          </div>
 
-      {city && (
+          <div className="form-group">
+            <label htmlFor="browse-address">Address</label>
+            <AddressAutocomplete id="browse-address" value={address} onChange={setAddress} onSelect={handleAddressSelect} placeholder="123 Main St, Austin, TX" />
+          </div>
+
+          {city && (
+            <div className="form-group">
+              <label>City</label>
+              <div className="city-display">{city}</div>
+            </div>
+          )}
+        </>
+      )}
+
+      {step === 1 && (
+        <>
+          <div className="form-group">
+            <label>Category</label>
+            <CategoryPicker value={category} onChange={setCategory} />
+          </div>
+          <div className="form-group">
+            <label>Good for</label>
+            <p className="modal-hint">Pick everything that fits.</p>
+            <GoodForPicker value={goodFor} onChange={setGoodFor} />
+          </div>
+          <div className="form-group">
+            <label>Entry</label>
+            <p className="modal-hint">Paid entry means a ticket or a day pass. Buying a coffee doesn't count.</p>
+            <PaidEntryPicker value={paidEntry} onChange={setPaidEntry} />
+          </div>
+        </>
+      )}
+
+      {step === 2 && place && (
         <div className="form-group">
-          <label>City</label>
-          <div className="city-display">{city}</div>
+          <label>Your rating</label>
+          <RatingRows place={place} scores={scores} onChange={setScores} />
+          <p className="modal-hint">Hours aren't rated. Atlas scores them from the opening hours.</p>
         </div>
       )}
 
-      <div className="form-group">
-        <label htmlFor="browse-category">Category</label>
-        <div className="category-select">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.value}
-              type="button"
-              className={`category-option ${category === cat.value ? "active" : ""}`}
-              onClick={() => setCategory(cat.value)}
-            >
-              <Icon name={cat.icon} weight="bold" size={16} />
-              <span>{cat.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="form-group">
-        <label>Rate this spot</label>
-        <div className="score-categories">
-          {SCORE_CATEGORIES.map((sc) => (
-            <div key={sc.key} className="score-category-row">
-              <span className="score-category-name">{sc.label}</span>
-              <span className="score-dots-input">
-                {[1, 2, 3, 4, 5].map((v) => (
-                  <button
-                    key={v}
-                    type="button"
-                    className={`score-dot-char ${scores[sc.key] >= v ? "filled" : ""}`}
-                    onClick={() => setScore(sc.key, v)}
-                    aria-label={`${sc.label} ${v} of 5`}
-                    aria-pressed={scores[sc.key] === v}
-                  />
-                ))}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="form-group">
-        <label>Tags</label>
-        <div className="tag-chip-grid">
-          {TAGS.map((tag) => (
-            <button
-              key={tag.id}
-              type="button"
-              className={`tag-chip ${selectedTags.has(tag.id) ? "active" : ""}`}
-              onClick={() => toggleTag(tag.id)}
-            >
-              {tag.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="browse-description">Notes (optional)</label>
-        <textarea
-          id="browse-description"
-          placeholder="What makes this spot great for working?"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={3}
-        />
-      </div>
+      {step === 3 && (
+        <>
+          <div className="form-group">
+            <label>Tags</label>
+            <TagPicker value={Array.from(selectedTags)} onToggle={toggleTag} />
+          </div>
+          <div className="form-group">
+            <label htmlFor="browse-description">Notes (optional)</label>
+            <textarea
+              id="browse-description"
+              placeholder="What should someone know before they go?"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+            />
+          </div>
+        </>
+      )}
     </ModalShell>
   );
 }

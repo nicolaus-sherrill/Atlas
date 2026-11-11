@@ -35,7 +35,7 @@ async function asAdmin() {
 }
 await db.exec(`insert into auth.users values ('${adminId}'); insert into private.admins (user_id) values ('${adminId}');`);
 
-const scores = `'{"wifi":3,"outlets":3,"food":3,"atmosphere":3,"hours":3,"access":3}'::jsonb`;
+const scores = `'{"seating":3,"wifi":3,"outlets":3,"food":3,"atmosphere":3,"access":3}'::jsonb`;
 const newSpot = (name, extra = "") => `insert into public.spots (name, category, lat, lng, scores${extra ? ", ai_summary" : ""}) values ('${name}', 'cafe', 30.27, -97.74, ${scores}${extra})`;
 
 await asAnon();
@@ -147,7 +147,7 @@ await db.exec(`reset role; insert into auth.users values ('${raterA}'), ('${rate
 async function asRater(id, ip) {
   await db.exec(`reset role; select set_config('request.jwt.claim.role','authenticated',false), set_config('request.jwt.claim.sub','${id}',false), set_config('request.headers','{"cf-connecting-ip":"${ip}"}',false); set role authenticated;`);
 }
-const rate = (spot, w) => `insert into public.ratings (spot_id, scores) values ('${spot}', '{"wifi":${w},"outlets":3,"food":3,"atmosphere":3,"hours":3,"access":3}'::jsonb)
+const rate = (spot, w) => `insert into public.ratings (spot_id, scores) values ('${spot}', '{"seating":3,"wifi":${w},"outlets":3,"food":3,"atmosphere":3,"access":3}'::jsonb)
   on conflict (spot_id, user_id) do update set scores = excluded.scores`;
 const spotRow = async (id) => { await db.exec("reset role"); const r = (await rows(`select scores, rating_count from public.spots where id='${id}'`))[0]; return r; };
 
@@ -169,7 +169,7 @@ ok("a rater can't moderate", !!(await throws(`select public.set_rater_ratings_st
 ok("an anonymous visitor without a session can't rate", await (async () => { await asAnon("10.0.0.3"); return !!(await throws(rate("seed-2", 4))); })());
 await asRater(raterB, "10.0.0.2");
 ok("scores can no longer be changed through a suggested edit", !!(await throws(`insert into public.spot_edits (spot_id, changes) values ('seed-2', '{"scores":{"wifi":5,"outlets":5,"food":5,"atmosphere":5,"hours":5,"access":5}}')`)));
-await db.query(`insert into public.spots (name, category, lat, lng, scores) values ('Rated On Arrival', 'library', 30.2, -97.7, '{"wifi":4,"outlets":4,"food":2,"atmosphere":5,"hours":3,"access":4}')`);
+await db.query(`insert into public.spots (name, category, lat, lng, scores) values ('Rated On Arrival', 'library', 30.2, -97.7, '{"seating":4,"wifi":4,"outlets":4,"food":2,"atmosphere":5,"access":4}')`);
 const arrival = (await rows("select id from public.spots where name='Rated On Arrival'"))[0].id;
 ok("adding a spot gives it its first rating", (await spotRow(arrival)).rating_count === 1);
 await asRater(raterB, "10.0.0.2");
@@ -224,6 +224,37 @@ ok("restore brings reviews back, hidden one still hidden", back.length === 2 && 
 await asRater(raterA, "10.0.0.1");
 await db.query("delete from public.reviews where spot_id='seed-2'");
 ok("a writer can delete their own review", (await reviewsOf("seed-2")).length === 0);
+
+// ---------- third spaces ----------
+await asRater(raterA, "10.0.0.1");
+const park = `'{"seating":4,"atmosphere":5,"access":4}'::jsonb`;
+ok("a park can be added without wifi, power or food scores", !(await throws(`insert into public.spots (name, category, lat, lng, scores, good_for) values ('Shady Park', 'park', 30.3, -97.7, ${park}, array['gather'])`)));
+const parkRow = (await rows("select id, scores, good_for, paid_entry from public.spots where name='Shady Park'"))[0];
+ok("its average leaves the unrated criteria out", parkRow && !("wifi" in parkRow.scores) && Number(parkRow.scores.seating) === 4, JSON.stringify(parkRow));
+ok("good for is stored, paid entry defaults to free", parkRow.good_for.join() === "gather" && parkRow.paid_entry === false);
+ok("a park with public wifi can be rated on it", !(await throws(`insert into public.ratings (spot_id, scores) values ('${parkRow.id}', '{"seating":4,"atmosphere":5,"access":4,"wifi":3}'::jsonb) on conflict (spot_id, user_id) do update set scores = excluded.scores`)) && Number((await spotRow(parkRow.id)).scores.wifi) === 3);
+await asRater(raterA, "10.0.0.1");
+ok("a cafe still needs wifi, power and food scores", !!(await throws(`insert into public.spots (name, category, lat, lng, scores) values ('Half Rated', 'cafe', 30.3, -97.7, ${park})`)));
+ok("a library can be added without a food score", !(await throws(`insert into public.spots (name, category, lat, lng, scores) values ('Branch Library', 'library', 30.35, -97.7, '{"seating":4,"wifi":4,"outlets":4,"atmosphere":4,"access":4}'::jsonb)`)));
+ok("a bar listed for gathering needs no wifi or power score", !(await throws(`insert into public.spots (name, category, lat, lng, scores, good_for) values ('Corner Bar', 'bar', 30.36, -97.7, '{"seating":4,"food":4,"atmosphere":4,"access":4}'::jsonb, array['gather'])`)));
+ok("a bar still needs a food and drink score", !!(await throws(`insert into public.spots (name, category, lat, lng, scores, good_for) values ('Dry Bar', 'bar', 30.37, -97.7, ${park}, array['gather'])`)));
+ok("a museum listed for work needs wifi and power scores", !!(await throws(`insert into public.spots (name, category, lat, lng, scores, good_for) values ('Work Museum', 'museum', 30.38, -97.7, ${park}, array['work'])`)));
+ok("a park listed for work still needs no wifi score", !(await throws(`insert into public.spots (name, category, lat, lng, scores, good_for) values ('Work Park', 'park', 30.39, -97.7, ${park}, array['work'])`)));
+ok("every rating needs a seating score", !!(await throws(`insert into public.ratings (spot_id, scores) values ('seed-3', '{"wifi":3,"outlets":3,"food":3,"atmosphere":3,"access":3}'::jsonb)`)));
+await db.query(`insert into public.ratings (spot_id, scores) values ('seed-3', '{"seating":3,"wifi":3,"outlets":3,"food":3,"atmosphere":3,"access":3,"hours":1}'::jsonb)`);
+ok("a rated hours score is dropped", !("hours" in (await rows("select scores from public.ratings where spot_id='seed-3' and user_id=$1", [raterA]))[0].scores));
+ok("no spot's average carries rated hours", (await rows("select count(*)::int n from public.spots where scores ? 'hours'"))[0].n === 0);
+ok("a hotel, a museum and a makerspace are accepted", !(await throws(`insert into public.spots (name, category, lat, lng, scores, paid_entry, good_for) values ('Lobby', 'hotel', 30.31, -97.7, ${scores}, false, array['work','gather']), ('Gallery', 'museum', 30.32, -97.7, ${park}, true, array['gather']), ('Workshop', 'makerspace', 30.33, -97.7, ${scores}, true, array['create'])`)));
+ok("an unknown kind of place is refused", !!(await throws(`insert into public.spots (name, category, lat, lng, scores) values ('Gym', 'gym', 30, -97, ${scores})`)));
+ok("a spot must be good for something", !!(await throws(`insert into public.spots (name, category, lat, lng, scores, good_for) values ('Nothing', 'cafe', 30, -97, ${scores}, '{}')`)));
+ok("an unknown purpose is refused", !!(await throws(`insert into public.spots (name, category, lat, lng, scores, good_for) values ('Play', 'cafe', 30, -97, ${scores}, array['play'])`)));
+ok("a new tag is accepted", !(await throws(`insert into public.spots (name, category, lat, lng, scores, tags) values ('Dog Park', 'park', 30.34, -97.7, ${park}, array['shade','dog_friendly','restrooms'])`)));
+ok("an edit can't set a bad purpose", !!(await throws(`insert into public.spot_edits (spot_id, changes) values ('seed-3', '{"good_for":["play"]}')`)));
+await db.query(`insert into public.spot_edits (spot_id, changes) values ('seed-3', '{"good_for":["work","gather"],"paid_entry":true,"category":"bookstore"}')`);
+await asAdmin();
+await db.query("select public.review_spot_edit((select id from public.spot_edits where changes ? 'paid_entry' and status='pending'), true)");
+const edited = (await rows("select category, good_for, paid_entry from public.spots where id='seed-3'"))[0];
+ok("an approved edit changes kind, good for and paid entry", edited.category === "bookstore" && edited.good_for.join() === "work,gather" && edited.paid_entry === true, JSON.stringify(edited));
 
 // ---------- server key ----------
 await db.exec(`reset role; select set_config('request.jwt.claim.role','service_role',false), set_config('request.jwt.claim.sub','',false); set role service_role;`);

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, Fragment } from "react";
 import type { WorkSpot } from "@/lib/types";
-import { CATEGORIES, calcScore, isOpenNow, getTodayHoursLabel } from "@/lib/types";
+import { CATEGORIES, spotScore, isOpenNow, getTodayHoursLabel } from "@/lib/types";
 import Icon from "./Icon";
 import { splitFollowUps } from "@/lib/follow-ups";
 
@@ -344,7 +344,7 @@ function SpotRef({ spot, onSelect }: { spot: WorkSpot; onSelect: () => void }) {
   return (
     <button type="button" className="chat-spotref" onClick={onSelect}>
       <span className="chat-spotref-name">{spot.name}</span>
-      <span className="details-score">{calcScore(spot.scores, spot.tags).toFixed(1)}</span>
+      <span className="details-score">{spotScore(spot).toFixed(1)}</span>
       <span className={`chat-spotref-meta details-hours ${open ? "open" : "closed"}`}>
         {cat?.label ?? spot.category}
         {spot.operatingHours && (

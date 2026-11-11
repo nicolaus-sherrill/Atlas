@@ -11,6 +11,8 @@ export interface PlaceDetails {
   // The original opening_hours text, shown when it can't be translated into Atlas's weekly format
   hoursText?: string;
   category?: Category;
+  // OpenStreetMap says entry is charged (fee=yes)
+  paidEntry?: boolean;
   suggestedTags: TagId[];
 }
 
@@ -44,7 +46,10 @@ export function detailsFromTags(tags: Record<string, string>): PlaceDetails {
     categoryFromOsm("amenity", tags.amenity) ??
     categoryFromOsm("office", tags.office) ??
     categoryFromOsm("leisure", tags.leisure) ??
-    categoryFromOsm("shop", tags.shop);
+    categoryFromOsm("tourism", tags.tourism) ??
+    categoryFromOsm("shop", tags.shop) ??
+    categoryFromOsm("craft", tags.craft) ??
+    categoryFromOsm("place", tags.place);
 
   const suggested = new Set<TagId>();
   if (tags.wheelchair === "yes") suggested.add("ada_accessible");
@@ -54,8 +59,13 @@ export function detailsFromTags(tags: Record<string, string>): PlaceDetails {
   }
   if (tags.food === "yes" || tags.cuisine || tags.amenity === "restaurant") suggested.add("food");
   if (operatingHours && opensLate(operatingHours)) suggested.add("open_late");
+  if (tags.toilets === "yes" || tags["toilets:access"] === "yes" || tags["toilets:access"] === "public") suggested.add("restrooms");
+  if (tags.drinking_water === "yes") suggested.add("drinking_water");
+  if (tags.dog === "yes" || tags.dog === "leashed") suggested.add("dog_friendly");
+  if (tags.covered === "yes" || tags.shelter === "yes") suggested.add("shade");
+  if (tags.internet_access === "wlan" && tags["internet_access:fee"] === "no") suggested.add("no_wifi_password");
 
-  return { website, operatingHours, hoursText, category, suggestedTags: [...suggested] };
+  return { website, operatingHours, hoursText, category, paidEntry: tags.fee === "yes" ? true : undefined, suggestedTags: [...suggested] };
 }
 
 function opensLate(hours: OperatingHours): boolean {

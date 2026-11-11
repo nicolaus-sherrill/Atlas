@@ -1,6 +1,7 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import MapView from "@/components/MapView";
-import Sidebar, { CategoryChips } from "@/components/Sidebar";
+import Sidebar, { SpotFilterChips } from "@/components/Sidebar";
+import { NO_FILTERS, matchesFilters, type SpotFilters } from "@/lib/filters";
 import BrowseSubmitModal from "@/components/BrowseSubmitModal";
 import BrowseView from "@/components/BrowseView";
 import ChatPanel from "@/components/ChatPanel";
@@ -18,7 +19,7 @@ import { usePlaceSearch } from "@/hooks/use-place-search";
 import type { GeocodingResult } from "@/lib/geocode";
 import { fetchSpots, addSpot, deleteSpot, requestSummary, DuplicatePlaceError } from "@/lib/store";
 import { useIsAdmin } from "@/lib/admin";
-import type { Category, WorkSpot } from "@/lib/types";
+import type { WorkSpot } from "@/lib/types";
 
 function App() {
   const [spots, setSpots] = useState<WorkSpot[]>([]);
@@ -63,7 +64,7 @@ function App() {
   const liftSheet = useCallback((from: Detent[] = ["peek"]) => {
     setDetent((d) => (from.includes(d) ? "half" : d));
   }, []);
-  const [category, setCategory] = useState<Category | null>(null);
+  const [filters, setFilters] = useState<SpotFilters>(NO_FILTERS);
   const [crowdStatuses, setCrowdStatuses] = useState<Record<string, CrowdStatus>>({});
   const reloadCrowd = useCallback(() => {
     fetchAllCrowdStatuses().then(setCrowdStatuses);
@@ -121,6 +122,8 @@ function App() {
 
   // The last spot shown stays in the sheet while it slides away
   const detailsSpot = spots.find((s) => s.id === selectedSpotId) ?? null;
+  // The filters narrow the map with the list. The selected spot stays on the map either way.
+  const mapSpots = useMemo(() => spots.filter((s) => s.id === selectedSpotId || matchesFilters(s, filters)), [spots, filters, selectedSpotId]);
   const lastDetailsSpot = useRef<typeof detailsSpot>(null);
   if (detailsSpot) lastDetailsSpot.current = detailsSpot;
   const detailsOpen = showMap && !!detailsSpot;
@@ -226,7 +229,7 @@ function App() {
       {/* The map is always mounted, under the list card, so switching views never rebuilds it */}
       <div className="shell-map">
         <MapView
-          spots={spots}
+          spots={mapSpots}
           selection={selection}
           centreEveryPick={!isWide}
           getClearArea={getClearArea}
@@ -261,7 +264,7 @@ function App() {
       {isPhone && (
         <div ref={floatRef} className="phone-float" inert={detent === "full"}>
           {searchBox}
-          <CategoryChips active={category} onChange={setCategory} />
+          <SpotFilterChips filters={filters} onChange={setFilters} spots={spots} floating />
         </div>
       )}
 
@@ -318,6 +321,8 @@ function App() {
           <div className="list-card-pane pane-table" inert={showMap}>
             <BrowseView
               spots={spots}
+              filters={filters}
+              onFiltersChange={setFilters}
               onSpotSelect={handleListSelect}
               onRated={reloadSpots}
               onNotice={setNotice}
@@ -339,8 +344,8 @@ function App() {
                 spots={spots}
                 onSpotSelect={handleListSelect}
                 selectedSpotId={selectedSpotId}
-                activeCategory={category}
-                onCategoryChange={setCategory}
+                filters={filters}
+                onFiltersChange={setFilters}
                 floatingChips={isPhone}
                 onAddClick={() => setIsAddOpen(true)}
                 query={query}
