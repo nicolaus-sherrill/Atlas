@@ -1,6 +1,6 @@
 {
   "name": "@workspace/atlas",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "private": true,
   "type": "module",
   "scripts": {
@@ -34,7 +34,7 @@
     "wrangler": "^4.141.0"
   },
   "dependencies": {
-    "@atmo-studio/design-system": "github:Atmo-Studio/atmo-design-system#cb240ed30657e25663699178b2ae2fee72837785",
+    "@atmo-studio/design-system": "github:Atmo-Studio/atmo-design-system#ca4d9ae2fbf73b8e840198ce6ddb76775b98d70d",
     "@maplibre/maplibre-gl-leaflet": "^0.1.4",
     "@phosphor-icons/core": "2.1.1",
     "@supabase/supabase-js": "^2.117.2",

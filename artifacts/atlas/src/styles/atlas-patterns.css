@@ -53,7 +53,7 @@
   --bubble-radius: var(--radius-xl);
   --bubble-point-radius: var(--radius-xs);
   --bubble-user-bg: var(--color-green-200);
-  --bubble-agent-bg: var(--color-neutral-100);
+  --bubble-agent-bg: var(--color-stone-100);
   --bubble-text: var(--color-text-primary);
 
   /* The text fields' edge (the search, the chat composer): a quiet hairline over the raised fill.
@@ -71,7 +71,7 @@
   --pin-civic: var(--color-blue-600);
   --pin-culture: var(--color-blue-900);
   --pin-outdoors: var(--color-green-600);
-  --pin-work-stay: var(--color-neutral-800);
+  --pin-work-stay: var(--color-stone-800);
   --pin-text: var(--color-green-50);
   --pin-stroke: var(--color-green-50);
   --pin-paper: var(--color-surface-card);

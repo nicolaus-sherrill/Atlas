@@ -7,7 +7,7 @@ import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
-const tokens = require('@atmo-studio/design-system/tokens/intent/atlas.light.tokens.json');
+const tokens = require('@atmo-studio/design-system/tokens/intent/atlas.tokens.json');
 const ROLES = tokens.$extensions['studio.atmo'].typeRoles;
 const SRC = fileURLToPath(new URL('../src/', import.meta.url));
 

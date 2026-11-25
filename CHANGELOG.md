@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.0.2: Colors from the Atmo design system
+
+### Changed
+- **Text and strong borders are one shade deeper green**, matching the Atmo design system
+- **The closed-hours dot is one shade darker in dark mode**, from the same design system
+
 ## v2.0.1: Admin polish
 
 ### Changed
