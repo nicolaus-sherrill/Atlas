@@ -134,9 +134,9 @@ html, body, #root {
 }
 
 .dropdown-trigger.active {
-  background: var(--color-selected-bg);
+  background: var(--color-selected-bg-accent);
   color: var(--color-selected-text);
-  border-color: var(--color-selected-bg);
+  border-color: var(--color-selected-bg-accent);
 }
 
 .dropdown-panel {
@@ -170,7 +170,7 @@ html, body, #root {
 }
 
 .dropdown-item input[type="checkbox"] {
-  accent-color: var(--color-selected-bg);
+  accent-color: var(--color-selected-bg-accent);
   width: 14px;
   height: 14px;
   cursor: pointer;
@@ -201,9 +201,9 @@ html, body, #root {
 }
 
 .browse-chip.active {
-  background: var(--color-selected-bg);
+  background: var(--color-selected-bg-accent);
   color: var(--color-selected-text);
-  border-color: var(--color-selected-bg);
+  border-color: var(--color-selected-bg-accent);
 }
 
 .browse-table-wrapper {
@@ -243,7 +243,7 @@ html, body, #root {
 }
 
 .browse-table tbody tr.browse-row:focus-visible {
-  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline: var(--focus-width) solid var(--color-focus-ring-accent);
   outline-offset: calc(var(--focus-width) * -1);
 }
 
@@ -463,7 +463,7 @@ html, body, #root {
   padding: 0 16px;
   border: 0;
   border-radius: var(--radius-sm);
-  background: var(--color-action-primary-bg);
+  background: var(--color-action-accent-bg);
   color: var(--color-action-primary-text);
   font-size: var(--type-body-s-font-size);
   letter-spacing: var(--type-body-s-letter-spacing);
@@ -627,7 +627,7 @@ html, body, #root {
 }
 
 .segmented button:focus-visible {
-  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline: var(--focus-width) solid var(--color-focus-ring-accent);
   outline-offset: var(--focus-offset);
 }
 
@@ -648,7 +648,7 @@ html, body, #root {
 }
 
 .shell-search:focus-within {
-  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline: var(--focus-width) solid var(--color-focus-ring-accent);
   outline-offset: var(--focus-offset);
 }
 
@@ -909,7 +909,7 @@ html, body, #root {
   color: var(--color-text-secondary);
 }
 
-.details-hours.open .hours-dot { background: var(--color-dot-open); }
+.details-hours.open .hours-dot { background: var(--color-dot-live); }
 .details-hours.closed .hours-dot { box-shadow: inset 0 0 0 1.5px var(--color-dot-closed); }
 
 .details-hours-state {
@@ -1367,7 +1367,7 @@ a.details-group-row:hover .details-group-link {
   gap: 6px;
 }
 
-.details-hours-state-line.open .hours-dot { background: var(--color-dot-open); }
+.details-hours-state-line.open .hours-dot { background: var(--color-dot-live); }
 .details-hours-state-line.closed .hours-dot { box-shadow: inset 0 0 0 1.5px var(--color-dot-closed); }
 
 .details-hours-detail {
@@ -1553,7 +1553,7 @@ a.details-group-row:hover .details-group-link {
 
 /* Where you are, from the locate button */
 .you-are-here {
-  fill: var(--color-map-marker);
+  fill: var(--color-map-marker-accent);
   fill-opacity: 1;
   stroke: var(--color-map-marker-ring);
 }
@@ -1694,9 +1694,9 @@ a.details-group-row:hover .details-group-link {
 }
 
 .category-chip.active {
-  background: var(--color-selected-bg);
+  background: var(--color-selected-bg-accent);
   color: var(--color-selected-text);
-  border-color: var(--color-selected-bg);
+  border-color: var(--color-selected-bg-accent);
 }
 
 /* The filters in the list: a labelled row for what a place is good for, one for its kind */
@@ -1752,7 +1752,7 @@ a.details-group-row:hover .details-group-link {
   padding: 10px 16px;
   border: none;
   border-radius: var(--radius-sm);
-  background: var(--color-action-primary-bg);
+  background: var(--color-action-accent-bg);
   color: var(--color-action-primary-text);
   font-size: var(--type-body-s-font-size);
   letter-spacing: var(--type-body-s-letter-spacing);
@@ -1809,11 +1809,11 @@ a.details-group-row:hover .details-group-link {
   inset-block: 0;
   inset-inline-start: 0;
   width: 3px;
-  background: var(--color-mark);
+  background: var(--color-mark-accent);
 }
 
 .list-row:focus-visible {
-  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline: var(--focus-width) solid var(--color-focus-ring-accent);
   outline-offset: calc(var(--focus-width) * -1);
 }
 
@@ -1968,7 +1968,7 @@ a.details-group-row:hover .details-group-link {
 }
 
 .theme-toggle:focus-visible {
-  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline: var(--focus-width) solid var(--color-focus-ring-accent);
   outline-offset: var(--focus-offset);
 }
 
@@ -1997,7 +1997,7 @@ a.details-group-row:hover .details-group-link {
 
 .form-group input:focus-visible,
 .form-group textarea:focus-visible {
-  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline: var(--focus-width) solid var(--color-focus-ring-accent);
   outline-offset: var(--focus-offset);
 }
 
@@ -2029,9 +2029,9 @@ a.details-group-row:hover .details-group-link {
 }
 
 .category-option.active {
-  background: var(--color-selected-bg);
+  background: var(--color-selected-bg-accent);
   color: var(--color-selected-text);
-  border-color: var(--color-selected-bg);
+  border-color: var(--color-selected-bg-accent);
 }
 
 .btn-submit {
@@ -2043,7 +2043,7 @@ a.details-group-row:hover .details-group-link {
   padding: 0 16px;
   border: none;
   border-radius: var(--radius-sm);
-  background: var(--color-action-primary-bg);
+  background: var(--color-action-accent-bg);
   color: var(--color-action-primary-text);
   font-size: var(--type-body-s-font-size);
   letter-spacing: var(--type-body-s-letter-spacing);
@@ -2162,9 +2162,9 @@ a.details-group-row:hover .details-group-link {
 }
 
 .tag-chip.active {
-  background: var(--color-selected-bg);
+  background: var(--color-selected-bg-accent);
   color: var(--color-selected-text);
-  border-color: var(--color-selected-bg);
+  border-color: var(--color-selected-bg-accent);
 }
 
 /* ========== BROWSE SUBMIT MODAL ========== */
@@ -2593,7 +2593,7 @@ a.details-group-row:hover .details-group-link {
 }
 
 .chat-composer:focus-within {
-  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline: var(--focus-width) solid var(--color-focus-ring-accent);
   outline-offset: var(--focus-offset);
 }
 
@@ -2624,7 +2624,7 @@ a.details-group-row:hover .details-group-link {
   height: 32px;
   border: 0;
   border-radius: var(--radius-sm);
-  background: var(--color-action-primary-bg);
+  background: var(--color-action-accent-bg);
   color: var(--color-action-primary-text);
   cursor: pointer;
 }
@@ -2833,7 +2833,7 @@ a.details-group-row:hover .details-group-link {
 }
 
 .atlas-marker:focus-visible .pin-pill {
-  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline: var(--focus-width) solid var(--color-focus-ring-accent);
   outline-offset: calc(var(--focus-offset) + 2px);
 }
 
@@ -2893,7 +2893,7 @@ a.details-group-row:hover .details-group-link {
 }
 
 .typical-day-btn.active {
-  background: var(--color-selected-bg);
+  background: var(--color-selected-bg-accent);
   color: var(--color-selected-text);
   font-weight: 600;
 }
@@ -3132,7 +3132,7 @@ a.details-group-row:hover .details-group-link {
     padding: 0 20px;
     border: 0;
     border-radius: var(--radius-full);
-    background: var(--color-action-primary-bg);
+    background: var(--color-action-accent-bg);
     color: var(--color-action-primary-text);
     box-shadow: var(--elevation-floating);
     font-family: inherit;
@@ -3453,7 +3453,7 @@ a.details-group-row:hover .details-group-link {
 }
 
 .admin-signin input:focus-visible {
-  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline: var(--focus-width) solid var(--color-focus-ring-accent);
   outline-offset: var(--focus-offset);
 }
 
@@ -3490,7 +3490,7 @@ a.details-group-row:hover .details-group-link {
 
 .admin-btn:focus-visible,
 .admin-tab:focus-visible {
-  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline: var(--focus-width) solid var(--color-focus-ring-accent);
   outline-offset: var(--focus-offset);
 }
 
@@ -3506,8 +3506,8 @@ a.details-group-row:hover .details-group-link {
 }
 
 .admin-btn-primary {
-  background: var(--color-action-primary-bg);
-  border-color: var(--color-action-primary-bg);
+  background: var(--color-action-accent-bg);
+  border-color: var(--color-action-accent-bg);
   color: var(--color-action-primary-text);
 }
 
@@ -3540,8 +3540,8 @@ a.details-group-row:hover .details-group-link {
 }
 
 .admin-tab.active {
-  background: var(--color-selected-bg);
-  border-color: var(--color-selected-bg);
+  background: var(--color-selected-bg-accent);
+  border-color: var(--color-selected-bg-accent);
   color: var(--color-selected-text);
 }
 
@@ -3854,7 +3854,7 @@ a.details-group-row:hover .details-group-link {
   width: 18px;
   height: 18px;
   margin: 0;
-  accent-color: var(--color-action-primary-bg);
+  accent-color: var(--color-action-accent-bg);
 }
 
 .form-group .report-reason.active {
@@ -3885,7 +3885,7 @@ a.details-group-row:hover .details-group-link {
 /* ========== FOCUS, LAYERING, MOTION ========== */
 
 :focus-visible {
-  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline: var(--focus-width) solid var(--color-focus-ring-accent);
   outline-offset: var(--focus-offset);
 }
 
